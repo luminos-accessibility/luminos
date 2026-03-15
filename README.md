@@ -2,7 +2,7 @@
 
 **See clearly. Hear everything.**
 
-[![Project Status: Research](https://img.shields.io/badge/status-research%20phase-yellow)](docs/PRODUCT_STRATEGY.md)
+[![Project Status: Research](https://img.shields.io/badge/status-research%20phase-yellow)](specs/PRODUCT_STRATEGY.md)
 [![License: TBD](https://img.shields.io/badge/license-TBD-lightgrey)](#license)
 [![Platforms: macOS, Windows, Linux](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux-blue)](#platform-support)
 
@@ -50,7 +50,7 @@ Development is organized into 5 phases:
 | **3: Advanced + AI** | Commercial feature parity | Font re-rendering, on-device OCR, AI image description, multi-monitor |
 | **4: Ecosystem** | Extensibility + enterprise | Plugin architecture, config sync, enterprise deployment, i18n |
 
-See [Product Strategy](docs/PRODUCT_STRATEGY.md) for the complete feature breakdown with priorities.
+See [Product Strategy](specs/PRODUCT_STRATEGY.md) for the complete feature breakdown with priorities.
 
 ## Architecture
 
@@ -105,7 +105,7 @@ Luminos uses a **dual-window design** to combine a rich settings UI with native 
 | Phonemizer | espeak-ng (subprocess) | GPL-3.0 (isolated) |
 | Audio output | cpal | Apache 2.0 |
 
-See [Tech Stack Evaluation](docs/TECH_STACK_EVALUATION.md) for the full validation report with version pinning, alternatives considered, and audit findings.
+See [Tech Stack Evaluation](specs/TECH_STACK_EVALUATION.md) for the full validation report with version pinning, alternatives considered, and audit findings.
 
 ## Platform Support
 
@@ -132,14 +132,15 @@ See [Tech Stack Evaluation](docs/TECH_STACK_EVALUATION.md) for the full validati
 luminos/
 ├── CLAUDE.md                  # AI agent instructions + coding conventions
 ├── README.md                  # This file
-├── docs/
+├── specs/
 │   ├── README.md              # Spec-driven development guide
-│   ├── PRODUCT_STRATEGY.md    # Product strategy & roadmap v1.1
+│   ├── PRODUCT_STRATEGY.md    # Product strategy & roadmap v1.2
 │   ├── TECH_STACK_EVALUATION.md  # Technology stack validation report
 │   └── NNN-story-name/        # Implementation specs (when development begins)
 │       ├── STORY.md            #   Requirements specification
 │       ├── DESIGN.md           #   Technical design document
 │       └── SUBTASKS.md         #   TDD task breakdown + progress tracking
+├── docs/                      # Product documentation + user manuals (future)
 └── src/                       # Application source (not yet created)
 ```
 
@@ -154,7 +155,7 @@ Luminos uses **spec-driven development** (SDD) with integrated **test-driven dev
 
 SUBTASKS.md serves as the **execution memory file** -- it tracks what was done, what's blocked, and what's next, enabling seamless handoffs between AI agents and developers across sessions.
 
-See [Spec-Driven Development Guide](docs/README.md) for the full methodology, templates, and governance rules.
+See [Spec-Driven Development Guide](specs/README.md) for the full methodology, templates, and governance rules.
 
 ### AI-Agent Driven Development
 
@@ -169,10 +170,10 @@ This project is designed to be built primarily with AI agent assistance:
 
 Luminos is in pre-development. The most valuable contributions right now are:
 
-- **Research** -- Validate assumptions in the [product strategy](docs/PRODUCT_STRATEGY.md), especially around AT user needs
-- **Design** -- Help define the first implementation stories using the [SDD methodology](docs/README.md)
+- **Research** -- Validate assumptions in the [product strategy](specs/PRODUCT_STRATEGY.md), especially around AT user needs
+- **Design** -- Help define the first implementation stories using the [SDD methodology](specs/README.md)
 - **Accessibility expertise** -- Review our approach from the perspective of low-vision users and AT specialists
-- **Technical review** -- Audit the [tech stack evaluation](docs/TECH_STACK_EVALUATION.md) against your platform experience
+- **Technical review** -- Audit the [tech stack evaluation](specs/TECH_STACK_EVALUATION.md) against your platform experience
 
 Once development begins, contributions will follow the spec-driven workflow: every feature starts as a specification before any code is written.
 
@@ -186,9 +187,9 @@ cd luminos
 
 # Read the project context
 cat CLAUDE.md                       # Architecture, coding rules, constraints
-cat docs/PRODUCT_STRATEGY.md        # What we're building and why
-cat docs/TECH_STACK_EVALUATION.md   # Validated technology choices
-cat docs/README.md                  # How we develop (SDD + TDD methodology)
+cat specs/PRODUCT_STRATEGY.md        # What we're building and why
+cat specs/TECH_STACK_EVALUATION.md   # Validated technology choices
+cat specs/README.md                  # How we develop (SDD + TDD methodology)
 ```
 
 ### Reporting Issues
@@ -218,7 +219,7 @@ From Latin *lumen* (light). Evokes illumination and clarity. Works globally -- p
 
 License is **to be determined**. The core application targets a permissive license (MIT or Apache 2.0). The espeak-ng phonemizer (GPL-3.0) is isolated as a subprocess to avoid license propagation. This strategy requires legal review before development begins.
 
-See the [Risk Register](docs/PRODUCT_STRATEGY.md#11-risk-register) for details on the licensing analysis.
+See the [Risk Register](specs/PRODUCT_STRATEGY.md#11-risk-register) for details on the licensing analysis.
 
 ## Acknowledgments
 

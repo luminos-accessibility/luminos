@@ -2,8 +2,8 @@
 
 **Open-Source Cross-Platform Screen Magnification + Text-to-Speech Accessibility Suite**
 
-**Document Status:** DRAFT v1.1 (post-audit revision)
-**Date:** 2026-03-13
+**Document Status:** DRAFT v1.2 (tech stack alignment)
+**Date:** 2026-03-14
 **Audience:** Founding team, contributors, design partners
 
 ---
@@ -275,9 +275,9 @@ AT specialists and rehabilitation counselors are key influencers -- marketing mu
 
 | Feature | Priority | Description |
 |---------|----------|-------------|
-| Screen capture engine | P0 | Platform-native screen capture via `scap` crate (ScreenCaptureKit on macOS) |
+| Screen capture engine | P0 | Platform-native screen capture via `xcap` crate (ScreenCaptureKit on macOS) |
 | GPU-accelerated magnification | P0 | `wgpu`-based rendering with bilinear interpolation, transparent overlay window |
-| Basic magnification modes | P0 | Full-screen zoom (2x-16x) with mouse-follow tracking |
+| Basic magnification modes | P0 | Full-screen zoom (1.5x-20x) with mouse-follow tracking |
 | Keyboard shortcuts | P0 | Zoom in/out, toggle, reset. Configurable. |
 | Smooth scrolling/panning | P0 | 60fps panning when cursor reaches magnification window edges |
 | Tauri control panel shell | P0 | Basic settings window (zoom level slider, mode selection) |
@@ -289,7 +289,7 @@ AT specialists and rehabilitation counselors are key influencers -- marketing mu
 
 | Feature | Priority | Description |
 |---------|----------|-------------|
-| Windows screen capture | P0 | Windows.Graphics.Capture via `windows-capture` crate |
+| Windows screen capture | P0 | Windows.Graphics.Capture via `windows-capture` crate (DXGI performance path); `xcap` as cross-platform primary with `windows-capture` as Windows-specific fallback for DXGI Desktop Duplication performance |
 | Lens magnification mode | P0 | Movable lens/loupe following cursor |
 | Docked magnification mode | P0 | Split-screen with magnified region top/bottom/left/right |
 | Cursor enhancement | P0 | Enlarged cursor, crosshairs, halo, locator animation |
@@ -306,7 +306,7 @@ AT specialists and rehabilitation counselors are key influencers -- marketing mu
 
 | Feature | Priority | Description |
 |---------|----------|-------------|
-| Piper TTS engine integration | P0 | Embedded neural TTS via ONNX Runtime, 10+ language voices |
+| Neural TTS engine integration (Kokoro via sherpa-onnx) | P0 | Embedded neural TTS via sherpa-onnx runtime (sherpa-rs Rust bindings), Kokoro-82M as primary model for near-commercial quality, Piper VITS models as language breadth fallback via same sherpa-onnx runtime; 8+ languages (Kokoro primary), 30+ via Piper fallback |
 | "Read what I see" mode | P0 | TTS reads text under magnification focus (via accessibility APIs) |
 | Selective TTS | P0 | Select text region, trigger speech ("read this paragraph") |
 | Platform accessibility API integration | P0 | AXUIElement (macOS), UI Automation (Windows), AT-SPI2 (Linux) |
@@ -385,10 +385,11 @@ AT specialists and rehabilitation counselors are key influencers -- marketing mu
 |  +----------------------------------------------------+  |
 |  |  Platform Abstraction Layer (Rust traits)           |  |
 |  |  - ScreenCapture trait                              |  |
-|  |  - AccessibilityReader trait                        |  |
-|  |  - OcrEngine trait                                  |  |
+|  |  - FocusTracker trait                               |  |
 |  |  - TtsEngine trait                                  |  |
-|  |  - MagnificationRenderer trait                      |  |
+|  |  - WindowManager trait                              |  |
+|  |  - InputMonitor trait                               |  |
+|  |  - AudioOutput trait                                |  |
 |  +----------------------------------------------------+  |
 |  |  Plugin System (trait objects + Tauri plugins)      |  |
 |  +----------------------------------------------------+  |
@@ -396,9 +397,8 @@ AT specialists and rehabilitation counselors are key influencers -- marketing mu
             |  Platform-specific backends  |
 +----------------------------------------------------------+
 |  macOS Backend    | Windows Backend    | Linux Backend    |
-|  ScreenCaptureKit | WGC / DXGI         | PipeWire / X11   |
+|  xcap (SCKit)     | xcap / win-capture | xcap (XCB)       |
 |  AXUIElement      | UI Automation      | AT-SPI2          |
-|  Vision OCR       | Windows.Ocr        | Tesseract        |
 |  AVSpeech         | SAPI               | speech-dispatcher|
 |  Metal (via wgpu) | DX12 (via wgpu)    | Vulkan (via wgpu)|
 +----------------------------------------------------------+
@@ -411,10 +411,13 @@ AT specialists and rehabilitation counselors are key influencers -- marketing mu
 | **Application framework** | Tauri 2.0 | Lightweight (2-15MB base vs Electron's 85-100MB+), 58% less RAM; note: final app will be larger due to bundled TTS models and OCR. Proven by screenpipe (~17K stars). |
 | **Backend language** | Rust | Memory-safe, zero-cost abstractions, compiler-as-reviewer for AI-generated code, excellent cross-platform crate ecosystem |
 | **Frontend** | TypeScript + React | Largest LLM training corpus, optimal for AI-assisted UI development, declarative component model |
-| **Screen capture** | `scap` crate | Unified API wrapping ScreenCaptureKit (macOS), WGC (Windows), PipeWire/X11 (Linux) |
+| **Screen capture** | `xcap` crate (v0.9.1, Apache 2.0) | Cross-platform capture with direct X11 support via XCB, ScreenCaptureKit on macOS, Windows 8.1+ |
 | **GPU rendering** | `wgpu` | Cross-platform (Metal/DX12/Vulkan), transparent overlay window, GPU-accelerated magnification transforms |
-| **TTS engine** | Piper TTS (ONNX) | Natural-sounding, CPU-efficient, **GPL-3.0 license** (due to espeak-ng dependency), 30+ languages, runs on Raspberry Pi |
+| **Window management** | `winit` (v0.30.13, Apache 2.0) | Cross-platform window creation for the magnification overlay: transparent, borderless, always-on-top windows integrated with wgpu via raw-window-handle |
+| **TTS engine** | Kokoro-82M via sherpa-onnx (`sherpa-rs` Rust bindings) | Near-commercial quality neural TTS, Apache 2.0 model weights, 8 languages; Piper VITS models available as fallback for 30+ languages via same runtime |
 | **TTS fallback** | Platform-native | AVSpeechSynthesizer (macOS), SAPI (Windows), speech-dispatcher (Linux) |
+| **Audio output** | `cpal` (Apache 2.0) | Cross-platform audio output for TTS playback |
+| **Clipboard** | `arboard` (MIT/Apache 2.0) | Cross-platform clipboard access for "read selected text" workflows |
 | **OCR** | Platform-native + Tesseract | macOS Vision, Windows OCR API, Tesseract 5.x as cross-platform fallback |
 | **Accessibility APIs** | Platform-native | AXUIElement (macOS), UI Automation (Windows), AT-SPI2 (Linux) |
 | **Text extraction** | Accessibility APIs + OCR (co-primary) | Accessibility APIs for apps with AT support; OCR for legacy/custom-rendered/Electron apps. Coverage is variable -- many apps expose minimal accessibility tree data. |
@@ -431,11 +434,11 @@ The application uses two window types:
 
 | Decision | Choice | Status |
 |----------|--------|--------|
-| Open-source license | TBD -- **GPL-3.0 likely required** if linking Piper (which is GPL due to espeak-ng); alternatives: run Piper as subprocess, or use Apache-2.0/MIT for core with GPL TTS module | **CRITICAL**: Requires immediate legal analysis |
+| Open-source license | TBD -- **GPL-3.0 risk stems from espeak-ng**, used for grapheme-to-phoneme conversion by both Kokoro and Piper TTS engines. Options: (a) license Luminos as GPL-3.0, (b) run espeak-ng as a separate subprocess to avoid linking (recommended short-term), (c) migrate to misaki transformer-based G2P to eliminate GPL dependency (medium-term), (d) use Apache-2.0/MIT for core with GPL espeak-ng shipped as a separate binary | **CRITICAL**: Requires immediate legal analysis |
 | Core language | Rust | Decided |
 | UI framework | Tauri 2.0 + React | Decided |
 | GPU rendering | wgpu (Vulkan/Metal/DX12) | Decided |
-| TTS engine | Piper TTS (primary), platform-native (fallback) | Decided |
+| TTS engine | Kokoro via sherpa-onnx (primary), Piper VITS via sherpa-onnx (language fallback), platform-native (system fallback) | Decided |
 | Font re-rendering approach | TBD -- research required | Phase 3 |
 | AI inference | Local-first, cloud-optional | Decided |
 | Plugin architecture | Rust traits (backend) + Tauri plugins (frontend) | Decided |
@@ -445,17 +448,19 @@ The application uses two window types:
 
 | Crate | Purpose | Maturity |
 |-------|---------|----------|
-| `scap` | Unified screen capture | Active, v0.1.0-beta.1 on GitHub (v0.0.8 on crates.io); docs.rs build failed on v0.0.8 -- monitor closely |
+| `xcap` | Cross-platform screen capture (v0.9.1, Apache 2.0) | Stable, 85K monthly downloads |
 | `screencapturekit` | macOS ScreenCaptureKit bindings | Active, mature |
-| `windows-capture` | Windows.Graphics.Capture bindings | Active, mature |
+| `windows-capture` | Windows.Graphics.Capture / DXGI bindings | Active, mature |
 | `wgpu` | GPU rendering (Vulkan/Metal/DX12) | Mature, widely used |
-| `ort` | ONNX Runtime bindings (for Piper TTS) | Active, mature |
+| `winit` | Window creation for magnification overlay (v0.30.13, Apache 2.0) | Mature, 34.3M total downloads |
+| `sherpa-rs` | TTS runtime (Kokoro, Piper via sherpa-onnx) (v0.6.8, MIT) | Active |
+| `cpal` | Cross-platform audio output (Apache 2.0) | Mature |
+| `arboard` | Cross-platform clipboard (MIT/Apache 2.0) | Stable |
 | `objc2` | macOS Objective-C bindings | Mature |
 | `windows` | Windows API bindings (UIA, OCR, etc.) | Mature (Microsoft-maintained) |
 | `atspi` | AT-SPI2 D-Bus bindings (Linux) | Active |
 | `leptess` | Tesseract OCR bindings | Stable but potentially unmaintained (~3 years since last update); evaluate `tesseract-rs` as alternative |
 | `tauri` | Application framework | Mature, v2 stable |
-| `winit` | Window creation | Mature |
 
 ### 8.6 Performance Requirements
 
@@ -484,7 +489,7 @@ The application uses two window types:
 
 **Linux:**
 - Wayland: must use PipeWire + XDG Desktop Portal (user consent dialog)
-- X11: XComposite + XGetImage fallback
+- X11: xcap via XCB (xcb_get_image); XShm optimization planned for Phase 1
 - AT-SPI2 works over D-Bus (unaffected by Wayland transition)
 - Must work on GNOME, KDE, and standalone WMs
 - Package formats: deb, rpm, snap, AppImage, Flatpak
@@ -589,13 +594,13 @@ This project is designed to be built primarily with AI agent assistance. Technol
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
-| **Piper TTS is GPL-3.0 -- constrains project license** | **Certain** | **Critical** | Piper moved to GPL (OHF-Voice/piper1-gpl) due to espeak-ng. Options: (a) license Luminos as GPL-3.0, (b) run Piper as a separate subprocess to avoid linking, (c) use platform-native TTS only and drop Piper. **Requires immediate legal counsel.** |
+| **espeak-ng GPL-3.0 constrains project license** | **Certain** | **Critical** | espeak-ng (GPL-3.0) is used for grapheme-to-phoneme (G2P) conversion by all major offline TTS engines, including both Kokoro and Piper. The original primary TTS (Piper) was archived Oct 2025 and replaced by Kokoro-82M via sherpa-onnx, but the GPL risk persists because Kokoro also depends on espeak-ng for phonemization. Options: (a) license Luminos as GPL-3.0, (b) run espeak-ng as a separate subprocess to avoid linking (recommended short-term -- plain text in, phoneme strings out; ship espeak-ng as separate binary with GPL-3.0 notice), (c) migrate to misaki transformer-based G2P to eliminate GPL dependency entirely (medium-term -- already functional for English, Japanese, Korean, Chinese), (d) platform-native TTS only (eliminates GPL but reduces quality and offline consistency). **Requires immediate legal counsel** to review subprocess isolation IPC protocol. |
 | Font re-rendering is extremely hard | High | High | ZoomText's xFont and SuperNova's TrueFonts represent decades of proprietary engineering. Requires deep integration with DirectWrite (Win), Core Text (macOS), FreeType (Linux). Phase 3 timing allows research, but this may define whether Luminos can compete above ~4x zoom. Consider as potential multi-phase effort. |
 | Wayland consent dialog chicken-and-egg | Certain | High | XDG Portal screen capture on Wayland requires a system dialog to grant permission. Low-vision users may need magnification to read the permission dialog. Mitigate with: session restoration tokens, clear documentation, OS-level accessibility for the dialog itself. |
 | Tauri WebkitGTK rendering issues on Linux | High | Medium | Control panel uses simple forms; magnification overlay bypasses webview; CEF alternative in development |
 | Platform API deprecation (especially macOS annual cycles) | Medium | High | Abstract behind traits; monitor deprecation cycles; budget for annual platform adaptation |
-| Piper TTS quality insufficient for some languages | Medium | Low | Fallback to platform-native TTS; espeak-ng for unsupported languages |
-| `scap` crate immaturity (beta) | Medium | Medium | v0.1.0-beta.1 on GitHub, docs.rs build failed. Maintain fallback to platform-specific crates (`screencapturekit`, `windows-capture`); contribute upstream fixes |
+| Kokoro/Piper TTS quality insufficient for some languages | Medium | Low | Kokoro covers 8 languages at near-commercial quality; Piper VITS models extend coverage to 30+ via same sherpa-onnx runtime. Fallback to platform-native TTS for unsupported languages. |
+| **xcap X11 capture performance at low zoom levels** | **Medium** | **Medium** | xcap uses non-SHM X11 capture (xcb_get_image path), which requires a full X server round-trip per capture. Adequate for small source regions at high zoom, but may exceed frame budget at low zoom levels (1.5-3x) with large capture areas on high-resolution displays. Mitigation: implement direct x11rb-based capture backend with XShm support as Phase 1 optimization. OBS achieves 60fps+ X11 capture via XShm. |
 | Accessibility API coverage gaps | Medium | Medium | Many apps (legacy Win32, Electron, games, CAD, PDF viewers) expose minimal accessibility tree. OCR must be treated as co-primary strategy, not just fallback. |
 | Low adoption despite technical quality | Medium | High | Engage AT specialists and rehab centers early; partner with NVDA community; attend CSUN/ATIA |
 | Contributor burnout (common in accessibility OSS) | Medium | High | Establish sustainable governance; seek grant funding (Sovereign Tech Fund, Mozilla MOSS) |
@@ -665,8 +670,11 @@ To be defined in a separate governance document. Options under consideration:
 
 ### Technical References
 19. screenpipe project. https://github.com/screenpipe/screenpipe (Tauri+Rust architecture validation)
-20. scap crate. https://github.com/CapSoftware/scap
-21. Piper TTS. https://github.com/rhasspy/piper
+20. xcap crate. https://github.com/nashaofu/xcap
+21. Piper TTS (archived Oct 2025). https://github.com/rhasspy/piper | GPL fork: https://github.com/OHF-Voice/piper1-gpl
+21b. Kokoro TTS model. https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX (Apache 2.0)
+21c. sherpa-onnx. https://github.com/k2-fsa/sherpa-onnx (Apache 2.0, 10.8K stars)
+21d. sherpa-rs. https://crates.io/crates/sherpa-rs (v0.6.8, MIT)
 22. wgpu. https://github.com/gfx-rs/wgpu
 23. Apple ScreenCaptureKit. https://developer.apple.com/documentation/screencapturekit/
 24. Microsoft Windows.Graphics.Capture. https://learn.microsoft.com/en-us/uwp/api/windows.graphics.capture
@@ -683,4 +691,4 @@ To be defined in a separate governance document. Options under consideration:
 
 ---
 
-*This document synthesizes research from four parallel analysis tracks: competitive tools deep-dive (18 tools analyzed), technical feasibility assessment, market and regulatory analysis, and product strategy development. All claims are sourced or explicitly marked as hypotheses. Document has been reviewed by technical audit (see AUDIT_REPORT.md) and corrected accordingly.*
+*This document synthesizes research from four parallel analysis tracks: competitive tools deep-dive (18 tools analyzed), technical feasibility assessment, market and regulatory analysis, and product strategy development. All claims are sourced or explicitly marked as hypotheses. Document has been reviewed by technical evaluation (see TECH_STACK_EVALUATION.md) and corrected accordingly.*

@@ -8,8 +8,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Structure
 
-- `PRODUCT_STRATEGY.md` — Product strategy & roadmap v1.1 (post-audit). The canonical product definition.
-- `TECH_STACK_EVALUATION.md` — Technology stack validation report. Contains the **revised** recommended stack (supersedes some choices in the strategy doc).
+- `specs/` — Spec-driven development artifacts (strategies, designs, implementation stories)
+  - `PRODUCT_STRATEGY.md` — Product strategy & roadmap v1.2. The canonical product definition.
+  - `TECH_STACK_EVALUATION.md` — Technology stack validation report. Contains the **revised** recommended stack (supersedes some choices in the strategy doc).
+  - `README.md` — Spec-driven development (SDD) methodology guide with templates
+  - `NNN-story-name/` — Implementation story folders (STORY.md, DESIGN.md, SUBTASKS.md)
+- `docs/` — Product documentation and user manuals (created when development begins)
 - `.claude/agent-memory/` — Persistent memory for specialized agents (technical-auditor, technical-research-analyst)
 
 ## Architecture (Decided)
@@ -40,7 +44,7 @@ macOS first → Windows → Linux (X11 first, Wayland later)
 
 ## Critical Legal Issue
 
-Piper TTS is GPL-3.0 (via espeak-ng dependency). The project's licensing strategy depends on subprocess isolation of espeak-ng. This requires legal review before any TTS integration work.
+espeak-ng (GPL-3.0) is used for phonemization by both Kokoro and Piper TTS engines. The project's licensing strategy depends on subprocess isolation of espeak-ng (separate binary, simple text-in/phonemes-out IPC). Medium-term: evaluate misaki transformer-based G2P as a GPL-free alternative. Requires legal review before any TTS integration work.
 
 ## Key Constraints & Performance Targets
 
@@ -56,6 +60,21 @@ Piper TTS is GPL-3.0 (via espeak-ng dependency). The project's licensing strateg
 - **AI-agent driven development** — TypeScript for AI-friendly UI generation, Rust compiler as automated reviewer for AI-generated code
 - **Trait-based platform abstraction** — `ScreenCapture`, `FocusTracker`, `TtsEngine`, `WindowManager`, `InputMonitor`, `AudioOutput` traits with per-platform backends
 - **Local-first, privacy by design** — All AI inference on-device, no telemetry by default
+
+## Development Methodology
+
+**Spec-Driven Development (SDD)** with integrated TDD. Every feature follows:
+1. **STORY.md** — Requirements with Given-When-Then acceptance criteria
+2. **DESIGN.md** — Architecture, API design, testing strategy mapped to every AC
+3. **SUBTASKS.md** — TDD task breakdown (red-green-refactor) + progress tracking (the execution memory file)
+
+Stories live in `specs/NNN-story-name/` folders. See `specs/README.md` for full methodology, templates, and governance rules.
+
+**Key SDD rules:**
+- No implementation without an approved STORY.md and DESIGN.md
+- Every test traces to an acceptance criterion
+- SUBTASKS.md completion notes are mandatory (they are the memory for agent handoffs)
+- Stories target 5-15 subtasks; split if exceeding 20
 
 ## Rust Coding Rules
 

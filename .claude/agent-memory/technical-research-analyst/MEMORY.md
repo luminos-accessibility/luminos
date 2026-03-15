@@ -53,9 +53,9 @@
 - Accessibility tool pricing: https://store.vispero.com/
 
 ## Luminos Project Files
-- PRODUCT_STRATEGY.md — Main strategy document v1.1
-- TECH_STACK_EVALUATION.md — Technology stack validation report (March 2026, post-audit revision)
-- TECH_STACK_AUDIT_REPORT.md — Independent audit of the tech stack evaluation
+- `specs/PRODUCT_STRATEGY.md` — Main strategy document v1.2 (tech stack alignment, 2026-03-14)
+- `specs/TECH_STACK_EVALUATION.md` — Technology stack validation report (March 2026, post-audit revision)
+- `specs/TECH_STACK_AUDIT_REPORT.md` — Independent audit of the tech stack evaluation
 
 ## Audit Lessons Learned
 - Always verify crate versions directly against crates.io — versions in search results/lib.rs can be stale

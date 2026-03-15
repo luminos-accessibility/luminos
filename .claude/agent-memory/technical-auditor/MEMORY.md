@@ -1,11 +1,11 @@
 # Technical Auditor Memory
 
-## Project: magnifier-research (Luminos)
-- Product strategy doc at `/Users/oliveren/Development/magnifier-research/docs/PRODUCT_STRATEGY.md`
-- Tech stack eval at `/Users/oliveren/Development/magnifier-research/docs/TECH_STACK_EVALUATION.md`
-- SDD guide at `/Users/oliveren/Development/magnifier-research/docs/README.md`
-- README audit at `/Users/oliveren/Development/magnifier-research/README_AUDIT_REPORT.md`
-- NOTE: CLAUDE.md Repository Structure section lists files at root, but they are actually in `docs/`
+## Project: Luminos
+- Product strategy doc at `/Users/oliveren/Development/luminos/specs/PRODUCT_STRATEGY.md`
+- Tech stack eval at `/Users/oliveren/Development/luminos/specs/TECH_STACK_EVALUATION.md`
+- SDD guide at `/Users/oliveren/Development/luminos/specs/README.md`
+- README audit at `/Users/oliveren/Development/luminos/README_AUDIT_REPORT.md`
+- NOTE: CLAUDE.md Repository Structure section was updated 2026-03-14 to correctly reference `specs/` directory
 
 ## Key Verified Facts (Accessibility Market)
 - WHO: 2.2 billion people with vision impairment globally (fact sheet, current as of Feb 2026 update)
@@ -80,7 +80,7 @@
 - Workflow: Specify -> Design -> Implement (TDD) -> Review & Close
 - GitHub spec-kit & Kiro have similar but not identical artifact naming
 - ThoughtWorks Tech Radar Vol 33: SDD is a key 2025 practice
-- NOTE: `docs/SDD_AUDIT_REPORT.md` referenced in agent memory but file does NOT exist in repo
+- NOTE: `specs/SDD_AUDIT_REPORT.md` referenced in agent memory but file does NOT exist in repo
 
 ## Audit Patterns
 - Market size reports vary wildly across research firms; always cross-reference

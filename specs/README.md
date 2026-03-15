@@ -20,11 +20,13 @@ SDD complements Test-Driven Development (TDD) -- specs define _what_ the system 
 
 ## Directory Structure
 
-Each story gets its own folder under `docs/`. Stories are numbered sequentially with a short kebab-case descriptor:
+Each story gets its own folder under `specs/`. Stories are numbered sequentially with a short kebab-case descriptor:
 
 ```
-docs/
+specs/
   README.md                          # This file
+  PRODUCT_STRATEGY.md                # Product strategy & roadmap
+  TECH_STACK_EVALUATION.md           # Technology stack validation
   001-screen-capture-foundation/
     STORY.md                         # Requirements specification
     DESIGN.md                        # Technical design document
