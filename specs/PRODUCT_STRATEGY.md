@@ -2,8 +2,8 @@
 
 **Open-Source Cross-Platform Screen Magnification + Text-to-Speech Accessibility Suite**
 
-**Document Status:** DRAFT v1.2 (tech stack alignment)
-**Date:** 2026-03-14
+**Document Status:** DRAFT v1.3 (GPLv3 licensing + Linux-first pivot)
+**Date:** 2026-03-15
 **Audience:** Founding team, contributors, design partners
 
 ---
@@ -21,8 +21,9 @@
 9. [Development Methodology](#9-development-methodology)
 10. [Success Metrics](#10-success-metrics)
 11. [Risk Register](#11-risk-register)
-12. [Sustainability & Governance](#12-sustainability--governance-preliminary)
+12. [Sustainability & Governance](#12-sustainability--governance)
 13. [References](#13-references)
+14. [Version History](#14-version-history)
 
 ---
 
@@ -34,7 +35,7 @@
 
 ### The Solution
 
-**Luminos** is an open-source, cross-platform (Windows, macOS, Linux) accessibility suite that unifies GPU-accelerated screen magnification with neural text-to-speech in a single application. It targets the massive underserved population of low-vision users who need more than built-in OS tools but cannot access or afford commercial alternatives like ZoomText ($905+ perpetual) or Fusion ($2,309+ perpetual).
+**Luminos** is a GPLv3-licensed, cross-platform (Linux, macOS, Windows, OpenBSD) accessibility suite that unifies GPU-accelerated screen magnification with neural text-to-speech in a single application. Development starts on **Linux**, the platform with zero professional-grade magnification tools, before expanding to macOS, OpenBSD, and Windows. It targets the massive underserved population of low-vision users who need more than built-in OS tools but cannot access or afford commercial alternatives like ZoomText ($905+ perpetual) or Fusion ($2,309+ perpetual).
 
 ### Why Now
 
@@ -156,7 +157,7 @@ AT specialists and rehabilitation counselors are key influencers -- marketing mu
 | macOS Zoom/VoiceOver | No | Yes | No |
 | Windows Magnifier | Yes | No | No |
 | VMG | Yes | Dated | Yes |
-| **Luminos (target)** | **Yes** | **Yes** | **Yes** |
+| **Luminos (target)** | **Yes** | **Yes** | **Yes (+OpenBSD)** |
 
 ### 3.4 Pricing Comparison
 
@@ -218,7 +219,7 @@ AT specialists and rehabilitation counselors are key influencers -- marketing mu
 | # | Value Proposition | vs. Built-in OS Tools | vs. Commercial (ZoomText/JAWS) | vs. Open Source (NVDA/Orca) |
 |---|------------------|-----------------------|-------------------------------|---------------------------|
 | 1 | **Unified by design** -- Magnification + TTS in one tool, sharing context | Separate tools, no integration | Fusion costs $2,309+; Windows only | NVDA: no magnification; Orca: no magnification |
-| 2 | **Cross-platform reality** -- Same tool, same keybindings, Windows/macOS/Linux | Single OS each | Windows only | NVDA: Windows only; Orca: Linux only |
+| 2 | **Cross-platform reality** -- Same tool, same keybindings, Linux/macOS/Windows/OpenBSD | Single OS each | Windows only | NVDA: Windows only; Orca: Linux only |
 | 3 | **AI-native** -- Intelligent tracking, neural TTS, on-device OCR, scene description | No AI features | Emerging (JAWS PictureSmart) | No AI features |
 | 4 | **Zero cost, full capability** -- No "community edition" with missing features | Free but limited | $362-$3,262 | Free but single-function |
 | 5 | **Platform, not product** -- Plugin architecture, extensible, community-driven | Closed | Closed | NVDA add-ons (screen reader only) |
@@ -271,61 +272,62 @@ AT specialists and rehabilitation counselors are key influencers -- marketing mu
 
 ### 7.1 Phase 0: Foundation (Months 1-3)
 
-**Goal:** Core magnification engine working on one platform (macOS), proving the architecture.
+**Goal:** Core magnification engine working on **Linux X11**, proving the architecture on the most underserved platform.
 
 | Feature | Priority | Description |
 |---------|----------|-------------|
-| Screen capture engine | P0 | Platform-native screen capture via `xcap` crate (ScreenCaptureKit on macOS) |
-| GPU-accelerated magnification | P0 | `wgpu`-based rendering with bilinear interpolation, transparent overlay window |
+| Screen capture engine | P0 | Screen capture via `xcap` crate (XCB path on Linux X11) |
+| GPU-accelerated magnification | P0 | `wgpu`-based rendering (Vulkan backend) with bilinear interpolation, transparent overlay window |
 | Basic magnification modes | P0 | Full-screen zoom (1.5x-20x) with mouse-follow tracking |
 | Keyboard shortcuts | P0 | Zoom in/out, toggle, reset. Configurable. |
 | Smooth scrolling/panning | P0 | 60fps panning when cursor reaches magnification window edges |
 | Tauri control panel shell | P0 | Basic settings window (zoom level slider, mode selection) |
-| CI/CD pipeline | P0 | Build + test on macOS, automated releases |
+| CI/CD pipeline | P0 | Build + test on Linux, automated releases |
 
 ### 7.2 Phase 1: Core Magnification (Months 4-6)
 
-**Goal:** Full magnification feature set on macOS + Windows. Functional baseline.
+**Goal:** Full magnification feature set on **Linux X11 + Wayland** support. Functional baseline on the Linux platform.
 
 | Feature | Priority | Description |
 |---------|----------|-------------|
-| Windows screen capture | P0 | Windows.Graphics.Capture via `windows-capture` crate (DXGI performance path); `xcap` as cross-platform primary with `windows-capture` as Windows-specific fallback for DXGI Desktop Duplication performance |
+| Wayland screen capture | P0 | PipeWire + XDG Desktop Portal for Wayland compositors (GNOME, KDE, Sway) |
 | Lens magnification mode | P0 | Movable lens/loupe following cursor |
 | Docked magnification mode | P0 | Split-screen with magnified region top/bottom/left/right |
 | Cursor enhancement | P0 | Enlarged cursor, crosshairs, halo, locator animation |
-| Focus tracking | P0 | Magnification follows keyboard focus, text caret, mouse pointer |
+| Focus tracking | P0 | Magnification follows keyboard focus, text caret, mouse pointer (AT-SPI2) |
 | Color inversion / filters | P1 | Full inversion, smart inversion, custom color schemes, brightness/contrast |
 | High-contrast color schemes | P1 | Preset schemes (white-on-black, yellow-on-blue, green-on-black) |
 | Smooth text rendering | P1 | Anti-aliased text at high magnification (shader-based smoothing) |
 | Settings persistence | P1 | Save/load user configuration profiles |
-| Installer packages | P1 | macOS .dmg, Windows MSI |
+| Linux packages | P1 | deb, rpm, snap, AppImage, Flatpak |
+| XShm capture optimization | P1 | Direct x11rb-based capture with XShm for improved X11 performance at low zoom levels |
 
-### 7.3 Phase 2: TTS Integration (Months 7-9)
+### 7.3 Phase 2: TTS + Cross-Platform (Months 7-9)
 
-**Goal:** Integrated text-to-speech working alongside magnification. Linux support.
+**Goal:** Integrated text-to-speech on Linux + **macOS support**. Port magnification engine to macOS.
 
 | Feature | Priority | Description |
 |---------|----------|-------------|
 | Neural TTS engine integration (Kokoro via sherpa-onnx) | P0 | Embedded neural TTS via sherpa-onnx runtime (sherpa-rs Rust bindings), Kokoro-82M as primary model for near-commercial quality, Piper VITS models as language breadth fallback via same sherpa-onnx runtime; 8+ languages (Kokoro primary), 30+ via Piper fallback |
 | "Read what I see" mode | P0 | TTS reads text under magnification focus (via accessibility APIs) |
 | Selective TTS | P0 | Select text region, trigger speech ("read this paragraph") |
-| Platform accessibility API integration | P0 | AXUIElement (macOS), UI Automation (Windows), AT-SPI2 (Linux) |
-| Linux screen capture | P0 | PipeWire + XDG Portal (Wayland), X11 fallback |
-| Linux full support | P0 | All Phase 0-1 features on Linux |
+| macOS screen capture | P0 | ScreenCaptureKit via `xcap` / `screencapturekit` crate |
+| macOS full support | P0 | Port all Phase 0-1 magnification features to macOS (Metal via wgpu, AXUIElement focus tracking) |
 | Reading speed / voice control | P1 | Adjustable rate, pitch, voice selection |
-| Platform-native TTS fallback | P1 | AVSpeech (macOS), SAPI (Windows), speech-dispatcher (Linux) |
+| Platform-native TTS fallback | P1 | AVSpeech (macOS), speech-dispatcher (Linux) |
 | Read aloud with word highlighting | P1 | Synchronized visual highlight of current word being spoken |
-| Linux packages | P1 | deb, rpm, snap, AppImage, Flatpak |
+| macOS installer | P1 | macOS .dmg package |
 
 ### 7.4 Phase 3: Advanced Magnification + AI (Months 10-14)
 
-**Goal:** Feature parity with mid-tier commercial tools. AI-powered capabilities.
+**Goal:** Feature parity with mid-tier commercial tools. AI-powered capabilities. **OpenBSD support**.
 
 | Feature | Priority | Description |
 |---------|----------|-------------|
 | Font re-rendering engine | P0 | Re-render text at magnified size using system fonts (like xFont/TrueFonts). Key competitive differentiator. |
-| On-device OCR | P0 | Vision framework (macOS), Windows OCR API, Tesseract (Linux). For apps without accessibility API support. |
+| On-device OCR | P0 | Vision framework (macOS), Tesseract (Linux/OpenBSD). For apps without accessibility API support. |
 | OCR-to-TTS pipeline | P0 | Automatic text extraction from images/scanned docs, fed to TTS |
+| OpenBSD X11 support | P1 | Port Linux X11 backend to OpenBSD (X11/XCB capture, Vulkan via wgpu). Incremental -- most X11 code shared with Linux. |
 | Multi-monitor support | P1 | Independent magnification per monitor |
 | AI image description | P1 | On-device model describes images/charts/diagrams via TTS |
 | Split-screen view | P1 | Original + magnified side by side |
@@ -336,13 +338,16 @@ AT specialists and rehabilitation counselors are key influencers -- marketing mu
 
 ### 7.5 Phase 4: Platform & Ecosystem (Months 15-20)
 
-**Goal:** Plugin ecosystem, enterprise features, community growth.
+**Goal:** **Windows support** + plugin ecosystem + enterprise features. Windows is last because it already has 5+ magnification options (ZoomText, SuperNova, Fusion, Windows Magnifier, VMG).
 
 | Feature | Priority | Description |
 |---------|----------|-------------|
+| Windows screen capture | P0 | Windows.Graphics.Capture via `windows-capture` crate (DXGI performance path); `xcap` as cross-platform primary with `windows-capture` as Windows-specific fallback for DXGI Desktop Duplication performance |
+| Windows full support | P0 | Port all magnification + TTS features to Windows (DX12 via wgpu, UI Automation, SAPI fallback). Must coexist with NVDA/JAWS. |
+| Windows installer | P0 | MSI installer with GPO support for enterprise deployment |
 | Plugin architecture | P0 | Rust trait-based backend plugins + Tauri frontend extensions |
-| Configuration sync | P1 | Cross-device settings sync via file export/import (Git-friendly JSON) |
 | Enterprise deployment | P1 | GPO/MDM configuration, silent install, centralized config |
+| Configuration sync | P1 | Cross-device settings sync via file export/import (Git-friendly JSON) |
 | USB portable mode | P2 | Run from USB drive without installation. Note: SuperNova discontinued this due to Windows 11 security restrictions -- technical feasibility must be validated. |
 | Braille display output | P2 | Basic braille support via platform APIs |
 | Application-specific profiles | P2 | Auto-switch magnification settings per application |
@@ -396,11 +401,11 @@ AT specialists and rehabilitation counselors are key influencers -- marketing mu
 +----------------------------------------------------------+
             |  Platform-specific backends  |
 +----------------------------------------------------------+
-|  macOS Backend    | Windows Backend    | Linux Backend    |
-|  xcap (SCKit)     | xcap / win-capture | xcap (XCB)       |
-|  AXUIElement      | UI Automation      | AT-SPI2          |
-|  AVSpeech         | SAPI               | speech-dispatcher|
-|  Metal (via wgpu) | DX12 (via wgpu)    | Vulkan (via wgpu)|
+|  Linux Backend    | macOS Backend      | Windows Backend  |
+|  xcap (XCB)       | xcap (SCKit)       | xcap / win-capture|
+|  AT-SPI2          | AXUIElement        | UI Automation    |
+|  speech-dispatcher| AVSpeech           | SAPI             |
+|  Vulkan (via wgpu)| Metal (via wgpu)   | DX12 (via wgpu)  |
 +----------------------------------------------------------+
 ```
 
@@ -411,7 +416,7 @@ AT specialists and rehabilitation counselors are key influencers -- marketing mu
 | **Application framework** | Tauri 2.0 | Lightweight (2-15MB base vs Electron's 85-100MB+), 58% less RAM; note: final app will be larger due to bundled TTS models and OCR. Proven by screenpipe (~17K stars). |
 | **Backend language** | Rust | Memory-safe, zero-cost abstractions, compiler-as-reviewer for AI-generated code, excellent cross-platform crate ecosystem |
 | **Frontend** | TypeScript + React | Largest LLM training corpus, optimal for AI-assisted UI development, declarative component model |
-| **Screen capture** | `xcap` crate (v0.9.1, Apache 2.0) | Cross-platform capture with direct X11 support via XCB, ScreenCaptureKit on macOS, Windows 8.1+ |
+| **Screen capture** | `xcap` crate (v0.9.1, Apache 2.0) | Cross-platform capture starting with Linux X11 via XCB (simplest path -- no permissions/entitlements), then ScreenCaptureKit on macOS, Windows 8.1+ |
 | **GPU rendering** | `wgpu` | Cross-platform (Metal/DX12/Vulkan), transparent overlay window, GPU-accelerated magnification transforms |
 | **Window management** | `winit` (v0.30.13, Apache 2.0) | Cross-platform window creation for the magnification overlay: transparent, borderless, always-on-top windows integrated with wgpu via raw-window-handle |
 | **TTS engine** | Kokoro-82M via sherpa-onnx (`sherpa-rs` Rust bindings) | Near-commercial quality neural TTS, Apache 2.0 model weights, 8 languages; Piper VITS models available as fallback for 30+ languages via same runtime |
@@ -434,7 +439,7 @@ The application uses two window types:
 
 | Decision | Choice | Status |
 |----------|--------|--------|
-| Open-source license | TBD -- **GPL-3.0 risk stems from espeak-ng**, used for grapheme-to-phoneme conversion by both Kokoro and Piper TTS engines. Options: (a) license Luminos as GPL-3.0, (b) run espeak-ng as a separate subprocess to avoid linking (recommended short-term), (c) migrate to misaki transformer-based G2P to eliminate GPL dependency (medium-term), (d) use Apache-2.0/MIT for core with GPL espeak-ng shipped as a separate binary | **CRITICAL**: Requires immediate legal analysis |
+| Open-source license | **GPLv3** | Decided. Rationale: (a) espeak-ng dependency (GPL-3.0, used for G2P by Kokoro and Piper) makes GPL propagation unavoidable without complex subprocess isolation -- adopting GPLv3 eliminates this architectural constraint entirely, (b) copyleft prevents proprietary competitors from absorbing the codebase without contributing back, (c) aligns with NVDA/GNOME/Linux community values and culture, (d) simplifies architecture by not requiring subprocess isolation for legal reasons (though subprocess isolation may still be preferred for crash isolation engineering reasons). Note: espeak-ng may still be run as a subprocess for crash isolation, but this is an engineering decision, not a legal requirement. |
 | Core language | Rust | Decided |
 | UI framework | Tauri 2.0 + React | Decided |
 | GPU rendering | wgpu (Vulkan/Metal/DX12) | Decided |
@@ -442,25 +447,25 @@ The application uses two window types:
 | Font re-rendering approach | TBD -- research required | Phase 3 |
 | AI inference | Local-first, cloud-optional | Decided |
 | Plugin architecture | Rust traits (backend) + Tauri plugins (frontend) | Decided |
-| Governance model | TBD (BDFL, Foundation, Core team) | Requires separate governance document |
+| Governance model | BDFL -> Non-profit Foundation (see Section 12.2) | Decided: BDFL in Year 1, transition to registered non-profit foundation in Year 2+ |
 
 ### 8.5 Key Rust Crates
 
 | Crate | Purpose | Maturity |
 |-------|---------|----------|
 | `xcap` | Cross-platform screen capture (v0.9.1, Apache 2.0) | Stable, 85K monthly downloads |
-| `screencapturekit` | macOS ScreenCaptureKit bindings | Active, mature |
-| `windows-capture` | Windows.Graphics.Capture / DXGI bindings | Active, mature |
 | `wgpu` | GPU rendering (Vulkan/Metal/DX12) | Mature, widely used |
 | `winit` | Window creation for magnification overlay (v0.30.13, Apache 2.0) | Mature, 34.3M total downloads |
 | `sherpa-rs` | TTS runtime (Kokoro, Piper via sherpa-onnx) (v0.6.8, MIT) | Active |
 | `cpal` | Cross-platform audio output (Apache 2.0) | Mature |
 | `arboard` | Cross-platform clipboard (MIT/Apache 2.0) | Stable |
-| `objc2` | macOS Objective-C bindings | Mature |
-| `windows` | Windows API bindings (UIA, OCR, etc.) | Mature (Microsoft-maintained) |
+| `tauri` | Application framework | Mature, v2 stable |
 | `atspi` | AT-SPI2 D-Bus bindings (Linux) | Active |
 | `leptess` | Tesseract OCR bindings | Stable but potentially unmaintained (~3 years since last update); evaluate `tesseract-rs` as alternative |
-| `tauri` | Application framework | Mature, v2 stable |
+| `screencapturekit` | macOS ScreenCaptureKit bindings | Active, mature |
+| `objc2` | macOS Objective-C bindings | Mature |
+| `windows-capture` | Windows.Graphics.Capture / DXGI bindings | Active, mature |
+| `windows` | Windows API bindings (UIA, OCR, etc.) | Mature (Microsoft-maintained) |
 
 ### 8.6 Performance Requirements
 
@@ -475,24 +480,34 @@ The application uses two window types:
 
 ### 8.7 Platform-Specific Considerations
 
-**macOS:**
+**Linux (starting platform):**
+- X11: xcap via XCB (xcb_get_image); XShm optimization planned for Phase 1. No permission dialogs required -- simplest capture path across all platforms.
+- Wayland: must use PipeWire + XDG Desktop Portal (user consent dialog). Phase 1.
+- AT-SPI2 works over D-Bus (unaffected by Wayland transition)
+- Must work on GNOME, KDE, and standalone WMs (Sway, Hyprland, i3)
+- Package formats: deb, rpm, snap, AppImage, Flatpak
+- Vulkan is the primary GPU backend (well-supported on Mesa drivers)
+
+**macOS (Phase 2):**
 - ScreenCaptureKit requires Screen Recording permission (user authorization dialog)
 - Accessibility API requires Accessibility permission
 - ScreenCaptureKit is mandatory from macOS 15 (CGWindowListCreateImage deprecated)
-- Starting platform for development (most mature Rust bindings)
+- Metal GPU backend via wgpu
 
-**Windows:**
+**OpenBSD (Phase 3):**
+- X11 only (no Wayland compositor in base). Most X11/XCB code shared with Linux backend.
+- Vulkan support via Mesa (limited but improving). Software rendering fallback may be needed.
+- No AT-SPI2; accessibility API integration deferred. Focus on core magnification first.
+- Package via OpenBSD ports system
+- Smallest user base but essentially zero accessibility infrastructure -- high impact per user
+
+**Windows (Phase 4):**
 - Windows.Graphics.Capture recommended over legacy Magnification API (per Microsoft)
 - Requires Windows 10 1803+
 - MSI installer with GPO support for enterprise deployment
 - Must coexist with NVDA/JAWS (many users run both magnification + screen reader)
-
-**Linux:**
-- Wayland: must use PipeWire + XDG Desktop Portal (user consent dialog)
-- X11: xcap via XCB (xcb_get_image); XShm optimization planned for Phase 1
-- AT-SPI2 works over D-Bus (unaffected by Wayland transition)
-- Must work on GNOME, KDE, and standalone WMs
-- Package formats: deb, rpm, snap, AppImage, Flatpak
+- DX12 GPU backend via wgpu
+- Last platform because Windows already has ZoomText, SuperNova, Fusion, Windows Magnifier, and VMG
 
 ---
 
@@ -528,18 +543,32 @@ This project is designed to be built primarily with AI agent assistance. Technol
 
 ### 9.3 Development Phasing Strategy
 
-**Start narrow, expand wide:**
-1. macOS first (most mature Rust bindings for ScreenCaptureKit + accessibility)
-2. Add Windows (largest user base, most commercial competition)
-3. Add Linux (urgent need due to Wayland transition, strong open-source community)
+**Start where you are needed most, expand to where alternatives already exist:**
+1. **Linux X11 first** -- zero professional magnification tools, zero magnifier+TTS integrations, most underserved users
+2. **Linux Wayland** -- future-proof the Linux platform; Wayland transition is actively breaking existing X11 tools (KMag, Magnus, xzoom)
+3. **macOS** -- good built-in Zoom but no open-source alternative with TTS integration
+4. **OpenBSD** -- essentially no accessibility infrastructure; incremental from Linux X11 backend
+5. **Windows last** -- already has ZoomText, SuperNova, Fusion, Windows Magnifier, VMG; least urgent need
 
-**Platform sequencing trade-off (explicit):** The macOS-first choice is technically motivated (best Rust bindings, cleanest APIs). However, >90% of AT users are on Windows (WebAIM data), and the strongest competitive gaps are there. Starting on macOS risks missing the primary user base for early adoption and AT specialist engagement. **Alternative considered:** Windows-first would maximize early user impact but has more complex APIs. **Decision rationale:** macOS provides the cleanest architecture validation; Windows follows in Phase 1 (months 4-6), only 3 months later. The cross-platform abstraction layer is designed so platform backends are independent -- if the team grows, Windows and macOS development can proceed in parallel.
+**Platform sequencing rationale:**
+
+The Linux-first strategy is driven by where the project can deliver the most impact per unit of effort:
+
+- **(a) Linux users are most underserved.** There are zero professional-grade magnification tools on Linux. KMag (basic, X11-only), Magnus (5x max, unmaintained), and xzoom (integer zoom only) are the only standalone options. None integrate with TTS. GNOME/KDE compositor zoom exists but offers no lens modes, no color filters, no cursor enhancement, and no TTS.
+- **(b) X11 screen capture is technically simplest.** No permission dialogs, no entitlements, no sandbox restrictions. XCB capture works immediately. This accelerates Phase 0 architecture validation.
+- **(c) Wayland transition creates urgency.** Every existing Linux magnifier is X11-only and is actively breaking as distributions default to Wayland. There is a shrinking window to serve these users before they are forced onto compositor-level zoom with no feature depth.
+- **(d) Zero competition on Linux vs. mature competition on Windows/macOS.** On Windows, users have 5+ options across a $0-$3,262 price range. On macOS, built-in Zoom is capable (40x, PiP, split). On Linux, there is nothing. Building where there is nothing is strategically superior to entering a crowded market.
+- **(e) Open-source community alignment.** Linux users are disproportionately open-source contributors. A Linux-first launch maximizes community engagement, bug reports, and contributions during the critical early development period.
+- **(f) Vulkan well-supported for GPU rendering.** Mesa drivers provide strong Vulkan support on Linux, validating the wgpu/Vulkan rendering pipeline.
+
+**Platform sequencing trade-off (explicit):** >90% of AT users are on Windows (WebAIM data). Starting on Linux means the largest user base does not receive Luminos until Phase 4. This is a deliberate choice: Windows users already have multiple options (including the free Windows Magnifier), while Linux users have effectively none. The platform abstraction layer (Rust traits with per-platform backends) ensures that platform backends are independent -- if the team grows or receives contributions, platform development can proceed in parallel. Windows is not deprioritized because it is unimportant; it is sequenced last because its users are least underserved.
 
 **Validate architecture before expanding features:**
-- Phase 0 proves the Tauri + Rust + wgpu architecture on a single platform
-- Phase 1 proves cross-platform abstraction works
-- Phase 2 proves magnification + TTS integration
-- Phase 3+ builds on validated foundation
+- Phase 0 proves the Tauri + Rust + wgpu architecture on Linux X11
+- Phase 1 proves the X11-to-Wayland abstraction and full Linux feature set
+- Phase 2 proves cross-platform portability (macOS) and magnification + TTS integration
+- Phase 3 proves BSD portability and advanced AI features
+- Phase 4 proves Windows platform support and enterprise readiness
 
 ---
 
@@ -551,7 +580,7 @@ This project is designed to be built primarily with AI agent assistance. Technol
 |--------|--------|--------|
 | Total downloads (all platforms) | 50,000 | 500,000 |
 | Monthly active users (opt-in) | 5,000 | 75,000 |
-| Platform distribution | Win 60%, Linux 25%, macOS 15% | Win 50%, Linux 30%, macOS 20% |
+| Platform distribution | Linux 60%, macOS 25%, Windows 15% | Linux 40%, macOS 25%, Windows 25%, OpenBSD/other 10% |
 | Institutional deployments (>10 seats) | 20 | 200 |
 | Geographic diversity (countries >100 users) | 15 | 50 |
 
@@ -594,48 +623,146 @@ This project is designed to be built primarily with AI agent assistance. Technol
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
-| **espeak-ng GPL-3.0 constrains project license** | **Certain** | **Critical** | espeak-ng (GPL-3.0) is used for grapheme-to-phoneme (G2P) conversion by all major offline TTS engines, including both Kokoro and Piper. The original primary TTS (Piper) was archived Oct 2025 and replaced by Kokoro-82M via sherpa-onnx, but the GPL risk persists because Kokoro also depends on espeak-ng for phonemization. Options: (a) license Luminos as GPL-3.0, (b) run espeak-ng as a separate subprocess to avoid linking (recommended short-term -- plain text in, phoneme strings out; ship espeak-ng as separate binary with GPL-3.0 notice), (c) migrate to misaki transformer-based G2P to eliminate GPL dependency entirely (medium-term -- already functional for English, Japanese, Korean, Chinese), (d) platform-native TTS only (eliminates GPL but reduces quality and offline consistency). **Requires immediate legal counsel** to review subprocess isolation IPC protocol. |
-| Font re-rendering is extremely hard | High | High | ZoomText's xFont and SuperNova's TrueFonts represent decades of proprietary engineering. Requires deep integration with DirectWrite (Win), Core Text (macOS), FreeType (Linux). Phase 3 timing allows research, but this may define whether Luminos can compete above ~4x zoom. Consider as potential multi-phase effort. |
+| **GPLv3 license may limit corporate adoption** | **Medium** | **High** | Some corporate legal teams are cautious about GPLv3. Mitigation: (a) institutional support contracts provide a "who do we call?" relationship that satisfies procurement, (b) clear documentation that GPLv3 allows unrestricted internal use without redistribution obligations -- only modifications distributed externally trigger copyleft, (c) precedent: NVDA (GPLv2) is widely deployed in enterprises, government agencies, and universities despite GPL license, (d) for institutions, the alternative is $905+/seat for ZoomText -- GPL concerns are secondary to cost savings. |
+| **Linux-first development delays reaching largest user base (Windows)** | **Medium** | **Medium** | >90% of AT users are on Windows. Delaying Windows support to Phase 4 means the largest potential user base waits 15+ months. Mitigation: (a) Windows users already have multiple alternatives (ZoomText, SuperNova, Fusion, Windows Magnifier), (b) platform abstraction layer enables parallel development -- Windows backend work can begin earlier if contributors or funding allow, (c) Linux-first builds community and contributor base that accelerates later platform work, (d) early Linux release generates press coverage and awareness before Windows launch. |
+| **Monetization of GPLv3 project insufficient for sustainability** | **Medium** | **High** | Open-source accessibility tools historically struggle with sustainable funding. Mitigation: diversified non-profit funding model (see Section 12) combining grants, institutional sponsorship, support contracts, and donations. Target institutions (universities, government, enterprises) as primary paying customers, not individuals. Precedent: NV Access sustains NVDA via this model; Blender Foundation generates millions/year from corporate sponsors. Apply for grants before launch, not after. |
+| Font re-rendering is extremely hard | High | High | ZoomText's xFont and SuperNova's TrueFonts represent decades of proprietary engineering. Requires deep integration with FreeType (Linux/OpenBSD), Core Text (macOS), DirectWrite (Win). Phase 3 timing allows research, but this may define whether Luminos can compete above ~4x zoom. Consider as potential multi-phase effort. |
 | Wayland consent dialog chicken-and-egg | Certain | High | XDG Portal screen capture on Wayland requires a system dialog to grant permission. Low-vision users may need magnification to read the permission dialog. Mitigate with: session restoration tokens, clear documentation, OS-level accessibility for the dialog itself. |
 | Tauri WebkitGTK rendering issues on Linux | High | Medium | Control panel uses simple forms; magnification overlay bypasses webview; CEF alternative in development |
 | Platform API deprecation (especially macOS annual cycles) | Medium | High | Abstract behind traits; monitor deprecation cycles; budget for annual platform adaptation |
 | Kokoro/Piper TTS quality insufficient for some languages | Medium | Low | Kokoro covers 8 languages at near-commercial quality; Piper VITS models extend coverage to 30+ via same sherpa-onnx runtime. Fallback to platform-native TTS for unsupported languages. |
 | **xcap X11 capture performance at low zoom levels** | **Medium** | **Medium** | xcap uses non-SHM X11 capture (xcb_get_image path), which requires a full X server round-trip per capture. Adequate for small source regions at high zoom, but may exceed frame budget at low zoom levels (1.5-3x) with large capture areas on high-resolution displays. Mitigation: implement direct x11rb-based capture backend with XShm support as Phase 1 optimization. OBS achieves 60fps+ X11 capture via XShm. |
 | Accessibility API coverage gaps | Medium | Medium | Many apps (legacy Win32, Electron, games, CAD, PDF viewers) expose minimal accessibility tree. OCR must be treated as co-primary strategy, not just fallback. |
-| Low adoption despite technical quality | Medium | High | Engage AT specialists and rehab centers early; partner with NVDA community; attend CSUN/ATIA |
-| Contributor burnout (common in accessibility OSS) | Medium | High | Establish sustainable governance; seek grant funding (Sovereign Tech Fund, Mozilla MOSS) |
-| Commercial vendor response (Vispero price cuts) | Low | Low | Our value is cross-platform + free; price cuts validate the market |
+| Low adoption despite technical quality | Medium | High | Engage AT specialists and rehab centers early; partner with NVDA community; attend CSUN/ATIA. Linux-first strategy targets a community with zero alternatives, improving early adoption odds. |
+| Contributor burnout (common in accessibility OSS) | Medium | High | Establish sustainable governance; seek grant funding (Sovereign Tech Fund, NLnet, Microsoft AI for Accessibility). Non-profit structure enables diversified funding. |
+| Commercial vendor response (Vispero price cuts) | Low | Low | Our value is cross-platform + free; price cuts validate the market. Linux-first strategy means we face zero commercial competition initially. |
 | USB portable mode may be infeasible on Windows 11 | Medium | Low | SuperNova discontinued USB mode due to Win 11 security restrictions. Evaluate technical feasibility before committing to Phase 4. |
+| OpenBSD platform support may have limited user impact | Medium | Low | OpenBSD has a small user base. Mitigation: incremental effort (most X11 code shared with Linux), high per-user impact in a community with essentially zero accessibility tools, and aligns with project values of serving the most underserved. |
 
 ---
 
-## 12. Sustainability & Governance (Preliminary)
+## 12. Sustainability & Governance
 
-For an accessibility tool that vulnerable users depend on daily, sustainability is a first-order concern, not an afterthought. Users who adopt Luminos cannot easily switch if the project is abandoned.
+For an accessibility tool that vulnerable users depend on daily, sustainability is a first-order concern, not an afterthought. Users who adopt Luminos cannot easily switch if the project is abandoned. The GPLv3 license ensures the codebase remains permanently open, but ongoing development requires sustainable funding.
 
-### 12.1 Funding Model Options
+### 12.1 Monetization Strategy
 
-| Model | Precedent | Viability | Notes |
-|-------|-----------|-----------|-------|
-| Non-profit charity + donations | NV Access (NVDA) | Proven | NVDA sustains a small team via donations + Mozilla/Microsoft grants |
-| Government grants | GNOME (Sovereign Tech Fund, EUR 1M) | Strong | EU Sovereign Tech Fund, Mozilla MOSS, NLnet Foundation |
-| Corporate sponsorship | Linux Foundation projects | Medium | Companies with accessibility compliance needs (Microsoft, Google, Red Hat) |
-| Paid enterprise support | Red Hat model | Medium | Free product, paid deployment/configuration/SLA for institutions |
-| Bounty/feature sponsorship | Bountysource, Open Collective | Supplementary | Institutions fund specific features they need |
+**Core insight:** The primary paying customers for Luminos are **institutions** (universities, government agencies, enterprises) facing accessibility compliance mandates (EAA, Section 508, ADA Title II), not individual users. A free GPLv3 tool with paid institutional support is dramatically cheaper than $905+/seat for ZoomText -- a university with 200 low-vision students saves $160,000+/year by deploying Luminos with a $5,000-$15,000 support contract.
+
+**Non-profit structure:** Luminos will be established as a registered non-profit organization, modeled on NV Access (NVDA) and the Blender Foundation. This enables grant eligibility, tax-deductible donations in most jurisdictions, and institutional procurement compatibility.
+
+#### 12.1.1 Revenue Streams (in priority order)
+
+**1. Foundation and Government Grants (Year 1 onward) -- Primary early revenue**
+
+| Grant Source | Typical Range | Eligibility | Notes |
+|-------------|---------------|-------------|-------|
+| Sovereign Tech Fund (Germany/EU) | EUR 150K-1M | Open-source infrastructure projects | GNOME received EUR 1M (2024). Luminos qualifies as accessibility infrastructure. |
+| NLnet Foundation (EU) | EUR 5K-50K | Open internet/open-source projects | Funds specific milestones. Multiple applications possible. |
+| Microsoft AI for Accessibility | $25K-500K | AI-powered accessibility projects | Kokoro TTS + AI image description directly qualify. |
+| NIDILRR (US federal) | $50K-500K | Assistive technology R&D | US National Institute on Disability, Independent Living, and Rehabilitation Research. |
+| Mozilla MOSS | $10K-250K | Open-source projects supporting internet health | Previously funded accessibility tools. |
+
+**2. Community Donations (Day 1 onward)**
+
+- GitHub Sponsors + Open Collective (dual platform for maximum reach)
+- In-product donation prompt (non-intrusive, shown once after 30 days of active use)
+- Annual fundraising campaigns tied to Global Accessibility Awareness Day (third Thursday of May) and accessibility awareness months
+- Target: $10,000-$80,000/year scaling with active user base
+
+**3. Tiered Corporate/Institutional Sponsorship (Year 2 onward)**
+
+| Tier | Annual | Benefits |
+|------|--------|----------|
+| Platinum | $25,000 | Logo on website/README, priority feature input, quarterly roadmap briefing, named acknowledgment in release notes |
+| Gold | $10,000 | Logo on website/README, annual roadmap briefing |
+| Silver | $5,000 | Logo on sponsors page, acknowledgment in release notes |
+| Bronze | $1,000 | Name on sponsors page |
+
+Target companies with EAA/Section 508 compliance obligations. Precedent: Blender Development Fund generates millions per year from Apple, Google, NVIDIA, AMD, Intel, Meta, and others.
+
+**4. Institutional Support Contracts (Year 2-3)**
+
+| Tier | Annual | Includes |
+|------|--------|---------|
+| Basic | $2,000/yr | Email support (48h SLA), deployment documentation, quarterly security advisories |
+| Standard | $5,000/yr | Email + video support (24h SLA), deployment assistance, priority bug fixes, custom configuration guidance |
+| Enterprise | $15,000/yr | Dedicated support contact (8h SLA), on-site/remote deployment, GPO/MDM integration support, custom packaging, SLA-backed uptime for support services |
+
+IT departments need "who do we call when it breaks?" -- institutional support contracts answer that question. This is the proven model for enterprise open-source adoption (Red Hat, Canonical, NV Access).
+
+**5. Training and Certification (Year 2-3)**
+
+- **Luminos AT Professional** certification exam: $200/exam. Validates proficiency in deploying, configuring, and supporting Luminos for end users.
+- Online self-paced courses: $50-$150 per module (deployment, advanced configuration, TTS customization)
+- Institutional training packages: $2,000-$10,000 for on-site/remote group training
+- Precedent: NV Access offers NVDA Certified Expert exams (AUD $95-120/exam)
+
+**6. Consulting and Customization (Year 3+)**
+
+- Custom deployment and integration services: $5,000-$50,000 per engagement
+- Accessibility auditing for organizations deploying Luminos alongside other AT
+- Custom plugin development for institutional needs
+- Integration with institutional IT systems (LDAP, SSO, MDM)
+
+**7. Feature Sponsorship (Year 2 onward)**
+
+- Institutions fund specific features on the public roadmap
+- Minimum $5,000 per sponsored feature
+- Sponsor acknowledged in feature documentation and release notes
+- Feature remains GPLv3 -- sponsorship accelerates development, does not create proprietary forks
+
+#### 12.1.2 Revenue Targets
+
+| Timeframe | Target Range | Primary Sources |
+|-----------|-------------|-----------------|
+| Year 1 | $50,000-$150,000 | Grants + community donations |
+| Year 2-3 | $200,000-$500,000/yr | Sponsorship + support contracts + grants |
+| Year 3+ | $500,000-$1,000,000+/yr | Diversified across all streams |
+
+**Revenue diversification target (Year 3+):** Grants 15-25%, Sponsorship 25-35%, Support contracts 20-30%, Donations 10-15%, Training 5-10%, Consulting 5-15%. No single source should exceed 35% of total revenue to ensure resilience.
+
+#### 12.1.3 Discarded Monetization Approaches
+
+| Approach | Why Discarded |
+|----------|--------------|
+| Dual licensing (GPLv3 + commercial) | Requires Contributor License Agreement (CLA), which discourages open-source contributions. Limited market for commercially embedding a screen magnifier. Incompatible with community values. |
+| Open core / premium features | Ethically problematic for an accessibility tool -- withholding features from disabled users to drive revenue contradicts the project's mission. |
+| Selling pre-built binaries | Users who most need pre-built binaries (non-technical low-vision users) are least able to compile from source. Charging for binaries creates a de facto paywall. Flatpak/snap/AppImage solve the distribution problem. |
+| SaaS / cloud-hosted | Desktop screen magnification cannot meaningfully be cloud-hosted. Latency requirements (16ms frame time) are fundamentally incompatible with network round-trips. |
+| Advertising | Hostile to accessibility users. Ads create visual noise and cognitive load that directly conflict with the purpose of a magnification tool. |
 
 ### 12.2 Governance
 
-To be defined in a separate governance document. Options under consideration:
-- **BDFL** (Benevolent Dictator for Life) -- simplest, but single point of failure
-- **Core team** -- small elected maintainer group, most common in mid-size OSS
-- **Foundation** -- appropriate if/when the project reaches significant adoption
+**Phase 1 (Year 1): BDFL + Core Team**
+- Project founder serves as BDFL during initial development
+- Core team of 3-5 maintainers with commit rights, selected based on sustained contribution
+- All major decisions documented publicly (GitHub Discussions RFCs)
+- Code of Conduct enforced from day one
+
+**Phase 2 (Year 2+): Non-Profit Foundation**
+- Transition to a registered non-profit (modeled on NV Access / Blender Foundation)
+- Elected board of directors including: maintainers, user representatives (low-vision community), institutional stakeholders
+- BDFL transitions to Technical Lead role within foundation structure
+- Foundation holds intellectual property, manages finances, employs core maintainers
+- Annual public financial reports
+
+**Governance principles:**
+- Decisions affecting users require user community input (accessibility advisory board)
+- Technical decisions follow the RFC process with public comment periods
+- No single organization may hold more than 2 of 5+ board seats
+- All governance documents are public and version-controlled
 
 ### 12.3 Sustainability Principles
 
-- Never create user dependency without a maintenance plan
-- Seek grant funding before the project launches, not after
-- Establish a contributor pipeline: documentation -> triage -> code review -> core
-- Target NV Access / GNOME Foundation as organizational models
+- Never create user dependency without a maintenance plan -- users who adopt Luminos must be confident in its longevity
+- Seek grant funding **before** the project launches, not after -- applications should be submitted during Phase 0
+- Establish a contributor pipeline: documentation -> triage -> code review -> core maintainer
+- Target NV Access and Blender Foundation as organizational models
+- Maintain a financial reserve of 6+ months of operating expenses
+- GPLv3 ensures that even if the organization fails, the codebase remains available for community continuation
+- Prioritize institutional revenue over individual donations for financial stability
+- Never compromise user accessibility for monetization (no paywalled features, no ads, no telemetry-for-revenue)
 
 ---
 
@@ -685,9 +812,30 @@ To be defined in a separate governance document. Options under consideration:
 27. ADA Title II (2024 update, WCAG 2.1 AA for state/local government).
 28. Section 508 (2017 rule, effective Jan 2018; aligned with WCAG 2.0 AA and EN 301 549).
 
+### Monetization & Sustainability Models
+29. NV Access (NVDA). https://www.nvaccess.org/ -- Non-profit model for accessibility OSS; sustains team via donations, grants, and corporate partnerships.
+30. Blender Development Fund. https://fund.blender.org/ -- Corporate sponsorship model generating millions/year from Apple, Google, NVIDIA, AMD, Intel, Meta, etc.
+31. Sovereign Tech Fund. https://www.sovereigntechfund.de/ -- German/EU fund for open-source infrastructure. GNOME received EUR 1M (2024).
+32. NLnet Foundation. https://nlnet.nl/ -- EU foundation funding open internet and open-source projects.
+33. Microsoft AI for Accessibility. https://www.microsoft.com/en-us/ai/ai-for-accessibility -- Grant program ($25K-$500K) for AI-powered accessibility projects.
+34. NIDILRR (US). https://acl.gov/about-acl/about-national-institute-disability-independent-living-and-rehabilitation-research -- US federal AT R&D funding.
+35. European Accessibility Act -- monetization relevance: EAA compliance mandates (effective June 2025) create institutional demand for accessibility tools and drive sponsorship/support contract revenue. See also reference 26.
+36. NV Access NVDA Certified Expert. https://certification.nvaccess.org/ -- Precedent for accessibility tool certification program.
+
 ### AI-Assisted Development
-29. Chalyi. "Rust Is Winning the AI Code Generation Race" (2026).
-30. Strand-Rust-Coder-v1 Technical Report. https://huggingface.co/blog/Fortytwo-Network/strand-rust-coder-tech-report
+37. Chalyi. "Rust Is Winning the AI Code Generation Race" (2026).
+38. Strand-Rust-Coder-v1 Technical Report. https://huggingface.co/blog/Fortytwo-Network/strand-rust-coder-tech-report
+
+---
+
+## 14. Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| v1.0 | 2026-03-13 | Initial product strategy document |
+| v1.1 | 2026-03-13 | Competitive landscape corrections, citation improvements |
+| v1.2 | 2026-03-14 | Tech stack alignment: xcap replaces scap, Kokoro replaces Piper as primary TTS, winit/cpal/arboard added, GPL risk reframed around espeak-ng |
+| v1.3 | 2026-03-15 | **Major strategic pivots:** (1) GPLv3 licensing adopted -- eliminates espeak-ng GPL isolation complexity, aligns with Linux/FOSS community values. (2) Platform priority reversed to Linux-first (X11 -> Wayland -> macOS -> OpenBSD -> Windows) based on underserved-user-first strategy. (3) Comprehensive monetization strategy replacing preliminary funding model -- non-profit structure, grants, institutional sponsorship, support contracts, training/certification. (4) OpenBSD added as Phase 3 platform. (5) Risk register updated: GPL contamination risk removed, GPLv3 corporate adoption / Linux-first delay / monetization sustainability risks added. (6) Feature roadmap restructured across all phases to reflect new platform order. |
 
 ---
 

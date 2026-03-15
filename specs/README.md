@@ -161,9 +161,11 @@ Must follow CLAUDE.md error handling conventions: prefer `?` propagation,
 
 | Platform | Approach | Notes |
 |----------|----------|-------|
-| macOS | ... | ... |
-| Windows | ... | ... |
 | Linux X11 | ... | ... |
+| Linux Wayland | ... | ... |
+| macOS | ... | ... |
+| OpenBSD | ... | ... |
+| Windows | ... | ... |
 
 ## Testing Strategy
 
@@ -199,7 +201,7 @@ Must follow CLAUDE.md error handling conventions: prefer `?` propagation,
 1. Every acceptance criterion from STORY.md must appear in the Testing Strategy with a concrete verification method.
 2. All new public APIs must include type signatures -- AI agents use these as implementation contracts.
 3. The design must reference existing traits and modules from `CLAUDE.md` architecture section, not invent parallel abstractions.
-4. Platform-specific approaches must be called out explicitly per the macOS-first development order.
+4. Platform-specific approaches must be called out explicitly per the Linux-first development order.
 
 ---
 

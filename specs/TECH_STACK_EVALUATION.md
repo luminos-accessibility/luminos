@@ -2,7 +2,7 @@
 
 **Research Type:** Technical Stack Validation & Recommendation
 **Date:** 2026-03-13
-**Status:** FINAL (post-audit revision)
+**Status:** FINAL (post-audit revision). Revised 2026-03-15 for GPLv3 licensing and Linux-first platform pivot.
 **Audit:** 12 findings applied from TECH_STACK_AUDIT_REPORT.md (1 Critical, 3 High, 5 Medium, 3 Low)
 **Scope:** P0 features — cross-platform screen magnification with GPU rendering and basic TTS
 
@@ -10,9 +10,9 @@
 
 ## 1. Executive Summary
 
-This report evaluates the technology stack proposed in the Luminos Product Strategy (v1.1) against the project's P0 requirements: cross-platform support (macOS Tahoe, Windows 11, Linux X11 on KDE/GNOME), GPU-accelerated magnification at up to 20x with games-level performance, docked and magnifying-glass zoom modes, mouse/keyboard focus tracking, basic text-to-speech, and optimization for AI-agent-driven development.
+This report evaluates the technology stack proposed in the Luminos Product Strategy (v1.3) against the project's P0 requirements: cross-platform support (Linux X11 on KDE/GNOME, macOS Tahoe, Windows 11, OpenBSD), GPU-accelerated magnification at up to 20x with games-level performance, docked and magnifying-glass zoom modes, mouse/keyboard focus tracking, basic text-to-speech, and optimization for AI-agent-driven development.
 
-The core architecture — Rust backend, Tauri 2.0 control panel, wgpu GPU rendering, and a dual-window design — is validated as sound. However, three material changes to the proposed stack are recommended. First, the `scap` screen capture crate should be replaced with `xcap` (v0.9.1, Apache 2.0), which provides direct X11 support that `scap` lacks. Second, the primary TTS engine should shift from the archived, GPL-licensed Piper to Kokoro (Apache 2.0 model) via the `sherpa-rs`/sherpa-onnx runtime (MIT/Apache 2.0), with espeak-ng phonemization isolated in a subprocess to avoid GPL propagation. Third, `winit` should be explicitly adopted as the window management layer for the native magnification overlay, providing transparent, always-on-top, borderless windows integrated with wgpu across all three platforms.
+The core architecture — Rust backend, Tauri 2.0 control panel, wgpu GPU rendering, and a dual-window design — is validated as sound. However, three material changes to the proposed stack are recommended. First, the `scap` screen capture crate should be replaced with `xcap` (v0.9.1, Apache 2.0), which provides direct X11 support that `scap` lacks. Second, the primary TTS engine should shift from the archived Piper to Kokoro (Apache 2.0 model) via the `sherpa-rs`/sherpa-onnx runtime (MIT/Apache 2.0), with espeak-ng phonemization run as a subprocess for crash isolation and maintainability (the project's GPLv3 license eliminates the previous GPL propagation concern). Third, `winit` should be explicitly adopted as the window management layer for the native magnification overlay, providing transparent, always-on-top, borderless windows integrated with wgpu across all target platforms.
 
 The recommended stack is well-suited for AI-agent-driven development: Rust's strict compiler catches errors in generated code, TypeScript/React has the largest LLM training corpus, and trait-based abstractions define clear implementation contracts.
 
@@ -20,9 +20,9 @@ The recommended stack is well-suited for AI-agent-driven development: Rust's str
 
 ## 2. Background
 
-The Luminos product strategy proposes building a cross-platform, open-source screen magnification and TTS accessibility suite. The strategy identifies a specific technology stack centered on Tauri 2.0, Rust, wgpu, the `scap` crate, and Piper TTS. This evaluation was commissioned to validate those choices against the following P0 requirements before development begins:
+The Luminos product strategy proposes building a cross-platform, GPLv3-licensed screen magnification and TTS accessibility suite. The strategy identifies a specific technology stack centered on Tauri 2.0, Rust, wgpu, the `scap` crate, and Piper TTS. This evaluation was commissioned to validate those choices against the following P0 requirements before development begins:
 
-1. Cross-platform: macOS Tahoe, Windows 11, Linux X11 (KDE and GNOME)
+1. Cross-platform: Linux X11 (KDE and GNOME), macOS Tahoe, Windows 11, OpenBSD
 2. Docked zoom view that reserves screen space and prevents window overlap
 3. Magnifying glass mode following mouse cursor
 4. Mouse cursor tracking with centered zoomed view
@@ -34,7 +34,7 @@ The Luminos product strategy proposes building a cross-platform, open-source scr
 10. AI-agent optimized development workflow
 11. Prefer client-side implementation over cloud APIs
 
-The user specifically required **Linux X11** support (not Wayland), which materially changes the screen capture and window management landscape from the Wayland-focused product strategy.
+The product strategy specifies **Linux X11** as the starting platform (Phase 0), with Wayland support following in Phase 1. This Linux-first, X11-first approach materially shapes the screen capture and window management technology choices.
 
 ---
 
@@ -54,7 +54,7 @@ The user specifically required **Linux X11** support (not Wayland), which materi
 | **TTS runtime** | sherpa-onnx via sherpa-rs | 0.6.8 | MIT (wrapper) / Apache 2.0 (runtime) | **Changed from Piper** |
 | **TTS model (primary)** | Kokoro-82M ONNX (q8 quantized) | v1.0 | Apache 2.0 (model) | **Changed from Piper** |
 | **TTS model (lightweight)** | Piper VITS (via sherpa-onnx) | Latest | MIT (model weights) | Retained as option |
-| **Phonemizer** | espeak-ng (subprocess) | Latest | GPL-3.0 (isolated) | **Isolation strategy clarified** |
+| **Phonemizer** | espeak-ng (subprocess) | Latest | GPL-3.0 (compatible with project GPLv3) | **Subprocess for crash isolation** |
 | **TTS fallback** | Platform-native | N/A | N/A | No change |
 | **Accessibility (Linux)** | atspi crate | Latest | MIT/Apache 2.0 | No change |
 | **Accessibility (macOS)** | AXUIElement via objc2 | Latest | MIT/Apache 2.0 | No change |
@@ -92,14 +92,14 @@ The user specifically required **Linux X11** support (not Wayland), which materi
 └─────────────────────┬──────────────────────────────────┘
                       │ Platform-specific backends
 ┌─────────────────────┴──────────────────────────────────┐
-│  macOS Backend      │ Windows Backend   │ Linux Backend │
-│  ScreenCaptureKit   │ DXGI Duplication  │ X11/XCB       │
-│  (via xcap)         │ (via win-capture)  │ (via xcap)    │
-│  AXUIElement        │ UI Automation     │ AT-SPI2/D-Bus │
-│  (via objc2)        │ (via windows)     │ (via atspi)   │
-│  AVSpeech fallback  │ SAPI fallback     │ speech-disp.  │
-│  Metal (via wgpu)   │ DX12 (via wgpu)   │ Vulkan(wgpu)  │
-│  NSPanel (dock)     │ AppBar API (dock) │ EWMH struts   │
+│  Linux Backend      │ macOS Backend      │ Windows Backend │
+│  X11/XCB            │ ScreenCaptureKit   │ DXGI Duplication│
+│  (via xcap)         │ (via xcap)         │ (via win-capture)│
+│  AT-SPI2/D-Bus      │ AXUIElement        │ UI Automation   │
+│  (via atspi)        │ (via objc2)        │ (via windows)   │
+│  speech-disp.       │ AVSpeech fallback  │ SAPI fallback   │
+│  Vulkan (via wgpu)  │ Metal (via wgpu)   │ DX12 (via wgpu) │
+│  EWMH struts        │ NSPanel (dock)     │ AppBar API(dock)│
 └────────────────────────────────────────────────────────┘
 
 ┌────────────────────────────────────────────────────────┐
@@ -180,6 +180,7 @@ xcap is already used by `tauri-plugin-screenshots`, validating its integration w
 |----------|---------|-----------|-------------------|
 | Linux X11 | xcap | XCB + xcb_get_image | xcap uses the standard XCB capture path (not the higher-performance XShm shared-memory path, as its `xcb` dependency does not enable the `shm` feature). This is adequate for small source regions at high zoom but may be a bottleneck at low zoom levels with large capture areas. If profiling confirms this, a direct `x11rb`-based capture backend with XShm support should be implemented as a Phase 1 optimization. |
 | macOS | xcap | ScreenCaptureKit | Apple's modern API, mandatory from macOS 15. Requires Screen Recording permission. |
+| OpenBSD | xcap (expected) | XCB + xcb_get_image | OpenBSD's xenocara provides X11; the same XCB capture path used on Linux X11 should work. Requires build validation — xcap has no explicit OpenBSD CI, but the underlying XCB protocol is platform-agnostic. |
 | Windows | xcap or windows-capture | DXGI Desktop Duplication | DXGI DD provides dirty-rectangle metadata and GPU-texture output. Higher performance than WGC for continuous capture. No yellow border. windows-capture crate (MIT) supports both WGC and DXGI DD. |
 
 **Capture-to-GPU pipeline:** The performance-critical path is minimizing CPU copies between capture and rendering. The ideal pipeline is:
@@ -193,7 +194,7 @@ xcap returns frame data as CPU buffers (BGRA pixels). This means a GPU upload is
 
 ### 4.4 TTS Engine: Kokoro via sherpa-onnx Replaces Piper (Material Change)
 
-**Decision: Replace Piper with Kokoro as the primary TTS model, delivered via the sherpa-onnx runtime. Use espeak-ng as a subprocess for GPL isolation.**
+**Decision: Replace Piper with Kokoro as the primary TTS model, delivered via the sherpa-onnx runtime. Run espeak-ng as a subprocess for crash isolation and resource management.**
 
 Three developments since the product strategy was written necessitate this change:
 
@@ -203,16 +204,16 @@ Three developments since the product strategy was written necessitate this chang
 
 3. **sherpa-onnx** (Apache 2.0, 10.8K GitHub stars) provides a unified C/C++/Rust runtime that supports Kokoro, Piper (VITS), KittenTTS, Matcha, and other models through a single API. The `sherpa-rs` crate (v0.6.8, MIT) wraps sherpa-onnx for Rust.
 
-**The espeak-ng GPL problem persists regardless of model choice.** Both Piper and Kokoro use espeak-ng for grapheme-to-phoneme (G2P) conversion. This is not a Piper-specific issue — it is structural to current open-source TTS. The mitigation strategies are:
+**The espeak-ng GPL dependency is resolved by the project's GPLv3 license.** Both Piper and Kokoro use espeak-ng for grapheme-to-phoneme (G2P) conversion. With Luminos licensed under GPLv3, espeak-ng (GPL-3.0) can be linked directly without legal concern. The previous analysis considered several mitigation strategies; their current status is:
 
-| Strategy | Description | Legal Clarity | Implementation Complexity |
-|----------|-------------|---------------|--------------------------|
-| **Subprocess isolation** | Run espeak-ng as a separate process; communicate via stdin/stdout | Medium — the FSF GPL FAQ states that pipe communication "normally" makes programs separate, but "if the semantics of the communication are intimate enough, exchanging complex internal data structures, that too could be a basis to consider the two parts as combined." Simple text-in/phonemes-out is likely safe, but **requires legal counsel review** of the specific IPC protocol. | Low — spawn process, pipe text, receive phonemes |
-| **GPL for entire project** | License Luminos as GPL-3.0 | Certain — no legal ambiguity | None — but limits downstream adoption |
-| **Transformer-based G2P** | Use Kokoro's `misaki` library (released on PyPI, used by Kokoro itself) with transformer-based phonemizer | High — eliminates espeak-ng entirely | Medium — misaki is released and functional for English, Japanese, Korean, and Chinese, but may have accuracy gaps for other languages compared to espeak-ng. Requires evaluation of accuracy for each target language. |
-| **Platform-native TTS only** | Drop espeak-ng; use AVSpeech/SAPI/speech-dispatcher | Certain — no GPL code | Low — but lower quality, no offline consistency |
+| Strategy | Description | Status | Notes |
+|----------|-------------|--------|-------|
+| **GPL for entire project** | License Luminos as GPL-3.0 | **ADOPTED** — eliminates all legal ambiguity | See Product Strategy v1.3, Section 8.4. GPLv3 aligns with Linux/FOSS community values and prevents proprietary absorption of the codebase. |
+| **Subprocess isolation** | Run espeak-ng as a separate process; communicate via stdin/stdout | **Recommended for engineering reasons** (not legal necessity) | Crash isolation (espeak-ng crashes do not take down the main process), independent resource management, simpler unit testing of the phonemizer boundary, and future flexibility if a non-GPL G2P option (misaki) is adopted to reduce runtime dependencies. |
+| **Transformer-based G2P (misaki)** | Use Kokoro's `misaki` library with transformer-based phonemizer | **Nice-to-have** — reduces runtime dependencies, not a legal escape hatch | misaki is released and functional for English, Japanese, Korean, and Chinese. Evaluate as a dependency-reduction measure, not a licensing mitigation. |
+| **Platform-native TTS only** | Drop espeak-ng; use AVSpeech/SAPI/speech-dispatcher | **Retained as fallback** | Lower quality, no offline consistency. Useful for languages not covered by Kokoro. |
 
-**Recommended approach:** A dual strategy combining subprocess isolation (short-term) with misaki G2P migration (medium-term). In the short term, run espeak-ng as a standalone binary that receives text on stdin and outputs phonemes on stdout. The Luminos binary never links espeak-ng. Ship espeak-ng as a separate bundled executable with its own GPL-3.0 license notice. Keep the IPC protocol deliberately simple (plain text in, phoneme strings out) to strengthen the legal argument for separation — the FSF GPL FAQ considers "intimate semantics" in pipe communication a factor that could make two programs a combined work. **Legal counsel should review the specific IPC protocol before release.** In the medium term, evaluate `misaki` (hexgrad's transformer-based G2P library, already released on PyPI and used by Kokoro itself) as a replacement for espeak-ng phonemization. If misaki's accuracy proves sufficient for Luminos's supported languages, it eliminates the GPL dependency entirely.
+**Recommended approach:** Run espeak-ng as a subprocess for engineering best practices: crash isolation, resource management, and testability. The subprocess receives text on stdin and outputs phonemes on stdout. This architecture provides a clean boundary for unit testing the phonemizer, prevents espeak-ng crashes or memory leaks from affecting the main application, and preserves the option to swap in `misaki` (hexgrad's transformer-based G2P library) as a dependency-reduction measure in the future. With the project's GPLv3 license, there is no legal requirement for subprocess isolation — espeak-ng could be linked directly. The subprocess approach is recommended purely on engineering merits.
 
 **TTS performance comparison:**
 
@@ -247,6 +248,8 @@ winit (v0.30.13, 34.3M total downloads) is the standard Rust cross-platform wind
 
 **Critical X11 detail:** winit's `WindowLevel::AlwaysOnTop` maps to `_NET_WM_STATE_ABOVE` on X11, which is supported by both KDE (KWin) and GNOME (Mutter). For the docked mode's screen reservation, platform-specific X11 code is required to set `_NET_WM_STRUT_PARTIAL` and `_NET_WM_WINDOW_TYPE_DOCK` — this must be done via raw X11 calls (using the `x11rb` or `xcb` crate) on the window handle obtained from winit.
 
+**OpenBSD note:** winit's X11 support should work on OpenBSD's xenocara (the base system X11 distribution). xenocara provides standard X11/XCB libraries. winit does not use any Linux-specific APIs for its X11 backend, so the same window management code (including EWMH strut properties) is expected to work. Build validation on OpenBSD is required in Phase 3.
+
 ### 4.6 Docked Mode Implementation (Per-Platform Analysis)
 
 The "docked" magnification mode requires the zoomed view to cling to one edge of the screen with a customizable size, and **prevent other windows from overlapping it**. This is the single most platform-divergent P0 feature.
@@ -263,27 +266,32 @@ This is well-tested — every Linux panel/taskbar (GNOME Panel, KDE Panel, Polyb
 _NET_WM_STRUT_PARTIAL = 0, 0, 300, 0, 0, 0, 0, 0, 0, screen_width, 0, 0
 ```
 
-**Windows 11:**
-The AppBar API (`SHAppBarMessage` + `ABM_NEW`) is the official Windows mechanism. It reserves desktop space identically to the taskbar. The `windows` crate (Microsoft-maintained) provides full access to this API. Implementation:
-1. Register the window as an AppBar with `ABM_NEW`
-2. Set position with `ABM_SETPOS`
-3. The system automatically adjusts the work area, preventing other windows from maximizing behind the appbar
-
 **macOS Tahoe:**
 macOS does **not** provide a public API for third-party apps to reserve screen space the way the Dock does. The Dock's behavior is a privileged system feature. The available approaches are:
 1. **NSPanel with `NSWindowLevel.floating`** — keeps the window on top, but other windows can still be dragged behind it
 2. **Accessibility API manipulation** — monitor other windows via `AXUIElement` and adjust them if they overlap, but this is fragile and requires Accessibility permission
 3. **`NSScreen.visibleFrame` monitoring** — not a reservation mechanism; read-only
 
-**Recommended macOS approach:** Use `NSPanel` with floating level and accept that the docked view overlays rather than reserves space. For the P0 release, document this as a known macOS limitation. An always-on-top floating panel that overlays the screen edge provides 90% of the desired UX. Maximized windows will extend behind it, but the magnified content remains visible. This matches how third-party macOS utilities (BetterTouchTool, Rectangle) handle similar scenarios.
+**Recommended macOS approach:** Use `NSPanel` with floating level and accept that the docked view overlays rather than reserves space. For the Phase 2 macOS release, document this as a known macOS limitation. An always-on-top floating panel that overlays the screen edge provides 90% of the desired UX. Maximized windows will extend behind it, but the magnified content remains visible. This matches how third-party macOS utilities (BetterTouchTool, Rectangle) handle similar scenarios.
+
+**OpenBSD:**
+The EWMH strut mechanism used on Linux X11 is standard X11 protocol and works identically on OpenBSD's xenocara. Window managers that support EWMH (e.g., FVWM, cwm with EWMH patches, or ported KWin/GNOME components) will respect `_NET_WM_STRUT_PARTIAL`. The docked mode implementation from the Linux X11 backend should require no changes for OpenBSD.
+
+**Windows 11:**
+The AppBar API (`SHAppBarMessage` + `ABM_NEW`) is the official Windows mechanism. It reserves desktop space identically to the taskbar. The `windows` crate (Microsoft-maintained) provides full access to this API. Implementation:
+1. Register the window as an AppBar with `ABM_NEW`
+2. Set position with `ABM_SETPOS`
+3. The system automatically adjusts the work area, preventing other windows from maximizing behind the appbar
 
 ### 4.7 Keyboard Focus Tracking (Per-Platform Analysis)
+
+**Linux X11:** The `atspi` crate (MIT/Apache 2.0, by the Odilia screen reader project) provides pure-Rust, async AT-SPI2 bindings over D-Bus. Register for `focus:` events on the AT-SPI bus. When focus changes, query the component's screen extents via the `Component` interface. AT-SPI2 works on X11 (it uses D-Bus, not display server protocols). **Important:** not all applications expose complete accessibility trees — Electron apps, games, and custom-rendered UIs may not report focus changes via AT-SPI2.
+
+**OpenBSD:** AT-SPI2 is not available in the OpenBSD base system. Keyboard focus tracking via accessibility APIs is deferred for this platform. Mouse-follow mode is the default. If AT-SPI2 is ported to OpenBSD (it depends on D-Bus, which is available as a package), the Linux implementation could be reused.
 
 **macOS:** Use `AXUIElementCreateSystemWide()` + `kAXFocusedUIElementAttribute` to get the currently focused element. Register per-application `AXObserver` callbacks for `kAXFocusedUIElementChangedNotification`. Retrieve element bounds via `kAXPositionAttribute` and `kAXSizeAttribute`. The `objc2` crate provides safe Rust bindings to these CoreFoundation/Accessibility APIs. **Requires Accessibility permission.**
 
 **Windows:** Use UI Automation's `IUIAutomationFocusChangedEventHandler`. The `windows` crate provides full UIA bindings. When focus changes, call `get_CurrentBoundingRectangle()` on the focused element to get screen coordinates. UIA is the most reliable method — MSAA is deprecated and has known gaps.
-
-**Linux X11:** The `atspi` crate (MIT/Apache 2.0, by the Odilia screen reader project) provides pure-Rust, async AT-SPI2 bindings over D-Bus. Register for `focus:` events on the AT-SPI bus. When focus changes, query the component's screen extents via the `Component` interface. AT-SPI2 works on X11 (it uses D-Bus, not display server protocols). **Important:** not all applications expose complete accessibility trees — Electron apps, games, and custom-rendered UIs may not report focus changes via AT-SPI2.
 
 **Fallback for applications without accessibility support:** Monitor the mouse pointer position (always available) and offer a manual "follow pointer" mode as default. The accessibility-based focus tracking is a best-effort enhancement.
 
@@ -332,7 +340,7 @@ The recommended stack scores well on AI-agent development criteria:
 | **LLM training corpus** | TypeScript has the largest LLM training corpus of any typed language. React is the most-used frontend framework. Rust is the fastest-growing systems language in AI training data. All three are well-represented in code generation models. |
 | **Clear contracts** | Trait-based platform abstractions (`ScreenCapture`, `FocusTracker`, `TtsEngine`) define precise interfaces that AI agents can implement independently. The Rust compiler enforces trait conformance. |
 | **Local testing** | `cargo test` runs unit tests, `cargo clippy` catches anti-patterns, `cargo bench` measures performance. The entire CI pipeline can run locally. wgpu supports a `wgpu::Backends::GL` fallback for CI environments without GPU drivers. |
-| **Independent implementation** | Each platform backend is a separate module implementing shared traits. AI agents can work on macOS, Windows, and Linux backends in parallel without merge conflicts. |
+| **Independent implementation** | Each platform backend is a separate module implementing shared traits. AI agents can work on Linux, macOS, OpenBSD, and Windows backends in parallel without merge conflicts. |
 | **Compile time trade-off** | Rust compile times are the primary developer experience cost. Initial builds of a Tauri+wgpu project take 2-5 minutes; incremental rebuilds take 10-30 seconds. For AI agents that generate larger code changes, full rebuilds are common. Mitigation: use `cargo check` (type checking without codegen) for fast feedback loops. |
 
 ---
@@ -344,10 +352,10 @@ The recommended stack scores well on AI-agent development criteria:
 | P0 Feature | Primary Technology | Secondary/Fallback | Platform Notes |
 |------------|-------------------|-------------------|----------------|
 | Cross-platform | Rust traits + conditional compilation | — | `#[cfg(target_os)]` for platform backends |
-| Docked zoom view | winit window + platform-specific dock API | — | X11: EWMH struts; Win: AppBar; macOS: floating NSPanel |
+| Docked zoom view | winit window + platform-specific dock API | — | X11: EWMH struts (Linux/OpenBSD); macOS: floating NSPanel; Win: AppBar |
 | Magnifying glass mode | winit (transparent, borderless, always-on-top) + wgpu | — | Follows cursor; click-through on non-magnified area |
 | Follow mouse cursor | winit `DeviceEvent::MouseMotion` or `rdev` crate | Platform-native mouse hooks | rdev for global mouse tracking when app not focused |
-| Follow keyboard focus | atspi (Linux), AXUIElement (macOS), UIA (Windows) | Mouse-follow fallback | Not all apps expose focus via accessibility API |
+| Follow keyboard focus | atspi (Linux), AXUIElement (macOS), UIA (Windows) | Mouse-follow fallback (default on OpenBSD) | Not all apps expose focus via accessibility API |
 | 20x magnification | wgpu shader with bicubic interpolation + MSAA | — | Zoom range 1.5x-20x configurable |
 | Adjustable refresh rate | wgpu `PresentMode` + frame limiter | — | Fifo (60fps), manual throttle (20-30fps) |
 | Basic TTS | sherpa-rs (Kokoro model) + cpal audio output | Platform-native TTS | espeak-ng subprocess for phonemization |
@@ -381,9 +389,9 @@ The recommended stack scores well on AI-agent development criteria:
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
-| **espeak-ng GPL propagation** despite subprocess isolation | Low-Medium | Critical | **Requires immediate legal counsel review.** The FSF GPL FAQ states that pipe-based communication "normally" makes programs separate, but warns that "intimate semantics" in the communication protocol can make two programs a combined work. Luminos's use case (plain text in, phoneme strings out) is relatively simple and likely qualifies as separate — but this is ultimately a legal determination, not a technical one. Ship espeak-ng as a separate binary with its own GPL-3.0 license notice. Keep the IPC protocol simple (no structured data, no shared state). Consider `misaki` G2P as a near-term path to eliminating the dependency entirely (see Section 4.4). |
+| ~~espeak-ng GPL propagation~~ | ~~Low-Medium~~ | ~~Critical~~ | **RESOLVED.** The project's GPLv3 license eliminates all GPL propagation concerns. espeak-ng (GPL-3.0) is fully compatible with GPLv3. Subprocess isolation is retained as an engineering best practice (crash isolation, resource management), not a legal necessity. See Product Strategy v1.3, Section 8.4. |
 | **xcap X11 capture performance insufficient** for 60fps at low zoom | Medium | High | xcap uses `xcb_get_image` (non-SHM path), which requires a full X server round-trip per capture. At high zoom (small source region) this is fast; at low zoom (large region) it may exceed the frame budget. Mitigation: implement a direct `x11rb`-based capture backend with XShm support as a Phase 1 task. OBS achieves 60fps+ X11 capture via XShm. |
-| **macOS docked mode cannot reserve screen space** | Certain | Medium | Accept floating overlay behavior for P0. Document as known limitation. Investigate `CGSSetWorkspace` private API (used by some tiling WMs) as a future option. |
+| **macOS docked mode cannot reserve screen space** | Certain | Medium | Accept floating overlay behavior for Phase 2 macOS release. Document as known limitation. Investigate `CGSSetWorkspace` private API (used by some tiling WMs) as a future option. |
 | **Accessibility API coverage gaps** prevent keyboard focus tracking | Medium | Medium | Many apps (legacy Win32, games, PDF viewers, some Electron apps) expose minimal accessibility trees. OCR-based text detection is the long-term fallback. For P0, mouse-follow mode is the reliable default. |
 | **sherpa-rs/sherpa-onnx Rust bindings immature** | Medium | Low | sherpa-onnx has a stable C API. If sherpa-rs bindings have gaps, write thin Rust FFI wrappers directly against the C API. Alternatively, use `kokoroxide` crate for Kokoro-specific workloads, or run sherpa-onnx as a subprocess. |
 | **wgpu Vulkan driver issues on older Linux hardware** | Low | Medium | wgpu falls back to OpenGL (via `Backends::GL`). Vulkan support is nearly universal on Linux systems shipped in the last 8 years. Test on Intel integrated graphics specifically. |
@@ -395,7 +403,7 @@ The recommended stack scores well on AI-agent development criteria:
 
 2. **macOS cannot reserve screen space like Windows/Linux.** The docked mode on macOS will float on top of other windows rather than preventing overlap. This is a macOS platform limitation, not an application limitation.
 
-3. **espeak-ng subprocess adds ~10-50ms latency to TTS.** Process spawning and IPC add overhead compared to in-process linking. For the "read aloud" use case (not real-time conversation), this is acceptable. The subprocess can be kept warm (long-running process) to amortize spawn cost. This trade-off may be eliminated entirely if `misaki` (Kokoro's transformer-based G2P, already released and functional for English/Japanese/Korean/Chinese) proves accurate enough to replace espeak-ng for Luminos's supported languages.
+3. **espeak-ng subprocess adds ~10-50ms latency to TTS.** Process spawning and IPC add overhead compared to in-process linking. For the "read aloud" use case (not real-time conversation), this is acceptable. The subprocess can be kept warm (long-running process) to amortize spawn cost. Note: with the project's GPLv3 license, espeak-ng could be linked directly to eliminate this latency. However, subprocess isolation is recommended for engineering reasons (crash isolation, resource management, testability). This trade-off may also be eliminated if `misaki` (Kokoro's transformer-based G2P, already released and functional for English/Japanese/Korean/Chinese) proves accurate enough to replace espeak-ng for Luminos's supported languages.
 
 4. **Kokoro supports fewer languages than Piper.** Kokoro v1.0 supports 10 language codes (American English, British English, Spanish, French, Hindi, Italian, Japanese, Korean, Brazilian Portuguese, Mandarin Chinese) — roughly 8 unique languages depending on how dialects are counted. Piper supports 30+. For languages not covered by Kokoro, Piper VITS models (also available via sherpa-onnx) serve as a fallback with the same subprocess isolation architecture.
 
@@ -403,17 +411,17 @@ The recommended stack scores well on AI-agent development criteria:
 
 ## 7. Conclusion
 
-The Luminos product strategy's core technical architecture is validated: Rust + Tauri 2.0 + wgpu for GPU rendering is the right foundation for a cross-platform, high-performance screen magnification tool developed primarily by AI agents. The dual-window architecture (Tauri WebView for settings, native winit+wgpu window for magnification) is essential and correct.
+The Luminos product strategy's core technical architecture is validated: Rust + Tauri 2.0 + wgpu for GPU rendering is the right foundation for a cross-platform, GPLv3-licensed, high-performance screen magnification tool developed primarily by AI agents. The dual-window architecture (Tauri WebView for settings, native winit+wgpu window for magnification) is essential and correct.
 
 Three material changes are required to align the stack with P0 requirements:
 
 1. **Replace `scap` with `xcap`** for screen capture. The `scap` crate's PipeWire-based Linux support does not meet the X11 requirement. `xcap` is more mature, has direct X11 support, and is already integrated in the Tauri ecosystem.
 
-2. **Replace Piper with Kokoro via sherpa-onnx** for TTS. Piper is archived and GPL-licensed. Kokoro is higher quality, Apache-2.0 licensed (model weights), and actively maintained. sherpa-onnx provides a unified runtime that supports both Kokoro and Piper models, with Rust bindings via `sherpa-rs`.
+2. **Replace Piper with Kokoro via sherpa-onnx** for TTS. Piper is archived and lower quality than Kokoro. Kokoro is higher quality, Apache-2.0 licensed (model weights), and actively maintained. sherpa-onnx provides a unified runtime that supports both Kokoro and Piper models, with Rust bindings via `sherpa-rs`. The project's GPLv3 license resolves the previous espeak-ng GPL propagation concern entirely; subprocess isolation of espeak-ng is recommended for engineering reasons (crash isolation, resource management) rather than legal necessity.
 
-3. **Explicitly adopt `winit`** as the window management layer for the magnification overlay, and implement platform-specific docked mode via EWMH struts (X11), AppBar API (Windows), and floating NSPanel (macOS).
+3. **Explicitly adopt `winit`** as the window management layer for the magnification overlay, and implement platform-specific docked mode via EWMH struts (Linux X11/OpenBSD), floating NSPanel (macOS), and AppBar API (Windows).
 
-With these changes, the technology stack is ready for Phase 0 development: proving the capture → GPU upload → shader magnification → overlay rendering pipeline on a single platform (macOS), then extending to Windows and Linux X11 in Phase 1.
+With these changes, the technology stack is ready for Phase 0 development: proving the capture → GPU upload → shader magnification → overlay rendering pipeline on a single platform (Linux X11), then extending to Linux Wayland and macOS in Phase 1-2, with OpenBSD in Phase 3 and Windows in Phase 4.
 
 ---
 
@@ -476,6 +484,8 @@ With these changes, the technology stack is ready for Phase 0 development: provi
 
 **Reason for discard:** Archived on October 6, 2025. Moved to `OHF-Voice/piper1-gpl` with explicit GPL-3.0 licensing. Kokoro-82M provides higher speech quality at comparable performance and is Apache 2.0 licensed (model weights). Piper VITS models remain available as a fallback through sherpa-onnx for languages not covered by Kokoro.
 
+**Note (2026-03-15):** The project's adoption of GPLv3 licensing resolves the GPL propagation concern that was originally a factor in this decision. However, Piper remains discarded as primary for non-licensing reasons: it is archived (no active development), and Kokoro provides materially higher speech quality.
+
 **Supporting data:** Reddit/HN community consensus consistently rates Kokoro above Piper for speech naturalness. Piper's advantage is in language breadth (30+ languages) and extreme lightweight operation (runs on Raspberry Pi).
 
 ### A.3 Screen Capture: Direct Platform APIs (Considered but Deferred)
@@ -500,7 +510,7 @@ With these changes, the technology stack is ready for Phase 0 development: provi
 
 **Description:** Use only AVSpeechSynthesizer (macOS), SAPI (Windows), and speech-dispatcher (Linux) without any bundled TTS engine.
 
-**Reason for discard:** Platform-native TTS engines provide inconsistent quality across platforms and offer no offline voice consistency. speech-dispatcher on Linux defaults to espeak-ng (the same GPL dependency). The cross-platform value proposition requires a consistent, high-quality voice that sounds the same on all three platforms. Platform-native TTS remains the recommended **fallback** for languages not supported by Kokoro.
+**Reason for discard:** Platform-native TTS engines provide inconsistent quality across platforms and offer no offline voice consistency. speech-dispatcher on Linux defaults to espeak-ng. The cross-platform value proposition requires a consistent, high-quality voice that sounds the same on all target platforms. Platform-native TTS remains the recommended **fallback** for languages not supported by Kokoro.
 
 ### A.7 Window Management: tao (Tauri's fork of winit) (Considered)
 

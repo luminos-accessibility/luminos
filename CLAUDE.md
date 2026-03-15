@@ -4,14 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Luminos** is an open-source, cross-platform (macOS/Windows/Linux) screen magnification + text-to-speech accessibility suite targeting low-vision users. The project is currently in the **pre-development research phase** — no application code exists yet. The repository contains product strategy and technical evaluation documents.
+**Luminos** is a GPLv3-licensed, cross-platform (Linux/macOS/OpenBSD/Windows) screen magnification + text-to-speech accessibility suite targeting low-vision users. The project is currently in the **pre-development research phase** — no application code exists yet. The repository contains product strategy and technical evaluation documents.
 
 ## Repository Structure
 
 - `specs/` — Spec-driven development artifacts (strategies, designs, implementation stories)
-  - `PRODUCT_STRATEGY.md` — Product strategy & roadmap v1.2. The canonical product definition.
+  - `PRODUCT_STRATEGY.md` — Product strategy & roadmap v1.3. The canonical product definition.
   - `TECH_STACK_EVALUATION.md` — Technology stack validation report. Contains the **revised** recommended stack (supersedes some choices in the strategy doc).
   - `README.md` — Spec-driven development (SDD) methodology guide with templates
+  - `tech-strategy/` — Technical strategy documents (architecture, pipelines, testing, build, roadmap)
   - `NNN-story-name/` — Implementation story folders (STORY.md, DESIGN.md, SUBTASKS.md)
 - `docs/` — Product documentation and user manuals (created when development begins)
 - `.claude/agent-memory/` — Persistent memory for specialized agents (technical-auditor, technical-research-analyst)
@@ -24,7 +25,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Rendering pipeline:** screen capture → GPU texture → wgpu shader transform → anti-alias → composite → present
 
-**TTS pipeline:** text → espeak-ng subprocess (phonemes, GPL-isolated) → Kokoro ONNX inference (via sherpa-rs) → cpal audio output
+**TTS pipeline:** text → espeak-ng subprocess (phonemes, crash-isolated) → Kokoro ONNX inference (via sherpa-rs) → cpal audio output
 
 ## Revised Technology Stack (from TECH_STACK_EVALUATION.md)
 
@@ -32,7 +33,7 @@ Key changes from the original strategy doc:
 - **Screen capture:** `xcap` crate (v0.9.1, Apache 2.0) replaces `scap` — provides direct X11 support
 - **TTS:** Kokoro-82M via `sherpa-rs`/sherpa-onnx replaces Piper (archived, GPL)
 - **Window management:** `winit` explicitly adopted for the magnification overlay
-- **Phonemizer:** espeak-ng run as **subprocess** to isolate GPL-3.0 from the main binary
+- **Phonemizer:** espeak-ng run as **subprocess** for crash isolation (GPL-3.0, compatible with project GPLv3)
 - **Audio output:** `cpal` crate
 - **Clipboard:** `arboard` crate
 
@@ -40,11 +41,11 @@ Core unchanged: Rust backend, Tauri 2.0 (control panel), wgpu (GPU), TypeScript+
 
 ## Platform Development Order
 
-macOS first → Windows → Linux (X11 first, Wayland later)
+Linux X11 first → Linux Wayland → macOS → OpenBSD → Windows
 
-## Critical Legal Issue
+## Licensing
 
-espeak-ng (GPL-3.0) is used for phonemization by both Kokoro and Piper TTS engines. The project's licensing strategy depends on subprocess isolation of espeak-ng (separate binary, simple text-in/phonemes-out IPC). Medium-term: evaluate misaki transformer-based G2P as a GPL-free alternative. Requires legal review before any TTS integration work.
+Luminos is licensed under **GPLv3**. espeak-ng (GPL-3.0) is used for phonemization by both Kokoro and Piper TTS engines. Since the project itself is GPLv3, there is no license propagation concern. espeak-ng is still run as a **subprocess** for engineering reasons (crash isolation, resource management, testability), not for legal isolation. Medium-term: evaluate misaki transformer-based G2P as a way to reduce external dependencies.
 
 ## Key Constraints & Performance Targets
 
