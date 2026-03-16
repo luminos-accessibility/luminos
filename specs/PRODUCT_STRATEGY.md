@@ -308,7 +308,7 @@ AT specialists and rehabilitation counselors are key influencers -- marketing mu
 
 | Feature | Priority | Description |
 |---------|----------|-------------|
-| Neural TTS engine integration (Kokoro via sherpa-onnx) | P0 | Embedded neural TTS via sherpa-onnx runtime (sherpa-rs Rust bindings), Kokoro-82M as primary model for near-commercial quality, Piper VITS models as language breadth fallback via same sherpa-onnx runtime; 8+ languages (Kokoro primary), 30+ via Piper fallback |
+| Neural TTS engine integration (Kokoro via sherpa-onnx) | P0 | Embedded neural TTS via sherpa-onnx runtime (sherpa-rs Rust bindings), Kokoro-82M as primary model for near-commercial quality, Piper VITS models as language breadth fallback via same sherpa-onnx runtime; 9 language codes / ~8 unique languages (Kokoro primary), 30+ via Piper fallback |
 | "Read what I see" mode | P0 | TTS reads text under magnification focus (via accessibility APIs) |
 | Selective TTS | P0 | Select text region, trigger speech ("read this paragraph") |
 | macOS screen capture | P0 | ScreenCaptureKit via `xcap` / `screencapturekit` crate |
@@ -419,7 +419,7 @@ AT specialists and rehabilitation counselors are key influencers -- marketing mu
 | **Screen capture** | `xcap` crate (v0.9.1, Apache 2.0) | Cross-platform capture starting with Linux X11 via XCB (simplest path -- no permissions/entitlements), then ScreenCaptureKit on macOS, Windows 8.1+ |
 | **GPU rendering** | `wgpu` | Cross-platform (Metal/DX12/Vulkan), transparent overlay window, GPU-accelerated magnification transforms |
 | **Window management** | `winit` (v0.30.13, Apache 2.0) | Cross-platform window creation for the magnification overlay: transparent, borderless, always-on-top windows integrated with wgpu via raw-window-handle |
-| **TTS engine** | Kokoro-82M via sherpa-onnx (`sherpa-rs` Rust bindings) | Near-commercial quality neural TTS, Apache 2.0 model weights, 8 languages; Piper VITS models available as fallback for 30+ languages via same runtime |
+| **TTS engine** | Kokoro-82M via sherpa-onnx (`sherpa-rs` Rust bindings) | Near-commercial quality neural TTS, Apache 2.0 model weights, 9 language codes (~8 unique languages); Piper VITS models available as fallback for 30+ languages via same runtime |
 | **TTS fallback** | Platform-native | AVSpeechSynthesizer (macOS), SAPI (Windows), speech-dispatcher (Linux) |
 | **Audio output** | `cpal` (Apache 2.0) | Cross-platform audio output for TTS playback |
 | **Clipboard** | `arboard` (MIT/Apache 2.0) | Cross-platform clipboard access for "read selected text" workflows |
@@ -630,7 +630,7 @@ The Linux-first strategy is driven by where the project can deliver the most imp
 | Wayland consent dialog chicken-and-egg | Certain | High | XDG Portal screen capture on Wayland requires a system dialog to grant permission. Low-vision users may need magnification to read the permission dialog. Mitigate with: session restoration tokens, clear documentation, OS-level accessibility for the dialog itself. |
 | Tauri WebkitGTK rendering issues on Linux | High | Medium | Control panel uses simple forms; magnification overlay bypasses webview; CEF alternative in development |
 | Platform API deprecation (especially macOS annual cycles) | Medium | High | Abstract behind traits; monitor deprecation cycles; budget for annual platform adaptation |
-| Kokoro/Piper TTS quality insufficient for some languages | Medium | Low | Kokoro covers 8 languages at near-commercial quality; Piper VITS models extend coverage to 30+ via same sherpa-onnx runtime. Fallback to platform-native TTS for unsupported languages. |
+| Kokoro/Piper TTS quality insufficient for some languages | Medium | Low | Kokoro covers ~8 unique languages (9 language codes) at near-commercial quality; Piper VITS models extend coverage to 30+ via same sherpa-onnx runtime. Fallback to platform-native TTS for unsupported languages. |
 | **xcap X11 capture performance at low zoom levels** | **Medium** | **Medium** | xcap uses non-SHM X11 capture (xcb_get_image path), which requires a full X server round-trip per capture. Adequate for small source regions at high zoom, but may exceed frame budget at low zoom levels (1.5-3x) with large capture areas on high-resolution displays. Mitigation: implement direct x11rb-based capture backend with XShm support as Phase 1 optimization. OBS achieves 60fps+ X11 capture via XShm. |
 | Accessibility API coverage gaps | Medium | Medium | Many apps (legacy Win32, Electron, games, CAD, PDF viewers) expose minimal accessibility tree. OCR must be treated as co-primary strategy, not just fallback. |
 | Low adoption despite technical quality | Medium | High | Engage AT specialists and rehab centers early; partner with NVDA community; attend CSUN/ATIA. Linux-first strategy targets a community with zero alternatives, improving early adoption odds. |

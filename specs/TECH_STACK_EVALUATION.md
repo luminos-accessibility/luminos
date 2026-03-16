@@ -356,7 +356,7 @@ The recommended stack scores well on AI-agent development criteria:
 | Magnifying glass mode | winit (transparent, borderless, always-on-top) + wgpu | — | Follows cursor; click-through on non-magnified area |
 | Follow mouse cursor | winit `DeviceEvent::MouseMotion` or `rdev` crate | Platform-native mouse hooks | rdev for global mouse tracking when app not focused |
 | Follow keyboard focus | atspi (Linux), AXUIElement (macOS), UIA (Windows) | Mouse-follow fallback (default on OpenBSD) | Not all apps expose focus via accessibility API |
-| 20x magnification | wgpu shader with bicubic interpolation + MSAA | — | Zoom range 1.5x-20x configurable |
+| 20x magnification | wgpu shader (bilinear Phase 0, bicubic Phase 1+) + MSAA | — | Zoom range 1.5x-20x configurable |
 | Adjustable refresh rate | wgpu `PresentMode` + frame limiter | — | Fifo (60fps), manual throttle (20-30fps) |
 | Basic TTS | sherpa-rs (Kokoro model) + cpal audio output | Platform-native TTS | espeak-ng subprocess for phonemization |
 | Games-level performance | wgpu GPU rendering pipeline | — | Zero CPU pixel manipulation |
@@ -405,7 +405,7 @@ The recommended stack scores well on AI-agent development criteria:
 
 3. **espeak-ng subprocess adds ~10-50ms latency to TTS.** Process spawning and IPC add overhead compared to in-process linking. For the "read aloud" use case (not real-time conversation), this is acceptable. The subprocess can be kept warm (long-running process) to amortize spawn cost. Note: with the project's GPLv3 license, espeak-ng could be linked directly to eliminate this latency. However, subprocess isolation is recommended for engineering reasons (crash isolation, resource management, testability). This trade-off may also be eliminated if `misaki` (Kokoro's transformer-based G2P, already released and functional for English/Japanese/Korean/Chinese) proves accurate enough to replace espeak-ng for Luminos's supported languages.
 
-4. **Kokoro supports fewer languages than Piper.** Kokoro v1.0 supports 10 language codes (American English, British English, Spanish, French, Hindi, Italian, Japanese, Korean, Brazilian Portuguese, Mandarin Chinese) — roughly 8 unique languages depending on how dialects are counted. Piper supports 30+. For languages not covered by Kokoro, Piper VITS models (also available via sherpa-onnx) serve as a fallback with the same subprocess isolation architecture.
+4. **Kokoro supports fewer languages than Piper.** Kokoro v1.0 supports 9 language codes (American English, British English, Spanish, French, Hindi, Italian, Japanese, Brazilian Portuguese, Mandarin Chinese) — ~8 unique languages (en-US/en-GB count as one). Korean support has not been confirmed in v1.0 and should be verified against the model card before claiming. Piper supports 30+. For languages not covered by Kokoro, Piper VITS models (also available via sherpa-onnx) serve as a fallback with the same subprocess isolation architecture.
 
 ---
 

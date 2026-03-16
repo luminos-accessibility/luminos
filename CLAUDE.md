@@ -77,6 +77,13 @@ Stories live in `specs/NNN-story-name/` folders. See `specs/README.md` for full 
 - SUBTASKS.md completion notes are mandatory (they are the memory for agent handoffs)
 - Stories target 5-15 subtasks; split if exceeding 20
 
+## General writing rules
+
+- When handling memory files, NEVER use absolute paths, always reference paths relative to the project root.
+- When using a library or API, always fetch documentation from context7 or web search tools.
+- When working on writing large files (1,000 lines or more), write a skeleton of the file first, then write each section/method/function in a separate write tool call.
+- You have a team of specialists that you can delegate subtasks to, make use of them when needed.
+
 ## Rust Coding Rules
 
 ### Naming & Style
