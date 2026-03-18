@@ -29,7 +29,8 @@
 - Forward refs to docs 06-09 marked as (planned) across all docs
 - Bilinear/bicubic phase progression noted in doc-01 and Tech Stack Eval
 - Doc-06 written and audited (cross-cutting concerns: perf, security, licensing, a11y, observability, errors, i18n)
-- Docs 07-09 still needed (testing strategy, build/distribution, implementation roadmap)
+- Doc-07 written and audited (testing strategy: CI/CD pipeline, quality gates, release checklist, benchmarks)
+- Docs 08-09 still needed (build/distribution, implementation roadmap)
 - Doc-10 still needed (risk register)
 
 ## Performance Targets
@@ -51,5 +52,10 @@
 - `env_logger` does NOT provide compile-time filtering; `log` crate features do
 - LuminosError canonical def is in doc-02 §4.1 (luminos-platform/src/error.rs)
 - NVDA license is GPL-2.0-or-later (not GPL-2.0-only)
+- Criterion.toml only supports output_format, plotting_backend, colors. Statistical params are Rust API only.
+- tauri-driver: Linux + Windows only. macOS has no WKWebView driver tool.
+- GitHub Actions macOS runners do NOT auto-grant Screen Recording permission (actions/runner-images#8951)
+- espeak-ng on Windows: use MSI from GitHub releases, NOT choco (may not exist)
+- doc-06 only defines fail thresholds for frame time (20ms) and memory (1GB); warn thresholds (16.67ms, 800MB) are new in doc-07
 
 ## Document Details → [tech-strategy-review.md](./tech-strategy-review.md)

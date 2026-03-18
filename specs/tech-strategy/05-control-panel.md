@@ -1789,7 +1789,7 @@ test('magnification_page_has_no_accessibility_violations', async () => {
 });
 ```
 
-Automated axe checks catch: missing labels, insufficient color contrast, keyboard traps, missing ARIA roles. Manual screen reader testing with Orca is required before each major release and is tracked in the release checklist (see [07 -- Testing Strategy](./07-testing-strategy.md) (planned)).
+Automated axe checks catch: missing labels, insufficient color contrast, keyboard traps, missing ARIA roles. Manual screen reader testing with Orca is required before each major release and is tracked in the release checklist (see [07 -- Testing Strategy](./07-testing-strategy.md)).
 
 ---
 
@@ -1981,7 +1981,7 @@ ui/
 | Phase 2 TTS features (voice control, word highlighting) | [Product Strategy](../PRODUCT_STRATEGY.md) | 7.3 |
 | Phase 1 settings persistence and profiles | [Product Strategy](../PRODUCT_STRATEGY.md) | 7.2 |
 | Tauri 2.0 selection rationale | [Tech Stack Evaluation](../TECH_STACK_EVALUATION.md) | 3.1 |
-| Testing strategy (Tauri integration tests) | [07 -- Testing Strategy](./07-testing-strategy.md) (planned) | (TBD) |
+| Testing strategy (Tauri integration tests) | [07 -- Testing Strategy](./07-testing-strategy.md) | Section 4.5 |
 | Consolidated performance targets (IPC latency) | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 2.1 |
 | Tauri security configuration (capability-based permissions) | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 3.4 |
 | WCAG compliance strategy | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 5 |

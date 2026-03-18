@@ -1,4 +1,4 @@
-# Tech Strategy Review Notes (2026-03-16)
+# Tech Strategy Review Notes (2026-03-17)
 
 ## Documents Reviewed
 - 01-system-architecture.md (v1.0) - 1032 lines
@@ -7,6 +7,7 @@
 - 04-tts-pipeline.md (v1.1) - ~1070 lines
 - 05-control-panel.md (v1.1) - ~1990 lines
 - 06-cross-cutting-concerns.md (v1.1) - ~800 lines (written + audited 2026-03-16)
+- 07-testing-strategy.md (v1.1) - ~870 lines (written + audited 2026-03-17)
 
 ## Critical Data Corrections Needed
 1. Doc-01 Section 9.3: q8 model = ~92MB (not ~165MB). Total budget should be ~302-392MB.
@@ -70,3 +71,13 @@
 - P-003: Piper post-fork GPL-3.0 caveat. Fixed: added note.
 - P-004: SPDX identifiers. Fixed: using current GPL-3.0-only/or-later format.
 - P-005: TtsTimings/get_tts_timings new types. Fixed: marked as proposed.
+
+## Doc-07 Audit Findings (2026-03-17) — All Fixed
+- F-001 (HIGH): Criterion.toml config block used invalid fields (significance_level, noise_threshold, etc.). These are Rust API params, not TOML config. Fixed: replaced with Rust criterion_group! macro code.
+- F-002 (MEDIUM): macOS Screen Recording claim incorrect — GitHub Actions macOS runners do NOT auto-grant this. Fixed: documented limitation and workarounds.
+- F-003 (MEDIUM): Frame time warn (16.67ms) and memory warn (800MB) thresholds claimed as "consolidated from doc-06" but are new. Doc-06 only defines fail thresholds. Fixed: marked with * as new additions.
+- F-004 (MEDIUM): tauri-driver not supported on macOS (no WKWebView driver). Fixed: noted in Sections 3.3 and 4.7.
+- F-005 (LOW): Memory warn check (800MB) missing from benchmark script. Fixed: added.
+- F-006 (LOW): New test tools not clearly distinguished from doc-05 base toolchain. Fixed: added * markers and attribution note.
+- F-007 (LOW): Wayland CI terminology mismatch with doc-02 "wlheadless". Fixed: added clarifying note.
+- Additional fixes: replaced choco espeak-ng with MSI download; added --benchmark-mode explanation; removed misleading Vitest alias; added E2E flakiness management policy (P-002); added coverage trend monitoring (P-003).

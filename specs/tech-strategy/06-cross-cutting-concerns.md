@@ -29,7 +29,7 @@ This document covers:
 This document does NOT cover:
 - Subsystem-specific performance optimizations (see [03 -- Rendering Pipeline](./03-rendering-pipeline.md) Section 8 for GPU-specific optimizations; [04 -- TTS Pipeline](./04-tts-pipeline.md) Section 10 for TTS latency)
 - Build, packaging, or CI/CD pipeline configuration (see [08 -- Build and Distribution](./08-build-and-distribution.md) (planned))
-- Feature-level testing (see [07 -- Testing Strategy](./07-testing-strategy.md) (planned))
+- Feature-level testing (see [07 -- Testing Strategy](./07-testing-strategy.md))
 
 ### 1.3 Relationship to Other Documents
 
@@ -138,7 +138,7 @@ TTS latency is instrumented from `speak()` call to first audio sample written to
 | Startup time | Cold start to first frame timestamp | Median of 5 runs | < 2s (warn), < 3s (fail) |
 | TTS latency | Trigger-to-first-audio | P99 | < 200ms (warn), < 300ms (fail) |
 
-CI benchmarks run on a baseline hardware profile (details in [07 -- Testing Strategy](./07-testing-strategy.md) (planned)). Results are tracked as time-series data to detect regressions before they reach users.
+CI benchmarks run on a baseline hardware profile (details in [07 -- Testing Strategy](./07-testing-strategy.md)). Results are tracked as time-series data to detect regressions before they reach users.
 
 **3. Developer profiling tools (on-demand)**
 
@@ -775,7 +775,7 @@ The TTS language (voice selection) is independent of the UI language. A user wit
 | Sustainability and governance | [Product Strategy](../PRODUCT_STRATEGY.md) | 12 |
 | Technology license verification | [Tech Stack Evaluation](../TECH_STACK_EVALUATION.md) | 3.1 |
 | Platform error types | [02 -- Platform Abstraction](./02-platform-abstraction.md) | 4 |
-| Testing strategy (CI benchmarks, quality gates) | [07 -- Testing Strategy](./07-testing-strategy.md) (planned) | (TBD) |
+| Testing strategy (CI benchmarks, quality gates) | [07 -- Testing Strategy](./07-testing-strategy.md) | Sections 4.6, 5 |
 | Build and distribution (signing, SBOM) | [08 -- Build and Distribution](./08-build-and-distribution.md) (planned) | (TBD) |
 
 ---
