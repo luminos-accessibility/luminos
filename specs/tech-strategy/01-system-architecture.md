@@ -816,7 +816,7 @@ luminos-app (binary)
 | `crossbeam-channel` | `luminos-core`, `luminos-tts` | Inter-thread channels |
 | `arc-swap` | `luminos-core` | Lock-free shared state (`ArcSwap<AppState>`) |
 
-Build and distribution details (Cargo features, conditional compilation, packaging) are in [08 -- Build and Distribution](./08-build-and-distribution.md) (planned).
+Build and distribution details (Cargo features, conditional compilation, packaging) are in [08 -- Build and Distribution](./08-build-and-distribution.md).
 
 ---
 
@@ -1000,7 +1000,7 @@ Voice model files are distributed separately (or downloaded on first use) due to
 | OpenBSD | Port/package | Via OpenBSD ports system |
 | Windows | .msi | GPO-compatible for enterprise deployment |
 
-Full build, packaging, and distribution details are in [08 -- Build and Distribution](./08-build-and-distribution.md) (planned).
+Full build, packaging, and distribution details are in [08 -- Build and Distribution](./08-build-and-distribution.md).
 
 ---
 
@@ -1034,7 +1034,7 @@ This section records the key architectural decisions made in this document. Each
 | Tauri IPC commands, React UI architecture | [05 -- Control Panel](./05-control-panel.md) | IPC design |
 | Performance budgets, security policy, licensing, accessibility, observability, error handling | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Sections 2-8 |
 | Test architecture, CI/CD, quality gates | [07 -- Testing Strategy](./07-testing-strategy.md) | All sections |
-| Cargo workspace, packaging, signing, release engineering | [08 -- Build and Distribution](./08-build-and-distribution.md) (planned) | Workspace layout, packaging |
+| Cargo workspace, packaging, signing, release engineering | [08 -- Build and Distribution](./08-build-and-distribution.md) | Workspace layout, packaging |
 | Phased milestones, story breakdown, delivery timeline | [09 -- Implementation Roadmap](./09-implementation-roadmap.md) (planned) | Phase 0-4 |
 | Technical risks, mitigations, monitoring | [10 -- Risk Register](./10-risk-register.md) (planned) | All risks |
 | Product requirements, feature roadmap, personas | [Product Strategy](../PRODUCT_STRATEGY.md) | Sections 5, 7, 8 |

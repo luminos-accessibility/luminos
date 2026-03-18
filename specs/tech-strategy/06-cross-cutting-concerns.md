@@ -28,7 +28,7 @@ This document covers:
 
 This document does NOT cover:
 - Subsystem-specific performance optimizations (see [03 -- Rendering Pipeline](./03-rendering-pipeline.md) Section 8 for GPU-specific optimizations; [04 -- TTS Pipeline](./04-tts-pipeline.md) Section 10 for TTS latency)
-- Build, packaging, or CI/CD pipeline configuration (see [08 -- Build and Distribution](./08-build-and-distribution.md) (planned))
+- Build, packaging, or CI/CD pipeline configuration (see [08 -- Build and Distribution](./08-build-and-distribution.md))
 - Feature-level testing (see [07 -- Testing Strategy](./07-testing-strategy.md))
 
 ### 1.3 Relationship to Other Documents
@@ -776,7 +776,7 @@ The TTS language (voice selection) is independent of the UI language. A user wit
 | Technology license verification | [Tech Stack Evaluation](../TECH_STACK_EVALUATION.md) | 3.1 |
 | Platform error types | [02 -- Platform Abstraction](./02-platform-abstraction.md) | 4 |
 | Testing strategy (CI benchmarks, quality gates) | [07 -- Testing Strategy](./07-testing-strategy.md) | Sections 4.6, 5 |
-| Build and distribution (signing, SBOM) | [08 -- Build and Distribution](./08-build-and-distribution.md) (planned) | (TBD) |
+| Build and distribution (signing, SBOM) | [08 -- Build and Distribution](./08-build-and-distribution.md) | Sections 9, 12 |
 
 ---
 

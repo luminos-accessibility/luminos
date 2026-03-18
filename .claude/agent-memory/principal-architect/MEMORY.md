@@ -30,8 +30,8 @@
 - Bilinear/bicubic phase progression noted in doc-01 and Tech Stack Eval
 - Doc-06 written and audited (cross-cutting concerns: perf, security, licensing, a11y, observability, errors, i18n)
 - Doc-07 written and audited (testing strategy: CI/CD pipeline, quality gates, release checklist, benchmarks)
-- Docs 08-09 still needed (build/distribution, implementation roadmap)
-- Doc-10 still needed (risk register)
+- Doc-08 written and audited (build/distribution: workspace config, packaging, signing, release engineering)
+- Docs 09-10 still needed (implementation roadmap, risk register)
 
 ## Performance Targets
 - 60fps / 16.67ms frame budget (P99 < 20ms)
@@ -57,5 +57,14 @@
 - GitHub Actions macOS runners do NOT auto-grant Screen Recording permission (actions/runner-images#8951)
 - espeak-ng on Windows: use MSI from GitHub releases, NOT choco (may not exist)
 - doc-06 only defines fail thresholds for frame time (20ms) and memory (1GB); warn thresholds (16.67ms, 800MB) are new in doc-07
+- Tauri CLI (`cargo tauri build`) has NO `--profile` flag; use `cargo build --profile X` separately
+- Tauri CLI flag to skip signing is `--no-sign` (NOT `--skip-signing`)
+- Tauri RpmConfig has NO `license` field; RPM license comes from `bundle.license`
+- Rust edition 2024 defaults to resolver 3 (not 2); no explicit `resolver` field needed
+- `cargo-cyclonedx` v0.5.7: valid flags are `-f json`, `--spec-version 1.5`, `--manifest-path`
+- Tauri native bundle targets: deb, rpm, appimage, app, dmg, msi, nsis (NO flatpak or snap)
+- NSIS cross-compilation from Linux/macOS is "highly experimental" per Tauri docs
+- doc-02 Section 5.2: NO `x11` Cargo feature exists; `wayland` feature controls ashpd dep, not module compilation
+- Both linux_x11 and linux_wayland modules compile unconditionally on target_os = "linux"
 
 ## Document Details → [tech-strategy-review.md](./tech-strategy-review.md)

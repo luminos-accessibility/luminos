@@ -81,3 +81,17 @@
 - F-006 (LOW): New test tools not clearly distinguished from doc-05 base toolchain. Fixed: added * markers and attribution note.
 - F-007 (LOW): Wayland CI terminology mismatch with doc-02 "wlheadless". Fixed: added clarifying note.
 - Additional fixes: replaced choco espeak-ng with MSI download; added --benchmark-mode explanation; removed misleading Vitest alias; added E2E flakiness management policy (P-002); added coverage trend monitoring (P-003).
+
+## Doc-08 Audit Findings (2026-03-17) — All Fixed
+- F-001 (CRITICAL): `cargo tauri build --profile dist` — Tauri CLI has no `--profile` flag. Fixed: split into `cargo build --profile dist` + `cargo tauri build --bundles`.
+- F-002 (HIGH): Fabricated `x11` Cargo feature gating `linux_x11` module. Doc-02 §5.2 defines no such feature. Fixed: aligned with doc-02 canonical (both modules compile unconditionally on linux).
+- F-003 (HIGH): Fabricated `license` field in Tauri RpmConfig. Fixed: removed, noted RPM license from `bundle.license`.
+- F-004 (HIGH): `--skip-signing` flag incorrect. Correct Tauri flag is `--no-sign`. Fixed.
+- F-005 (MEDIUM): Doc-07 xref Section 7.2 → should be 7.3 (shader reference images). Fixed.
+- F-006 (MEDIUM): Doc-06 xref Section 2.5 → should be 2.4 (profiling strategy). Fixed.
+- F-007 (MEDIUM): Doc-04 xref Section 3.2 incorrect for espeak-ng path resolution. Fixed: updated to Section 5.
+- F-008 (MEDIUM): Phase 0 packaging inconsistent with Product Strategy (deb/rpm/AppImage listed as Phase 1 P1). Fixed: added justification footnote.
+- F-009 (MEDIUM): cpal version 0.15 outdated (latest is 0.17.x). Fixed: updated to 0.17.
+- F-010 (LOW): `resolver = "2"` incorrect for edition 2024 (defaults to resolver 3). Fixed: removed explicit resolver.
+- F-011 (LOW): Binary size check profile inconsistency with doc-07. Fixed: added clarifying note about Stage 5 vs Stage 8.
+- Additional: clarified Windows signing env vars as CI workflow vars (P-002), added NSIS cross-compilation caveat (P-003), added ARM64 Linux note (P-005), fixed all `target/dist/bundle` paths to `target/release/bundle`.

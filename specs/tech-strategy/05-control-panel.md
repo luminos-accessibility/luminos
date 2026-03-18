@@ -35,7 +35,7 @@ This document does NOT cover:
 - Magnification rendering or GPU shader details (see [03 -- Rendering Pipeline](./03-rendering-pipeline.md))
 - TTS pipeline internals (see [04 -- TTS Pipeline](./04-tts-pipeline.md))
 - Platform abstraction trait definitions (see [02 -- Platform Abstraction](./02-platform-abstraction.md))
-- Build, packaging, or distribution (see [08 -- Build and Distribution](./08-build-and-distribution.md) (planned))
+- Build, packaging, or distribution (see [08 -- Build and Distribution](./08-build-and-distribution.md))
 
 ### 1.3 Phase Attribution
 

@@ -30,7 +30,7 @@ This document covers:
 
 This document does NOT cover:
 - Per-subsystem test case inventories (see [02](./02-platform-abstraction.md) Section 7, [03](./03-rendering-pipeline.md) Section 12, [04](./04-tts-pipeline.md) Section 14, [05](./05-control-panel.md) Section 13)
-- Build and packaging specifics (see [08 -- Build and Distribution](./08-build-and-distribution.md) (planned))
+- Build and packaging specifics (see [08 -- Build and Distribution](./08-build-and-distribution.md))
 - Error handling strategy (see [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) Section 7)
 
 ### 1.3 Design Principles
@@ -571,7 +571,7 @@ E2E tests launch the full Luminos binary, interact with it via hotkeys (`xdotool
 
 ### 4.9 Stage 8: Release Build
 
-Release builds run only on version tags (`v*.*.*`). They produce signed release artifacts for all platforms. The full specification is in [08 -- Build and Distribution](./08-build-and-distribution.md) (planned). From a testing perspective, the release stage:
+Release builds run only on version tags (`v*.*.*`). They produce signed release artifacts for all platforms. The full specification is in [08 -- Build and Distribution](./08-build-and-distribution.md). From a testing perspective, the release stage:
 
 1. Runs all Stage 1-7 checks (full validation)
 2. Builds optimized release binaries for each platform
@@ -1208,7 +1208,7 @@ Profiling is never enabled in CI. It is a developer tool for investigating perfo
 | Observability and diagnostics | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | 6 |
 | SDD methodology and templates | [specs/README.md](../README.md) | Testing Strategy, TDD Workflow |
 | Development process and CI/CD | [Product Strategy](../PRODUCT_STRATEGY.md) | 9.2 |
-| Build and distribution | [08 -- Build and Distribution](./08-build-and-distribution.md) (planned) | (TBD) |
+| Build and distribution | [08 -- Build and Distribution](./08-build-and-distribution.md) | Sections 4, 8, 9, 11 |
 
 ---
 
