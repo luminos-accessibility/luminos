@@ -1065,6 +1065,11 @@ luminos-tts
 | Process isolation (security) | [01 -- System Architecture](./01-system-architecture.md) | 10.2 |
 | Cargo workspace layout | [01 -- System Architecture](./01-system-architecture.md) | 7.1 |
 | Control panel voice selection | [05 -- Control Panel](./05-control-panel.md) | Section 9 |
+| Consolidated performance targets (TTS latency) | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 2.1 |
+| Memory budget (TTS model sizes) | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 2.2 |
+| Error handling policy and TtsError recovery | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 7 |
+| Licensing (espeak-ng GPL-3.0, Kokoro Apache-2.0) | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 4.2 |
+| Privacy policy (no screen text exfiltration) | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 3.2 |
 
 ---
 

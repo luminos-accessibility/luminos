@@ -24,7 +24,7 @@ The strategy is organized into focused, interconnected documents. Read them in o
 | 03 | [Rendering Pipeline](./03-rendering-pipeline.md) | GPU magnification: capture, shaders, frame pacing, zoom modes | Engineers |
 | 04 | [TTS Pipeline](./04-tts-pipeline.md) | Text-to-speech architecture, subprocess isolation, voice model management | Engineers |
 | 05 | [Control Panel](./05-control-panel.md) | Tauri IPC, React UI, settings, profiles | Frontend engineers |
-| 06 | [Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Performance, security, licensing, accessibility, observability | Everyone |
+| 06 | [Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Performance, security, licensing, accessibility, observability, error handling, i18n | Everyone |
 | 07 | [Testing Strategy](./07-testing-strategy.md) | Test architecture, CI/CD pipeline, quality gates | Engineers |
 | 08 | [Build and Distribution](./08-build-and-distribution.md) | Cargo workspace, packaging, signing, release engineering | Engineers, DevOps |
 | 09 | [Implementation Roadmap](./09-implementation-roadmap.md) | Phased milestones, story breakdown, delivery timeline | Everyone |

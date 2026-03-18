@@ -6,6 +6,7 @@
 - 03-rendering-pipeline.md (v1.1) - ~1300 lines
 - 04-tts-pipeline.md (v1.1) - ~1070 lines
 - 05-control-panel.md (v1.1) - ~1990 lines
+- 06-cross-cutting-concerns.md (v1.1) - ~800 lines (written + audited 2026-03-16)
 
 ## Critical Data Corrections Needed
 1. Doc-01 Section 9.3: q8 model = ~92MB (not ~165MB). Total budget should be ~302-392MB.
@@ -52,3 +53,20 @@
 - Kokoro model sizes verified: fp32 ~327MB (326MB actual), fp16 ~163MB, q4 ~80MB — correct in docs 04 and 05
 - 12+ cross-references spot-checked — all target sections exist and cover claimed topics
 - Zero broken internal cross-references (per exhaustive xref checker)
+
+## Doc-06 Audit Findings (2026-03-16) — All Fixed
+- F-001 (HIGH): LuminosError hierarchy diverged from doc-02 canonical. Fixed: aligned with doc-02 §4.1.
+- F-002 (HIGH): Tauri capability JSON had non-existent `deny` field. Fixed: removed, using omission-based denial.
+- F-003 (HIGH): cargo-deny config had deprecated `copyleft`/`deny` fields. Fixed: `allow` list only.
+- F-004 (MEDIUM): WCAG 2.3.1 mapped to reduced motion (wrong). Fixed: corrected to 2.3.3.
+- F-005 (MEDIUM): LGPL incorrectly described as incompatible with GPLv3. Fixed: added to allowlist.
+- F-006 (MEDIUM): get_system_info listed as Phase 0 (should be Phase 3 per doc-05). Fixed.
+- F-007 (MEDIUM): Flicker "3Hz to 50Hz" is WCAG 1.0, not 2.x. Fixed: "three flashes per second."
+- F-008 (LOW): NVDA "GPL-2.0" → "GPL-2.0-or-later." Fixed.
+- F-009 (LOW): Zero-cost logging attributed to env_logger. Fixed: attributed to log crate features.
+- F-010 (LOW): LUMINOS_LOG env var needs custom setup. Fixed: documented Builder::from_env.
+- P-001: Memory budget discrepancy. Fixed: added supersession note.
+- P-002: Signing key gap pre-foundation. Fixed: added interim Year 1 key management.
+- P-003: Piper post-fork GPL-3.0 caveat. Fixed: added note.
+- P-004: SPDX identifiers. Fixed: using current GPL-3.0-only/or-later format.
+- P-005: TtsTimings/get_tts_timings new types. Fixed: marked as proposed.

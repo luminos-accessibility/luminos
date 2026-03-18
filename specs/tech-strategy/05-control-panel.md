@@ -1982,6 +1982,12 @@ ui/
 | Phase 1 settings persistence and profiles | [Product Strategy](../PRODUCT_STRATEGY.md) | 7.2 |
 | Tauri 2.0 selection rationale | [Tech Stack Evaluation](../TECH_STACK_EVALUATION.md) | 3.1 |
 | Testing strategy (Tauri integration tests) | [07 -- Testing Strategy](./07-testing-strategy.md) (planned) | (TBD) |
+| Consolidated performance targets (IPC latency) | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 2.1 |
+| Tauri security configuration (capability-based permissions) | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 3.4 |
+| WCAG compliance strategy | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 5 |
+| Logging and observability | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 6 |
+| Error handling policy | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 7 |
+| Internationalization strategy | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 8 |
 
 ---
 

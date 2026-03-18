@@ -1606,7 +1606,7 @@ pub(crate) enum SessionType {
 | Capture-to-GPU rendering pipeline | [03 - Rendering Pipeline](./03-rendering-pipeline.md) | Full pipeline design |
 | TTS pipeline (espeak-ng subprocess, Kokoro inference, cpal output) | [04 - TTS Pipeline](./04-tts-pipeline.md) | Pipeline architecture |
 | Tauri IPC between control panel and Rust backend | [05 - Control Panel](./05-control-panel.md) | IPC design |
-| Performance budgets and profiling strategy | [06 - Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Performance |
+| Performance budgets, profiling strategy, error handling | [06 - Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Sections 2 (Performance), 7 (Error Handling) |
 | CI/CD matrix and platform-specific test infrastructure | [07 - Testing Strategy](./07-testing-strategy.md) | CI pipeline |
 | Cargo workspace structure and conditional compilation | [08 - Build and Distribution](./08-build-and-distribution.md) | Workspace layout |
 | Phase 0-4 platform sequencing and milestones | [09 - Implementation Roadmap](./09-implementation-roadmap.md) (planned) | Phased delivery |

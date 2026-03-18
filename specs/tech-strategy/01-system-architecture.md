@@ -1032,7 +1032,7 @@ This section records the key architectural decisions made in this document. Each
 | GPU rendering pipeline, shaders, frame pacing | [03 -- Rendering Pipeline](./03-rendering-pipeline.md) | Pipeline design |
 | TTS architecture, espeak-ng protocol, Kokoro inference | [04 -- TTS Pipeline](./04-tts-pipeline.md) | All sections |
 | Tauri IPC commands, React UI architecture | [05 -- Control Panel](./05-control-panel.md) | IPC design |
-| Performance budgets, security policy, licensing | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) (planned) | Performance, Security, Licensing |
+| Performance budgets, security policy, licensing, accessibility, observability, error handling | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Sections 2-8 |
 | Test architecture, CI/CD, quality gates | [07 -- Testing Strategy](./07-testing-strategy.md) (planned) | All sections |
 | Cargo workspace, packaging, signing, release engineering | [08 -- Build and Distribution](./08-build-and-distribution.md) (planned) | Workspace layout, packaging |
 | Phased milestones, story breakdown, delivery timeline | [09 -- Implementation Roadmap](./09-implementation-roadmap.md) (planned) | Phase 0-4 |

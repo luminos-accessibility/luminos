@@ -1314,6 +1314,11 @@ The rendering pipeline follows a "never go black" principle: the user should alw
 | xcap capture strategy and XShm plan | [Tech Stack Evaluation](../TECH_STACK_EVALUATION.md) | Section 4.3 |
 | Phase 0-1 rendering features | [Product Strategy](../PRODUCT_STRATEGY.md) | Section 7 |
 | TTS pipeline (runs independently, same process) | [04 -- TTS Pipeline](./04-tts-pipeline.md) | All |
+| Consolidated performance targets and memory budget | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Sections 2.1, 2.2 |
+| Hot path budget breakdown | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 2.3 |
+| Degradation strategy (auto-degrade at sustained P99 > 33ms) | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 2.5 |
+| Profiling tools (tracy, perf, Instruments) | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 2.4 |
+| Error handling policy and RenderError recovery | [06 -- Cross-Cutting Concerns](./06-cross-cutting-concerns.md) | Section 7 |
 
 ---
 
