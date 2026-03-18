@@ -42,7 +42,7 @@ Luminos fills that gap with:
 
 ## Feature Roadmap
 
-Development is organized into 5 phases:
+Development is organized into 5 phases spanning approximately 20 months:
 
 | Phase | Focus | Key Features |
 |-------|-------|-------------|
@@ -53,6 +53,40 @@ Development is organized into 5 phases:
 | **4: Platform & Ecosystem** | Windows support + extensibility | Windows full support, plugin architecture, config sync, enterprise deployment, i18n |
 
 See [Product Strategy](specs/PRODUCT_STRATEGY.md) for the complete feature breakdown with priorities.
+
+### Delivery Roadmap (20 Engineering Epics)
+
+Each phase is decomposed into self-contained engineering epics (2-6 weeks each). Epics are the unit of work picked up by the team and broken into implementation stories.
+
+| Epic | Name | Duration | Deliverable |
+|------|------|----------|-------------|
+| | **Phase 0: Foundation (Months 1-3)** | | |
+| E1 | Project Scaffolding, Platform Traits & CI/CD | 3 weeks | Compiling workspace, 6 trait definitions, CI pipeline |
+| E2 | X11 Screen Capture & GPU Magnification | 4 weeks | Magnified screen content at 60fps on Linux X11 |
+| E3 | Input Tracking & Interactive Magnification | 3 weeks | Cursor-following magnifier with keyboard shortcuts |
+| E4 | Tauri Control Panel & Settings Persistence | 3 weeks | Settings UI, IPC, config persistence, system tray |
+| | **Phase 1: Core Magnification (Months 4-6)** | | |
+| E5 | Lens & Docked Magnification Modes | 3 weeks | Three distinct magnification modes |
+| E6 | Visual Enhancement Pipeline | 3 weeks | Color filters, cursor enhancement, bicubic interpolation |
+| E7 | Focus Tracking & Keybinding Configuration | 3 weeks | AT-SPI2 focus tracking, configurable hotkeys |
+| E8 | Wayland Display Support | 4 weeks | Full Wayland support (GNOME, KDE, wlroots) |
+| E9 | Linux Packaging & Release Automation | 3 weeks | .deb, .rpm, AppImage packages; release pipeline |
+| | **Phase 2: TTS + Cross-Platform (Months 7-9)** | | |
+| E10 | TTS Core Pipeline | 4 weeks | espeak-ng + Kokoro neural TTS at <200ms latency |
+| E11 | TTS User Experience | 3 weeks | "Read what I see", voice selection, word highlighting |
+| E12 | macOS Platform Support | 5 weeks | Full magnification + TTS on macOS with .dmg |
+| | **Phase 3: Advanced + AI (Months 10-14)** | | |
+| E13 | Font Re-Rendering Engine | 5 weeks | Crisp text at high zoom (key competitive differentiator) |
+| E14 | OCR & AI-Powered Accessibility | 4 weeks | Text extraction from images, AI image descriptions |
+| E15 | OpenBSD Platform Support | 3 weeks | Full support on OpenBSD via shared X11 code |
+| E16 | Advanced Magnification Features | 4 weeks | Multi-monitor, split-screen, mini-map, condition presets |
+| | **Phase 4: Platform & Ecosystem (Months 15-20)** | | |
+| E17 | Windows Core Platform Support | 5 weeks | Magnification on Windows via DXGI/DX12 |
+| E18 | Windows Full Integration & Packaging | 4 weeks | TTS, NVDA/JAWS coexistence, .msi installer |
+| E19 | Plugin Architecture | 4 weeks | Extensible plugin system with example plugin |
+| E20 | Enterprise, i18n & Ecosystem | 4 weeks | GPO/MDM deployment, 10+ languages, RTL support |
+
+See [Implementation Roadmap](specs/tech-strategy/09-implementation-roadmap.md) for epic details, dependencies, success criteria, and risk analysis.
 
 ## Architecture
 

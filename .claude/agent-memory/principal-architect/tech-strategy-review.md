@@ -95,3 +95,21 @@
 - F-010 (LOW): `resolver = "2"` incorrect for edition 2024 (defaults to resolver 3). Fixed: removed explicit resolver.
 - F-011 (LOW): Binary size check profile inconsistency with doc-07. Fixed: added clarifying note about Stage 5 vs Stage 8.
 - Additional: clarified Windows signing env vars as CI workflow vars (P-002), added NSIS cross-compilation caveat (P-003), added ARM64 Linux note (P-005), fixed all `target/dist/bundle` paths to `target/release/bundle`.
+
+## Doc-09 Audit Findings (2026-03-18) — All Fixed
+- F-001 (CRITICAL): Critical path calculation had invalid E5→E9 link. Fixed: E1→E2→E8→E9→E12→E16→E17→E18→E19→E20 = 40 weeks.
+- F-002 (CRITICAL): Systematic doc-02 section errors — "Section 5.1-5.5" for per-platform backends. Doc-02 has no §5.1-5.5. Fixed: all changed to §8.1-8.5.
+- F-003 (CRITICAL): Systematic doc-08 section errors — off by +2 throughout. Fixed: packaging→§8, signing→§9, espeak-ng→§6, voice models→§7.
+- F-004 (HIGH): Keybinding config pulled from Phase 2 to Phase 1 without note. Fixed: added phase attribution note.
+- F-005 (HIGH): "Configurable" keyboard shortcuts P0 requirement partially deferred. Fixed: added explicit scope reduction note.
+- F-006 (HIGH): Settings persistence pulled from Phase 1 to Phase 0 without note. Fixed: added phase attribution note.
+- F-007 (HIGH): Flatpak/snap dropped from all epics (PS lists as P1). Fixed: added rationale (Tauri doesn't support them natively).
+- F-008 (HIGH): doc-03 §9/§10 for color/cursor shaders wrong. Fixed: §6.3/§6.4.
+- F-009 (MEDIUM): Multiple doc-03 refs off by 1. Fixed systematically.
+- F-010 (MEDIUM): LuminosError location wrong (luminos-platform vs luminos-core). Fixed: luminos-core/src/error.rs.
+- F-011 (MEDIUM): "Automated releases" from PS Phase 0 not covered in Phase 0. Fixed: added gap note.
+- F-012 (MEDIUM): Touch/trackpad gestures missing. Fixed: added to E20 excluded list.
+- F-013 (MEDIUM): E3 earliest start inconsistent between dep table and timeline. Minor visual issue.
+- F-014 (MEDIUM): Test infra table incomplete vs doc-07 §13.1. Fixed: expanded Phase 0 row.
+- F-015 (MEDIUM): OpenBSD CI runner phase conflict with doc-07. Fixed: added discrepancy note.
+- 8 positive findings confirmed (correct type/trait names, performance targets, tauri-specta patterns, etc.)

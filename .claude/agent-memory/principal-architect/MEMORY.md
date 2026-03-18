@@ -31,7 +31,8 @@
 - Doc-06 written and audited (cross-cutting concerns: perf, security, licensing, a11y, observability, errors, i18n)
 - Doc-07 written and audited (testing strategy: CI/CD pipeline, quality gates, release checklist, benchmarks)
 - Doc-08 written and audited (build/distribution: workspace config, packaging, signing, release engineering)
-- Docs 09-10 still needed (implementation roadmap, risk register)
+- Doc-09 written and audited (implementation roadmap: 20 epics across 5 phases, dependency graph, phase gates)
+- Doc-10 still needed (risk register)
 
 ## Performance Targets
 - 60fps / 16.67ms frame budget (P99 < 20ms)
@@ -66,5 +67,25 @@
 - NSIS cross-compilation from Linux/macOS is "highly experimental" per Tauri docs
 - doc-02 Section 5.2: NO `x11` Cargo feature exists; `wayland` feature controls ashpd dep, not module compilation
 - Both linux_x11 and linux_wayland modules compile unconditionally on target_os = "linux"
+
+## Doc-02 Section Structure (Verified 2026-03-18)
+- §1 Overview, §2 Design Principles, §3 Trait Definitions (3.2-3.7 per trait)
+- §4 Error Type Architecture, §5 Conditional Compilation, §6 Platform Implementation Matrix
+- §7 Testing Strategy, §8 Platform-Specific Considerations (8.1-8.5 per platform), §9 Cross-References
+
+## Doc-03 Section Structure (Verified 2026-03-18)
+- §3 Viewport Calc, §4 Capture Integration, §5 Texture Mgmt, §6 Shader Pipeline (6.2 magnify, 6.3 color, 6.4 cursor)
+- §7 Zoom Mode Rendering, §8 Frame Pacing, §9 wgpu Init, §10 Perf Optimization, §11 Font Re-rendering, §12 Testing
+
+## Doc-08 Section Structure (Verified 2026-03-18)
+- §2 Workspace Config, §3 Features/Compilation, §4 Build Profiles, §5 Frontend Build
+- §6 espeak-ng Bundling, §7 Voice Model Distro, §8 Platform Packaging, §9 Code Signing
+- §10 Auto-Update, §11 Release Engineering, §12 SBOM, §13 Phase Rollout
+
+## Doc-09 Epic Summary
+- 20 epics: E1-E4 (Phase 0), E5-E9 (Phase 1), E10-E12 (Phase 2), E13-E16 (Phase 3), E17-E20 (Phase 4)
+- Critical path: E1→E2→E8→E9→E12→E16→E17→E18→E19→E20 = 40 weeks (~10 months)
+- Phase attribution pull-forwards documented: settings persistence (P1→P0), keybindings (P2→P1)
+- Flatpak/snap deferred (Tauri bundler doesn't support them natively)
 
 ## Document Details → [tech-strategy-review.md](./tech-strategy-review.md)

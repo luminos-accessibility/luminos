@@ -112,3 +112,4 @@ The tech strategy is informed by the product strategy and tech stack evaluation,
 |---------|------|---------|
 | 1.0 | 2026-03-15 | Initial technical strategy |
 | 1.1 | 2026-03-15 | GPLv3 licensing decision; Linux-first platform pivot; OpenBSD added |
+| 1.2 | 2026-03-18 | Added 09-implementation-roadmap.md (20 epics across 5 phases) |
