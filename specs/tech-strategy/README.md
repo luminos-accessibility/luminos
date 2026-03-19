@@ -1,7 +1,7 @@
 # Luminos Technical Strategy
 
-**Status:** DRAFT v1.1
-**Date:** 2026-03-15
+**Status:** COMPLETE v1.3
+**Date:** 2026-03-19
 **Audience:** Engineering team, AI agents, technical auditors, contributors
 **Source Documents:** [Product Strategy](../PRODUCT_STRATEGY.md) (v1.3), [Tech Stack Evaluation](../TECH_STACK_EVALUATION.md) (FINAL)
 
@@ -10,6 +10,8 @@
 ## Purpose
 
 This technical strategy translates the Luminos product vision into a comprehensive, actionable engineering plan. It defines the system architecture, technology choices, implementation patterns, and delivery roadmap that will guide all development from Phase 0 through Phase 4.
+
+**All 10 documents are complete.** The project is ready to begin Phase 0 implementation by creating implementation stories (STORY.md/DESIGN.md/SUBTASKS.md) for epics E1-E4.
 
 This document set is the **canonical technical reference** for the project. All implementation stories (STORY.md/DESIGN.md/SUBTASKS.md) must conform to the architecture and patterns defined here. Deviations require documented rationale and strategy-level review.
 
@@ -82,16 +84,16 @@ Linux X11 first (most underserved audience, simplest capture APIs, zero competit
 ## Relationship to Other Documents
 
 ```
-PRODUCT_STRATEGY.md          -- WHAT to build, WHY, for WHOM
+PRODUCT_STRATEGY.md          -- WHAT to build, WHY, for WHOM             [COMPLETE v1.3]
     |
     v
-TECH_STACK_EVALUATION.md     -- Technology validation and selection
+TECH_STACK_EVALUATION.md     -- Technology validation and selection       [COMPLETE FINAL]
     |
     v
-tech-strategy/ (this)        -- HOW to build it: architecture, patterns, roadmap
-    |
+tech-strategy/ (this)        -- HOW to build it: architecture, patterns  [COMPLETE v1.3]
+    |                            roadmap, risk management (10 documents)
     v
-specs/NNN-story/STORY.md     -- Individual feature specifications
+specs/NNN-story/STORY.md     -- Individual feature specifications         [NEXT: Phase 0 stories]
 specs/NNN-story/DESIGN.md    -- Feature-level technical design
 specs/NNN-story/SUBTASKS.md  -- TDD execution plan
 ```
@@ -106,6 +108,41 @@ The tech strategy is informed by the product strategy and tech stack evaluation,
 - **Performance claims** cite hardware context. Desktop CPU/GPU benchmarks are not comparable to Raspberry Pi benchmarks.
 - **License claims** distinguish code license from model/data license.
 
+## Maintaining the Risk Register
+
+The [Risk Register](./10-risk-register.md) is a **living document** that must be kept current as the project evolves. Unlike docs 01-09 (which define stable architectural decisions), the risk register changes frequently as risks are identified, mitigated, triggered, or closed.
+
+### When to Update
+
+| Trigger | Action | Who |
+|---------|--------|-----|
+| **Phase gate** | Full register review: update all risk statuses, recalibrate scores, add new risks from the completed phase | Tech lead + core maintainers |
+| **Quarterly** | Score recalibration based on project progress and ecosystem changes | Tech lead |
+| **Epic completion** | Update status of risks affected by the epic; add completion notes | Epic implementer |
+| **New dependency added** | Check ecosystem/build risks; verify license compatibility risk (RISK-022) | Engineer adding dependency |
+| **Security advisory** | Assess impact on security risks; add new risks if needed | Tech lead |
+| **Story design (DESIGN.md)** | Reference relevant risks; document how the design addresses them | Story author |
+
+### How to Add a New Risk
+
+1. Assign the next sequential `RISK-NNN` ID.
+2. Use the scoring methodology in Section 2 (Likelihood x Impact matrix).
+3. Include: description, mitigation, contingency, and detection method.
+4. Cross-reference the source document section(s) using `[doc-NN Section X.Y]` notation.
+5. Add the risk to both its category section AND the master summary table (Section 3).
+6. Add a dated update note when changing any risk's status.
+
+### Risk Lifecycle
+
+Risks progress through: **Open** -> **Mitigating** -> **Closed**, with branches to **Triggered** (contingency activated) or **Accepted** (risk acknowledged with documented rationale). See Section 11 of the risk register for full lifecycle rules and completion notes convention.
+
+### Integration with Spec-Driven Development
+
+When creating implementation stories:
+- **DESIGN.md** must reference relevant risks from the register and document how the design addresses them.
+- **SUBTASKS.md** should include tasks for implementing risk mitigations where applicable.
+- If a story reveals a new risk, add it to the register during story review.
+
 ## Version History
 
 | Version | Date | Changes |
@@ -113,3 +150,4 @@ The tech strategy is informed by the product strategy and tech stack evaluation,
 | 1.0 | 2026-03-15 | Initial technical strategy |
 | 1.1 | 2026-03-15 | GPLv3 licensing decision; Linux-first platform pivot; OpenBSD added |
 | 1.2 | 2026-03-18 | Added 09-implementation-roadmap.md (20 epics across 5 phases) |
+| 1.3 | 2026-03-19 | Added 10-risk-register.md (38 risks consolidated from 5 specialist assessments); added risk register maintenance guide; **strategy marked COMPLETE** -- all 10 documents finished, ready for Phase 0 implementation |

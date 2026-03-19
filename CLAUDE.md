@@ -4,40 +4,40 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Luminos** is a GPLv3-licensed, cross-platform (Linux/macOS/OpenBSD/Windows) screen magnification + text-to-speech accessibility suite targeting low-vision users. The project is currently in the **pre-development research phase** — no application code exists yet. The repository contains product strategy and technical evaluation documents.
+**Luminos** is a GPLv3-licensed, cross-platform (Linux/macOS/OpenBSD/Windows) screen magnification + text-to-speech accessibility suite targeting low-vision users. The project has completed its **technical strategy phase** and is ready for **Phase 0 implementation** (project scaffolding + Linux X11 proof-of-concept). No application code exists yet. The repository contains the complete product strategy, technology evaluation, and technical strategy documents (10 documents covering architecture through risk management).
 
 ## Repository Structure
 
 - `specs/` — Spec-driven development artifacts (strategies, designs, implementation stories)
-  - `PRODUCT_STRATEGY.md` — Product strategy & roadmap v1.3. The canonical product definition.
-  - `TECH_STACK_EVALUATION.md` — Technology stack validation report. Contains the **revised** recommended stack (supersedes some choices in the strategy doc).
-  - `README.md` — Spec-driven development (SDD) methodology guide with templates
-  - `tech-strategy/` — Technical strategy documents (architecture, pipelines, testing, build, roadmap)
-  - `NNN-story-name/` — Implementation story folders (STORY.md, DESIGN.md, SUBTASKS.md)
+    - `PRODUCT_STRATEGY.md` — Product strategy & roadmap v1.3. The canonical product definition.
+    - `TECH_STACK_EVALUATION.md` — Technology stack validation report. Contains the **revised** recommended stack (supersedes some choices in the strategy doc).
+    - `README.md` — Spec-driven development (SDD) methodology guide with templates
+    - `tech-strategy/` — **COMPLETE** technical strategy (10 documents). The canonical technical reference.
+        - `README.md` — Strategy index, executive summary, conventions, risk register maintenance guide
+        - `01-system-architecture.md` — Dual-window design, component model, threading, state management
+        - `02-platform-abstraction.md` — 6 trait definitions, per-platform backends, conditional compilation
+        - `03-rendering-pipeline.md` — GPU capture, shaders, frame pacing, zoom modes, font re-rendering research
+        - `04-tts-pipeline.md` — espeak-ng subprocess, Kokoro/sherpa-onnx inference, ring buffer audio
+        - `05-control-panel.md` — Tauri IPC, React UI, settings, profiles
+        - `06-cross-cutting-concerns.md` — Performance budgets, security, licensing, a11y, observability, i18n
+        - `07-testing-strategy.md` — Test pyramid, CI/CD pipeline (8 stages), quality gates, platform matrix
+        - `08-build-and-distribution.md` — Cargo workspace, packaging (7 formats), signing, auto-update
+        - `09-implementation-roadmap.md` — 20 epics across 5 phases, 20-month timeline
+        - `10-risk-register.md` — 38 risks with mitigations, living document updated at phase gates
+    - `NNN-story-name/` — Implementation story folders (STORY.md, DESIGN.md, SUBTASKS.md)
 - `docs/` — Product documentation and user manuals (created when development begins)
-- `.claude/agent-memory/` — Persistent memory for specialized agents (technical-auditor, technical-research-analyst)
+- `.claude/agent-memory/` — Persistent memory for specialized agents
 
-## Architecture (Decided)
+## Architecture (Decided — see `specs/tech-strategy/` for full details)
 
 **Dual-window design:**
+
 1. **Control Panel** — Tauri 2.0 webview (TypeScript/React). Settings UI. Not performance-critical.
 2. **Magnification Overlay** — Native Rust window via winit + wgpu. GPU-accelerated, transparent, always-on-top. Bypasses webview entirely.
 
 **Rendering pipeline:** screen capture → GPU texture → wgpu shader transform → anti-alias → composite → present
 
 **TTS pipeline:** text → espeak-ng subprocess (phonemes, crash-isolated) → Kokoro ONNX inference (via sherpa-rs) → cpal audio output
-
-## Revised Technology Stack (from TECH_STACK_EVALUATION.md)
-
-Key changes from the original strategy doc:
-- **Screen capture:** `xcap` crate (v0.9.1, Apache 2.0) replaces `scap` — provides direct X11 support
-- **TTS:** Kokoro-82M via `sherpa-rs`/sherpa-onnx replaces Piper (archived, GPL)
-- **Window management:** `winit` explicitly adopted for the magnification overlay
-- **Phonemizer:** espeak-ng run as **subprocess** for crash isolation (GPL-3.0, compatible with project GPLv3)
-- **Audio output:** `cpal` crate
-- **Clipboard:** `arboard` crate
-
-Core unchanged: Rust backend, Tauri 2.0 (control panel), wgpu (GPU), TypeScript+React (UI)
 
 ## Platform Development Order
 
@@ -62,9 +62,31 @@ Luminos is licensed under **GPLv3**. espeak-ng (GPL-3.0) is used for phonemizati
 - **Trait-based platform abstraction** — `ScreenCapture`, `FocusTracker`, `TtsEngine`, `WindowManager`, `InputMonitor`, `AudioOutput` traits with per-platform backends
 - **Local-first, privacy by design** — All AI inference on-device, no telemetry by default
 
+## Current Project Phase
+
+**Technical strategy is COMPLETE.** The project is ready to begin **Phase 0: Foundation** (Months 1-3).
+
+Phase 0 epics (from `specs/tech-strategy/09-implementation-roadmap.md`):
+
+- **E1:** Project Scaffolding (Cargo workspace, Tauri shell, CI pipeline)
+- **E2:** X11 Screen Capture + GPU Rendering (proof-of-concept magnification)
+- **E3:** Focus Tracking + Input Monitoring (AT-SPI2, rdev)
+- **E4:** Control Panel Foundation (Tauri IPC, React settings UI)
+
+**Next step:** Create implementation stories (STORY.md/DESIGN.md/SUBTASKS.md) for Epic 1, referencing the tech strategy docs and risk register.
+
+## When Editing Strategy Documents
+
+- All market claims must cite specific sources with dates
+- Distinguish between WebAIM Low Vision Survey #1 (2013) and #2 (2018) — they have different stats
+- ZoomText max zoom is 36x on current versions (60x was legacy Win 8 only)
+- Section 508 references WCAG 2.0 AA, not 2.1
+- Crate versions change quickly — always verify against crates.io before citing
+
 ## Development Methodology
 
 **Spec-Driven Development (SDD)** with integrated TDD. Every feature follows:
+
 1. **STORY.md** — Requirements with Given-When-Then acceptance criteria
 2. **DESIGN.md** — Architecture, API design, testing strategy mapped to every AC
 3. **SUBTASKS.md** — TDD task breakdown (red-green-refactor) + progress tracking (the execution memory file)
@@ -72,10 +94,12 @@ Luminos is licensed under **GPLv3**. espeak-ng (GPL-3.0) is used for phonemizati
 Stories live in `specs/NNN-story-name/` folders. See `specs/README.md` for full methodology, templates, and governance rules.
 
 **Key SDD rules:**
+
 - No implementation without an approved STORY.md and DESIGN.md
 - Every test traces to an acceptance criterion
 - SUBTASKS.md completion notes are mandatory (they are the memory for agent handoffs)
 - Stories target 5-15 subtasks; split if exceeding 20
+- DESIGN.md must reference relevant risks from the risk register (`specs/tech-strategy/10-risk-register.md`)
 
 ## General writing rules
 
@@ -87,31 +111,37 @@ Stories live in `specs/NNN-story-name/` folders. See `specs/README.md` for full 
 ## Rust Coding Rules
 
 ### Naming & Style
+
 - Follow standard Rust naming conventions per [RFC 430](https://github.com/rust-lang/rfcs/blob/master/text/0430-finalizing-naming-conventions.md)
 - Reuse names from the architecture (trait names, module names) rather than inventing new ones
 - Name unit tests with hierarchical prefixes for granular selection via `cargo nextest run` (e.g., `screen_capture_init_success`, `screen_capture_init_missing_permission`)
 
 ### Error Handling
+
 - **Prefer `?` propagation** over exhaustive `match`/`if-let` chains. Implement `From` trait conversions when error types mismatch.
 - **No `unwrap()` or `expect()` in production code.** Use `match`, `if let`, or `.unwrap_or_else()` with sensible defaults. Exception: `unwrap()` is acceptable in unit tests to keep them concise.
 - Convert between `Result<T,E>` and `Option<T>` with `.ok()?` rather than match statements
 
 ### Control Flow & Idioms
+
 - Limit nesting to 1-2 levels. Use early-return guard clauses to separate error handling from core logic.
 - Prefer `while let` over `loop { match ... break }` patterns
 - Prefer lazily evaluated combinators (`and_then()`, `or_else()`, `unwrap_or_else()`) over eager variants (`and()`, `or()`, `unwrap_or()`) when the alternative involves allocation or computation
 - Prefer iterator chains (`.filter()`, `.map()`, `.collect()`) over manual loop-and-accumulate patterns
 
 ### Async Discipline
+
 - **Don't make sync code async.** Async is for I/O-intensive, network, or background tasks. Synchronous operations that are only called synchronously must remain sync.
 - **Don't mix sync and async without justification.** Mixing can cause deadlocks and performance issues.
 
 ### Logging
+
 - Surround dynamic values in single quotes to distinguish from static text: `log::info!("Capturing display '{}'", display.name)`
 - Use `concat!` for multiline log messages
 - Severity levels: **trace** (granular diagnostics), **debug** (developer-focused), **info** (important state changes), **warn** (unexpected but non-fatal), **error** (failures that may panic)
 
 ### Testing
+
 - Place test mock/fixture generation in the same module where the type is defined
 - Prefix all test object generators with `generate_test_` (e.g., `generate_test_capture_config()`)
 - Gate test-only code with `#[cfg(test)]` or `#[cfg(feature = "test_utils")]`
@@ -145,11 +175,3 @@ Stories live in `specs/NNN-story-name/` folders. See `specs/README.md` for full 
 - Create custom types/interfaces for complex structures
 - Use 'readonly' for immutable properties
 - If an import is only used as a type in the file, use 'import type' instead of 'import'
-
-## When Editing Strategy Documents
-
-- All market claims must cite specific sources with dates
-- Distinguish between WebAIM Low Vision Survey #1 (2013) and #2 (2018) — they have different stats
-- ZoomText max zoom is 36x on current versions (60x was legacy Win 8 only)
-- Section 508 references WCAG 2.0 AA, not 2.1
-- Crate versions change quickly — always verify against crates.io before citing

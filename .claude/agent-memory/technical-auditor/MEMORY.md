@@ -14,6 +14,7 @@
 - `specs/tech-strategy/07-testing-strategy.md` - Testing strategy (audited 2026-03-17)
 - `specs/tech-strategy/08-build-and-distribution.md` - Build and distribution (audited 2026-03-17)
 - `specs/tech-strategy/09-implementation-roadmap.md` - Implementation roadmap (audited 2026-03-18)
+- `specs/tech-strategy/10-risk-register.md` - Risk register (audited 2026-03-18)
 
 ### Document Section Number Maps (Verified 2026-03-18)
 See [section-maps.md](section-maps.md) for per-document section structures.
@@ -27,6 +28,8 @@ See [section-maps.md](section-maps.md) for per-document section structures.
 - 08-build-and-distribution.md puts .deb/.rpm/AppImage in Phase 0; Product Strategy puts all 5 Linux packages in Phase 1
 - 09-implementation-roadmap.md has SYSTEMATIC section number errors for doc-02, doc-03, doc-08
 - 09-implementation-roadmap.md critical path includes E5->E9 but E9's hard dep is E8, not E5
+- 10-risk-register.md score distribution summary on line 130 is WRONG (uses fabricated categories)
+- 10-risk-register.md title uses period separator ("10.") instead of double-dash ("10 --")
 
 ### Tauri 2.0 Configuration Facts (Verified 2026-03-17)
 - DebConfig: depends, section, priority, desktopTemplate, files, changelog, conflicts -- all valid
@@ -45,6 +48,7 @@ See [section-maps.md](section-maps.md) for per-document section structures.
 - Rust edition 2024 requires rustc 1.85+ (confirmed)
 - NSIS cross-compilation from Linux/macOS: possible but experimental with caveats
 - cargo-cyclonedx flags: -f json, --spec-version 1.5, --manifest-path all valid
+- WebAIM Screen Reader Survey #10: ~86% Windows (not ">90%" as sometimes cited)
 
 ### Common Patterns of Imprecision Found
 - Phase attribution errors (features attributed to wrong phase)
@@ -55,3 +59,4 @@ See [section-maps.md](section-maps.md) for per-document section structures.
 - Tool/library configurations fabricated with plausible-looking but invalid fields
 - Doc-08 section numbers are offset by 2 from what doc-09 cites (doc-09 "Section 6" = doc-08 "Section 8")
 - Doc-02 per-platform specs are in Sections 2-3 (trait docs) and 6 (matrix), NOT Section 5.x
+- Summary/distribution counts in tables often wrong (doc-10 score distribution)
