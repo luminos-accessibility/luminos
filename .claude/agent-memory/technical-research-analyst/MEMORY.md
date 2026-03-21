@@ -57,6 +57,17 @@
 - Key anti-patterns: excessive mocking, tautological assertions, testing impl details, AI "cheating" on tests
 - Luminos SDD/SUBTASKS.md already well-aligned; add explicit Red-phase verification checkbox
 
+## TypeScript TDD Best Practices (researched 2026-03-21)
+- See `typescript-tdd-research.md` for full findings
+- Vitest Context7 ID: `/vitest-dev/vitest` (benchmark 88.26, High reputation)
+- Zustand Context7 ID: `/pmndrs/zustand` (benchmark 80.77, High reputation)
+- Tauri v2 `shouldMockEvents` option requires v2.7.0+; without it, `listen()` throws in tests
+- Zustand official testing pattern: `__mocks__/zustand.ts` with `storeResetFns` Set
+- vitest-axe REQUIRES jsdom (NOT happy-dom); alternative: `@chialab/vitest-axe`
+- zod-fast-check v0.9.0 bridges Zod v3 to fast-check; WARNING: low-probability refinements fail
+- Vitest watch mode is default; `test.only()` for focused TDD cycles
+- Test naming: `{module}_{behavior}_{condition}` matches Rust convention in CLAUDE.md
+
 ## Research Methodology Notes
 - Third-party "guide" sites often contain AI-generated content with fabricated CLI flags. Always cross-reference with official docs.rs, GitHub README, or crates.io pages.
 - For Cargo profile settings, the official Cargo Book is the single source of truth.

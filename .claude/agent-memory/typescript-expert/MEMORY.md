@@ -42,6 +42,17 @@
 - All colors + CSS sizes in `rem`; forced-colors + prefers-contrast + prefers-reduced-motion handled
 - ARIA live regions on all dynamic status (TTS state, zoom level, model loading)
 
+## TypeScript TDD Skill
+- Skill created: `.claude/skills/typescript-test-driven-development/`
+- SKILL.md (~520 lines) + references/test-patterns.md (~640 lines)
+- Mirrors the Rust TDD skill structure, adapted for TS/React/Vitest
+- Key patterns: Zod schema accept/reject tests, Zustand store isolation via getState/setState, mockIPC from @tauri-apps/api/mocks, vitest-axe for a11y, userEvent over fireEvent
+- Tauri IPC event mocking requires `shouldMockEvents: true` (Tauri >= 2.7.0)
+- Zustand auto-reset between tests via official `__mocks__/zustand.ts` pattern
+- jsdom required (not happy-dom) for axe-core compatibility
+- Test naming: `{module}_{behavior}_{condition}` with underscores (matches Rust convention)
+- Eval results: 100% with-skill vs 95.8% baseline, 22% fewer tokens, 14% faster
+
 ## Spec Document Style
 - Strategy docs live in `specs/tech-strategy/NNN-name.md`
 - Section cross-references use `[Document](./path.md)` with precise section numbers
