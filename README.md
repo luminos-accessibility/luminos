@@ -175,24 +175,28 @@ luminos/
 │   ├── TECH_STACK_EVALUATION.md  # Technology stack validation report
 │   ├── tech-strategy/         # Technical strategy (architecture, pipelines, roadmap)
 │   │   └── README.md          #   Tech strategy overview + document index
-│   └── NNN-story-name/        # Implementation specs (when development begins)
-│       ├── STORY.md            #   Requirements specification
-│       ├── DESIGN.md           #   Technical design document
-│       └── SUBTASKS.md         #   TDD task breakdown + progress tracking
+│   └── ENN-epic-name/          # Engineering epic folders (E01-E20, from roadmap)
+│       ├── HIGH_LEVEL_PLAN.md  #   Epic-level plan, story breakdown, shared context
+│       └── NNN-story-name/     #   Implementation story folders
+│           ├── STORY.md        #     Requirements specification
+│           ├── DESIGN.md       #     Technical design document
+│           └── SUBTASKS.md     #     TDD task breakdown + progress tracking
 ├── docs/                      # Product documentation + user manuals (future)
 └── src/                       # Application source (not yet created)
 ```
 
 ## Development Methodology
 
-Luminos uses **spec-driven development** (SDD) with integrated **test-driven development** (TDD):
+Luminos uses **spec-driven development** (SDD) with integrated **test-driven development** (TDD). Work is organized as **epics** (from the roadmap) containing **stories**:
 
+0. **Decompose Epic** -- Break the roadmap epic into 3-8 stories, initialize shared context (HIGH_LEVEL_PLAN.md)
 1. **Specify** -- Write requirements with Given-When-Then acceptance criteria (STORY.md)
 2. **Design** -- Translate to architecture with test strategy mapped to every acceptance criterion (DESIGN.md)
 3. **Implement** -- Break into atomic tasks, each following the TDD red-green-refactor cycle (SUBTASKS.md)
 4. **Review & Close** -- Verify all acceptance criteria, update progress tracking
+5. **Complete Epic** -- Verify all epic success criteria, fill in retrospective notes
 
-SUBTASKS.md serves as the **execution memory file** -- it tracks what was done, what's blocked, and what's next, enabling seamless handoffs between AI agents and developers across sessions.
+HIGH_LEVEL_PLAN.md serves as the **epic coordination file** -- it tracks story breakdown, progress, and shared context across stories. SUBTASKS.md serves as the **execution memory file** -- it tracks what was done, what's blocked, and what's next, enabling seamless handoffs between AI agents and developers across sessions.
 
 See [Spec-Driven Development Guide](specs/README.md) for the full methodology, templates, and governance rules.
 

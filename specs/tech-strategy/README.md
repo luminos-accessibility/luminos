@@ -93,9 +93,10 @@ TECH_STACK_EVALUATION.md     -- Technology validation and selection       [COMPL
 tech-strategy/ (this)        -- HOW to build it: architecture, patterns  [COMPLETE v1.3]
     |                            roadmap, risk management (10 documents)
     v
-specs/NNN-story/STORY.md     -- Individual feature specifications         [NEXT: Phase 0 stories]
-specs/NNN-story/DESIGN.md    -- Feature-level technical design
-specs/NNN-story/SUBTASKS.md  -- TDD execution plan
+specs/ENN-epic/HIGH_LEVEL_PLAN.md  -- Epic decomposition & shared memory     [NEXT: Phase 0 epics]
+specs/ENN-epic/NNN-story/STORY.md  -- Individual feature specifications
+specs/ENN-epic/NNN-story/DESIGN.md -- Feature-level technical design
+specs/ENN-epic/NNN-story/SUBTASKS.md -- TDD execution plan
 ```
 
 The tech strategy is informed by the product strategy and tech stack evaluation, and constrains all downstream implementation stories. Changes to this strategy require review and versioning.

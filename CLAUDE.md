@@ -24,7 +24,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
         - `08-build-and-distribution.md` — Cargo workspace, packaging (7 formats), signing, auto-update
         - `09-implementation-roadmap.md` — 20 epics across 5 phases, 20-month timeline
         - `10-risk-register.md` — 38 risks with mitigations, living document updated at phase gates
-    - `NNN-story-name/` — Implementation story folders (STORY.md, DESIGN.md, SUBTASKS.md)
+    - `ENN-epic-name/` — Engineering epic folders (one per roadmap epic E01-E20)
+        - `HIGH_LEVEL_PLAN.md` — Epic-level plan, story breakdown, shared context
+        - `NNN-story-name/` — Implementation story folders (STORY.md, DESIGN.md, SUBTASKS.md)
 - `docs/` — Product documentation and user manuals (created when development begins)
 - `.claude/agent-memory/` — Persistent memory for specialized agents
 
@@ -73,7 +75,7 @@ Phase 0 epics (from `specs/tech-strategy/09-implementation-roadmap.md`):
 - **E3:** Focus Tracking + Input Monitoring (AT-SPI2, rdev)
 - **E4:** Control Panel Foundation (Tauri IPC, React settings UI)
 
-**Next step:** Create implementation stories (STORY.md/DESIGN.md/SUBTASKS.md) for Epic 1, referencing the tech strategy docs and risk register.
+**Next step:** Create the `HIGH_LEVEL_PLAN.md` for Epic 1 by decomposing it into stories, then create STORY.md/DESIGN.md/SUBTASKS.md for each story, referencing the tech strategy docs and risk register.
 
 ## When Editing Strategy Documents
 
@@ -85,21 +87,25 @@ Phase 0 epics (from `specs/tech-strategy/09-implementation-roadmap.md`):
 
 ## Development Methodology
 
-**Spec-Driven Development (SDD)** with integrated TDD. Every feature follows:
+**Spec-Driven Development (SDD)** with integrated TDD. Work is organized as **epics** (from the roadmap) containing **stories**:
 
-1. **STORY.md** — Requirements with Given-When-Then acceptance criteria
-2. **DESIGN.md** — Architecture, API design, testing strategy mapped to every AC
-3. **SUBTASKS.md** — TDD task breakdown (red-green-refactor) + progress tracking (the execution memory file)
+1. **HIGH_LEVEL_PLAN.md** — Epic-level decomposition into stories, shared context, progress tracking
+2. **STORY.md** — Requirements with Given-When-Then acceptance criteria
+3. **DESIGN.md** — Architecture, API design, testing strategy mapped to every AC
+4. **SUBTASKS.md** — TDD task breakdown (red-green-refactor) + progress tracking (the execution memory file)
 
-Stories live in `specs/NNN-story-name/` folders. See `specs/README.md` for full methodology, templates, and governance rules.
+Epics live in `specs/ENN-epic-name/` folders. Stories live in `specs/ENN-epic-name/NNN-story-name/` folders. See `specs/README.md` for full methodology, templates, and governance rules.
 
 **Key SDD rules:**
 
 - No implementation without an approved STORY.md and DESIGN.md
 - Every test traces to an acceptance criterion
 - SUBTASKS.md completion notes are mandatory (they are the memory for agent handoffs)
+- HIGH_LEVEL_PLAN.md shared context updates are mandatory when a story produces cross-story knowledge
 - Stories target 5-15 subtasks; split if exceeding 20
+- Epics target 3-8 stories; split if exceeding 8
 - DESIGN.md must reference relevant risks from the risk register (`specs/tech-strategy/10-risk-register.md`)
+- Agents working on a story read ONLY the epic's HIGH_LEVEL_PLAN.md and their story's three artifacts (not other stories)
 
 ## General writing rules
 

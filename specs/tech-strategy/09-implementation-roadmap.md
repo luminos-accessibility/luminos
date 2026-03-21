@@ -67,12 +67,13 @@ Each epic is scoped to be completable in **2-6 weeks** (1-3 two-week sprints) by
 
 When the team picks up an epic, the workflow is:
 
-1. **Decompose** -- Break the epic into 3-8 implementation stories. Each story follows the SDD template: STORY.md (requirements + acceptance criteria), DESIGN.md (technical design + test strategy), SUBTASKS.md (TDD task breakdown).
-2. **Sequence** -- Order stories by internal dependencies. Identify which can run in parallel.
-3. **Implement** -- Execute each story using the TDD red-green-refactor cycle tracked in SUBTASKS.md.
-4. **Validate** -- Verify all epic success criteria are met. Run the epic's acceptance tests.
+1. **Create epic folder** -- Create `specs/ENN-epic-name/` and initialize `HIGH_LEVEL_PLAN.md` from the SDD template.
+2. **Decompose** -- Break the epic into 3-8 implementation stories, documented in the HIGH_LEVEL_PLAN.md Progress Summary and Story Descriptions sections.
+3. **Specify & Design** -- For each story, create a numbered subfolder (e.g., `001-story-name/`) containing STORY.md (requirements + acceptance criteria), DESIGN.md (technical design + test strategy), and SUBTASKS.md (TDD task breakdown).
+4. **Implement** -- Execute each story using the TDD red-green-refactor cycle tracked in SUBTASKS.md. Update the epic's HIGH_LEVEL_PLAN.md Shared Context section as cross-story knowledge emerges.
+5. **Validate** -- Verify all epic success criteria are met. Run the epic's acceptance tests. Update HIGH_LEVEL_PLAN.md status to DONE and fill in Retrospective Notes.
 
-Stories live in `specs/NNN-story-name/` folders. See [SDD Guide](../README.md) for templates and governance.
+Stories live in `specs/ENN-epic-name/NNN-story-name/` folders, nested under their parent epic. Each epic folder contains a `HIGH_LEVEL_PLAN.md` that tracks the story breakdown and shared context. See [SDD Guide](../README.md) for templates and governance.
 
 ### 2.3 Dependency Notation
 
