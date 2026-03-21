@@ -31,6 +31,32 @@
 - Context7 IDs: `/tauri-apps/tauri-docs` (docs), `/websites/v2_tauri_app` (site)
 - CAUTION: web results often mix Tauri v1 and v2; filter by URL prefix
 
+## Rust TDD Best Practices (researched 2026-03-21)
+- See `rust-tdd-research.md` for full findings
+- Compiler as "phase zero": type system catches structural bugs, tests catch behavioral bugs
+- Hand-written fakes preferred over mockall for core trait abstractions (more realistic, better error injection)
+- mockall reserved for interaction verification (call counting, argument checking)
+- proptest for algorithmic invariants (viewport calcs, text processing)
+- insta for serialization/snapshot stability (settings JSON, IPC payloads)
+- rstest (v0.26, 48.8M downloads) for fixtures + parameterized tests
+- pretty_assertions as global drop-in for assert_eq!
+- cargo nextest mandatory for wgpu projects (EGL requires one GPU context per process)
+- Nextest 35% faster than cargo test in CI benchmarks (depot.dev)
+- Key limitation: nextest does not support doctests; run `cargo test --doc` separately
+- Rust 2024 edition: doctests compiled into single binary (much faster)
+- Async testing: use `#[tokio::test]`, never nest runtimes, use `start_paused = true` for time control
+- Jorge Ortiz-Fuentes blog series (jorgeortiz.dev) is comprehensive Rust testing reference
+
+## AI-Assisted TDD for Coding Agents (researched 2026-03-21)
+- See `ai-tdd-research.md` for full findings and source list
+- AI agents default to implementation-first; structural enforcement (not just prompting) required
+- Red-phase failure verification is the most commonly skipped step
+- Context pollution: same agent writing tests+impl couples tests to implementation details
+- TDAD paper (arxiv 2603.17973): contextual info > procedural instructions for smaller models
+- Superpowers framework (99k+ stars): enforces 7-phase workflow including TDD
+- Key anti-patterns: excessive mocking, tautological assertions, testing impl details, AI "cheating" on tests
+- Luminos SDD/SUBTASKS.md already well-aligned; add explicit Red-phase verification checkbox
+
 ## Research Methodology Notes
 - Third-party "guide" sites often contain AI-generated content with fabricated CLI flags. Always cross-reference with official docs.rs, GitHub README, or crates.io pages.
 - For Cargo profile settings, the official Cargo Book is the single source of truth.

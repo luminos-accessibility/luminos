@@ -55,3 +55,9 @@
 - Performance budget: 2-8ms typical (excluding vsync), aligns with System Architecture 9.2
 - Self-capture prevention is a cross-cutting concern between rendering pipeline and ScreenCapture
 - Tech strategy documents use consistent structure: Overview, numbered sections, cross-references table, version history
+
+### TDD Skill (`.claude/skills/rust-test-driven-development/`)
+- **SKILL.md** (311 lines): Core TDD workflow — Red/Green/Refactor cycle, test patterns, anti-patterns, verification commands
+- **references/test-patterns.md** (486 lines): Deep patterns — test doubles (fakes>stubs>mocks), async, proptest, rstest, insta, state machines, platform-gated tests
+- Key patterns the skill enforces: factory closures for error injection, fakes over mockall, hierarchical test naming for nextest, generate_test_ prefix, Red-phase failure verification
+- Eval results: 100% pass rate with skill vs 87% baseline; 32% fewer tokens, 19% faster
