@@ -68,6 +68,16 @@
 - Vitest watch mode is default; `test.only()` for focused TDD cycles
 - Test naming: `{module}_{behavior}_{condition}` matches Rust convention in CLAUDE.md
 
+## Claude Code Temperature Control (researched 2026-03-21)
+- See `claude-code-temperature-research.md` for full findings
+- Temperature is NOT configurable in Claude Code (no env var, no setting, no CLI flag)
+- Extended thinking (default) forbids temperature/top_k modification; only top_p (0.95-1.0) adjustable
+- API default temperature: 1.0; even 0.0 does not guarantee determinism
+- Feature request closed as NOT_PLANNED (issue #3370); Agent SDK issues still open
+- Stability levers: effort level, MAX_THINKING_TOKENS, hooks, CLAUDE.md, prompt structure
+- Claude Code settings docs: code.claude.com/docs/en/settings
+- Claude Code env vars docs: code.claude.com/docs/en/env-vars
+
 ## Research Methodology Notes
 - Third-party "guide" sites often contain AI-generated content with fabricated CLI flags. Always cross-reference with official docs.rs, GitHub README, or crates.io pages.
 - For Cargo profile settings, the official Cargo Book is the single source of truth.

@@ -12,6 +12,7 @@
             "WebFetch(domain:v2.tauri.app)",
             "WebFetch(domain:schema.tauri.app)",
             "WebFetch(domain:docs.rs)",
+      "WebFetch(domain:docs.anthropic.com)",
             "WebFetch(domain:github.com)",
             "WebFetch(domain:webgpufundamentals.org)",
             "WebFetch(domain:gist.github.com)",
@@ -35,7 +36,8 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "echo 'INSTRUCTION: If the prompt matches any available skill keywords, you MUST first activate the skill using Skill(skill-name)'"
+                        "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/skill-router.sh\"",
+                        "timeout": 30
                     }
                 ]
             }

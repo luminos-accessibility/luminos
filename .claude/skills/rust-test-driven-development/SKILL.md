@@ -10,7 +10,9 @@ description: >
   variation of test-driven Rust development. If Rust code is being written as part of
   a story, this skill should be active. Also use when reviewing whether Rust tests
   follow project conventions, or when an agent needs to choose between test types
-  (unit vs integration vs property-based).
+  (unit vs integration vs property-based). All x11, Wayland, core engine, TTS,
+  GPU related and everything that is not React based UI in the Luminos project
+  uses Rust (Touri 2.0 based project).
 ---
 
 # Rust Test-Driven Development

@@ -16,6 +16,7 @@
 - `specs/tech-strategy/09-implementation-roadmap.md` - Implementation roadmap (audited 2026-03-18)
 - `specs/tech-strategy/10-risk-register.md` - Risk register (audited 2026-03-18)
 - `specs/README.md` - SDD methodology (audited 2026-03-21, epic-nested layout)
+- `.claude/skills/spec-driven-development/` - SDD skill (audited 2026-03-21)
 
 ### Document Section Number Maps (Verified 2026-03-18)
 See [section-maps.md](section-maps.md) for per-document section structures.
@@ -32,7 +33,6 @@ See [section-maps.md](section-maps.md) for per-document section structures.
 - 10-risk-register.md title uses period separator ("10.") instead of double-dash ("10 --")
 - 06-cross-cutting-concerns.md says LuminosError in luminos-platform/src/error.rs; doc-09 says luminos-core/src/error.rs
 - specs/README.md uses "shared memory" and "Shared Context" interchangeably (template section is "Shared Context")
-- specs/README.md DESIGN.md template missing Status field despite lifecycle diagram defining states
 - Root README.md Project Structure still shows old flat NNN-story-name/ layout (not updated for epic nesting)
 
 ### SDD Methodology Structure (Verified 2026-03-21)
@@ -41,7 +41,11 @@ See [section-maps.md](section-maps.md) for per-document section structures.
 - Epic folder naming: zero-padded (E01-E20), but doc-09 and CLAUDE.md prose uses non-padded (E1-E20)
 - Story status values: STORY.md (DRAFT|APPROVED|IN PROGRESS|DONE|CANCELLED), SUBTASKS.md (NOT STARTED|IN PROGRESS|BLOCKED|DONE)
 - Task status values: TODO|IN PROGRESS|DONE|BLOCKED
-- DESIGN.md has NO Status field in template (gap vs lifecycle diagram)
+- DESIGN.md template DOES include Status field (line 281 of specs/README.md): DRAFT|IN PROGRESS|APPROVED|REVISION NEEDED
+
+### SDD Skill Audit Findings (2026-03-21)
+See [sdd-skill-audit.md](sdd-skill-audit.md) for full details.
+Key gaps: DESIGN.md lifecycle oversimplified, missing TypeScript TDD exception, missing cross-epic blocker rule, AC-count splitting rule omitted from SKILL.md governance, "2-5 ACs" target added without canonical basis.
 
 ### Tauri 2.0 Configuration Facts (Verified 2026-03-17)
 - DebConfig: depends, section, priority, desktopTemplate, files, changelog, conflicts -- all valid
@@ -73,3 +77,4 @@ See [section-maps.md](section-maps.md) for per-document section structures.
 - Doc-02 per-platform specs are in Sections 2-3 (trait docs) and 6 (matrix), NOT Section 5.x
 - Summary/distribution counts in tables often wrong (doc-10 score distribution)
 - Terminology drift between "shared memory" and "Shared Context" in SDD docs
+- Skills/summaries tend to oversimplify lifecycle transitions (dropping intermediate states)
