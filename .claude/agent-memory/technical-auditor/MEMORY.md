@@ -99,6 +99,20 @@ Key gaps: DESIGN.md lifecycle oversimplified, missing TypeScript TDD exception, 
 - 2 LOW findings accepted (F-007 nextest wording, F-008 associated type field-level ACs)
 - NEW PATTERN: AudioOutput consistently omitted from enumerated lists (both 002 and 003 initially skipped it)
 
+### E01 Story 002 Implementation Audit (2026-03-28)
+- Verdict: PASS WITH FINDINGS (0 CRITICAL, 0 HIGH, 2 MEDIUM, 2 LOW)
+- All 6 traits, all common types, all 6 error enums, module structure, PlatformBackends MATCH doc-02
+- RISK-017 CaptureFrame custom Debug verified: derives Clone only, custom Debug prints [<N bytes>]
+- 39/39 tests pass, clippy clean, doc clean, no unwrap/expect in production
+- F-001 MEDIUM: `log` dependency in Cargo.toml but unused (pre-existing from Story 001, for E2+ backends)
+- F-002 MEDIUM: `#[allow(missing_docs)]` on KeyCode suppresses NFR-3 (pragmatic, 63 self-explanatory variants)
+- F-003 LOW: CaptureError::Platform source field uses thiserror implicit naming convention (correct but implicit)
+- F-004 LOW: PlatformBackends test is compile-only dead_code fn, not a #[test] (needs mocks from Story 003)
+- P-001: Only CaptureError::Platform has error source chain; other Platform variants may need it in E2+ (RISK-003)
+- P-002: tokio "sync" feature minimal; E2+ will need rt/macros/time/process features
+- Dependencies verified: tokio 1.x sync, raw-window-handle 0.6, thiserror workspace -- all appropriate
+- cargo deny check: PASS (same ecosystem duplicates as Story 001)
+
 ### E01 Story 001 Implementation Audit (2026-03-28)
 - Verdict: PASS WITH FINDINGS (1 CRITICAL, 1 HIGH, 2 MEDIUM, 3 INFO)
 - F-001 CRITICAL: Cargo.lock NOT tracked in git (violates FR-13, doc-08 Section 2.2)
@@ -143,3 +157,6 @@ Key gaps: DESIGN.md lifecycle oversimplified, missing TypeScript TDD exception, 
 - Type duplication across crate boundaries without noting re-export vs independent definition
 - Workspace dependency lists incomplete when trait signatures reference crates not yet declared (tokio, raw-window-handle)
 - DESIGN.md quality generally high when copying directly from canonical doc-02 signatures (low invention risk)
+- Implementation quality high when DESIGN.md provides exact code blocks to copy (Story 002 was nearly 1:1 with design)
+- Pre-provisioned dependencies (log in luminos-platform) are a recurring minor finding -- teams add deps for future use
+- #[allow(missing_docs)] is pragmatic for large enums with self-explanatory variants (KeyCode, KeyModifiers)

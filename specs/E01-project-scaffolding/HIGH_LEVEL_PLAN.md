@@ -37,12 +37,12 @@ Copied verbatim from [doc-09 Section 4.1](../tech-strategy/09-implementation-roa
 | # | Story | Status | Depends On | Est. Effort | Notes |
 |---|-------|--------|------------|-------------|-------|
 | 001 | Cargo Workspace & Build Profiles | DONE | --- | M (9 subtasks) | Completed 2026-03-28. Foundation established; unblocks 002 and 005. |
-| 002 | Platform Trait Definitions & Common Types | NOT STARTED | 001 | L (11-15 subtasks) | All 6 traits + associated types from doc-02. UNBLOCKED. |
+| 002 | Platform Trait Definitions & Common Types | DONE | 001 | L (14 subtasks) | Completed 2026-03-28. All 6 traits, common types, error enums, module structure, 39 tests. Unblocks 003 and 004. |
 | 003 | Mock Implementations & Test Utilities | NOT STARTED | 002 | L (11-15 subtasks) | Can run parallel with 004 after 002 |
 | 004 | Error Hierarchy & Core Data Types | NOT STARTED | 002 | M (6-10 subtasks) | Can run parallel with 003 after 002 |
 | 005 | CI/CD Pipeline | NOT STARTED | 001 | M (6-10 subtasks) | Can run parallel with 002, 003, 004. UNBLOCKED. |
 
-**Total Stories:** 5 | **Done:** 1 | **In Progress:** 0 | **Blocked:** 0
+**Total Stories:** 5 | **Done:** 2 | **In Progress:** 0 | **Blocked:** 0
 
 **Dependency graph:**
 
@@ -279,6 +279,11 @@ _Updated as stories are implemented._
 - **`deny.toml` uses cargo-deny v0.19 format:** The `[advisories]` section uses `ignore = [...]` (not the older `vulnerability = "deny"` / `unmaintained = "warn"` format). License allowlist includes 4 additional permissive licenses beyond the original spec: `BSL-1.0`, `CC0-1.0`, `Apache-2.0 WITH LLVM-exception`, `CDLA-Permissive-2.0`. RUSTSEC-2024-0436 (paste crate unmaintained) is ignored.
 - **Resolved dependency versions (locked in Cargo.lock):** wgpu 28.0.0, winit 0.30.13, xcap 0.9.3, sherpa-rs 0.6.8, cpal 0.17.3, x11rb 0.13.2, atspi 0.22.0, rdev 0.5.3, arboard 3.6.1, thiserror 2.0.18, serde 1.0.228, arc-swap 1.9.0, tauri 2.10.3, tauri-build 2.5.6. Total: 1038 packages (801 core + 237 Tauri).
 - **Tauri transitive deps have 18 security/unmaintained advisories:** All ignored in `deny.toml` — 11 from GTK3 bindings (awaiting GTK4 migration in tao/tauri), plus proc-macro-error, fxhash, unic-* crates, and a quick-xml stack exhaustion vulnerability. All are transitive deps with no upstream fix available. See `deny.toml` for full list with rationale.
+- **`tokio` workspace dep uses minimal "sync" feature:** Added in Story 002 for `tokio::sync::mpsc` channels in trait signatures. E2+ backends will need expanded features (`rt`, `macros`, `time`, `process`) for async runtimes, timers, and subprocess management.
+- **`raw-window-handle` 0.6 used for WindowManager trait:** Provides `HasWindowHandle` and `HasDisplayHandle` traits for wgpu surface creation. The `WindowManager` trait returns `Option<&dyn HasWindowHandle>` / `Option<&dyn HasDisplayHandle>`.
+- **KeyCode enum uses `#[allow(missing_docs)]` for self-documenting variants:** 63+ key name variants (Key0, A, F1, Space, etc.) are self-documenting. The enum itself has a doc-comment. Accepted as pragmatic deviation from NFR-3 by code review and tech audit.
+- **CaptureError::Platform is the only error with source chain:** Only `CaptureError::Platform` carries `Option<Box<dyn Error + Send + Sync>>`. Other errors' Platform variants have only `message: String`. If E2+ backends need error chaining in other subsystems, trait surface area revision will be needed (RISK-003).
+- **PlatformBackends struct verification is compile-only:** Full construction test requires mock implementations from Story 003. Story 002 uses a compile-only `#[allow(dead_code)]` function to verify struct field types.
 
 ### Cross-Story Dependencies
 

@@ -1,7 +1,7 @@
 # Story E01/002: Platform Trait Definitions & Common Types
 
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** DONE
 **Depends On:** 001
 
 ---

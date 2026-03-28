@@ -3236,8 +3236,10 @@ dependencies = [
  "ashpd",
  "atspi",
  "log",
+ "raw-window-handle",
  "rdev",
  "thiserror 2.0.18",
+ "tokio",
  "x11rb",
  "xcap",
 ]

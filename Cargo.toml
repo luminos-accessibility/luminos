@@ -69,6 +69,12 @@ atspi = "0.22"
 # Input monitoring
 rdev = "0.5"
 
+# Async runtime (sync channel only for platform traits)
+tokio = { version = "1", features = ["sync"] }
+
+# Window handle interop
+raw-window-handle = "0.6"
+
 # Build profiles
 [profile.dev]
 opt-level = 0

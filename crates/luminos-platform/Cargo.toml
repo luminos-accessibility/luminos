@@ -15,6 +15,8 @@ ci_platform_tests = []
 [dependencies]
 thiserror = { workspace = true }
 log = { workspace = true }
+tokio = { workspace = true }
+raw-window-handle = { workspace = true }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 x11rb = { workspace = true }
