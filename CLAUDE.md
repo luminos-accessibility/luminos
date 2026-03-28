@@ -2,6 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## General rules
+
+- ALWAYS ask at least 5 clarifying questions to the user using `AskUserQuestion` tool. Use this to refine your plan, ideas, assumptions and the tasks' ambiguities.
+- ALWAYS add a code reviewer, a quality assurance engineer and a technical auditor to the Agent Team when executing coding tasks.
+- ALWAYS add a technical auditor and quality reviewer to the Agent Team for non-coding tasks (like design, research, doc writing or producing specs).
+- ONLY consider tasks done when reviewers, QA and auditors give explicit approval. Keep iterating until then.
+- ALWAYS prefer using existing specialist agents in this project when spawning new teammates for the Agent Team. Create quality on-demand agent if a fitting specialist is not available.
+
 ## Project Overview
 
 **Luminos** is a GPLv3-licensed, cross-platform (Linux/macOS/OpenBSD/Windows) screen magnification + text-to-speech accessibility suite targeting low-vision users. The project has completed its **technical strategy phase** and is ready for **Phase 0 implementation** (project scaffolding + Linux X11 proof-of-concept). No application code exists yet. The repository contains the complete product strategy, technology evaluation, and technical strategy documents (10 documents covering architecture through risk management).
