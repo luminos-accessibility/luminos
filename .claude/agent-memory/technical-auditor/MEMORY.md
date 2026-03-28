@@ -99,6 +99,28 @@ Key gaps: DESIGN.md lifecycle oversimplified, missing TypeScript TDD exception, 
 - 2 LOW findings accepted (F-007 nextest wording, F-008 associated type field-level ACs)
 - NEW PATTERN: AudioOutput consistently omitted from enumerated lists (both 002 and 003 initially skipped it)
 
+### E01 Story 001 Implementation Audit (2026-03-28)
+- Verdict: PASS WITH FINDINGS (1 CRITICAL, 1 HIGH, 2 MEDIUM, 3 INFO)
+- F-001 CRITICAL: Cargo.lock NOT tracked in git (violates FR-13, doc-08 Section 2.2)
+- F-002 HIGH: deny.toml has invalid fields for cargo-deny v0.19 (vulnerability/unmaintained/yanked/notice fields removed)
+- F-003 MEDIUM: RUSTSEC-2026-0009 ignore reason says "quick-xml" but actual path is tauri->tauri-codegen->time
+- F-004 MEDIUM: RUSTSEC-2024-0429 (glib unsoundness) missing from deny.toml ignore list
+- F-005 INFO: Repository URL is luminos-accessibility/luminos, spec says luminos-app/luminos
+- F-006 INFO: Many duplicate transitive deps (bindgen, bitflags, nix, rand, rustix, thiserror, zbus) -- all from ecosystem
+- F-007 INFO: clippy --all-features fails without webkit2gtk system libs (known deviation #2)
+- Binary size baseline: 408KB (release profile, stub binary)
+- dist profile build fails due to sherpa-rs-sys bug with custom profiles (known deviation #7)
+- All 7 known deviations confirmed reasonable
+- 24 verification checks passed, all ACs verified except AC-3.4 (dist) and AC-4.4 (cargo-deny)
+- Cargo audit: 1 vulnerability (time 0.3.45 via Tauri), 1 unsound (glib via Tauri), 19 unmaintained (all Tauri GTK3)
+
+### cargo-deny v0.19 Configuration Facts (Verified 2026-03-28)
+- [advisories] section NO LONGER supports: vulnerability, unmaintained, yanked, notice as "deny"/"warn" strings
+- Expected values for those fields are now: "all", "workspace", "transitive", "none" (scope-based)
+- Defaults in v0.19: vulnerabilities denied, unmaintained/yanked/notice warned (removing old fields uses correct defaults)
+- ignore list format unchanged: { id = "RUSTSEC-...", reason = "..." } still works
+- [bans] section unchanged: multiple-versions = "warn", wildcards = "deny" still valid
+
 ### Common Patterns of Imprecision Found
 - Phase attribution errors (features attributed to wrong phase)
 - Illustrative code examples contradicting canonical definitions in earlier docs

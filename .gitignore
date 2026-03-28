@@ -1,2 +1,143 @@
+# =============================================================================
+# Luminos .gitignore
+# Covers: Rust, TypeScript/Node, Tauri, IDEs, OS artifacts
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Rust
+# -----------------------------------------------------------------------------
+/target
+**/*.rs.bk
+*.pdb
+*.d
+*.rlib
+*.rmeta
+
+# -----------------------------------------------------------------------------
+# TypeScript / Node.js
+# -----------------------------------------------------------------------------
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+.turbo/
+.next/
+.nuxt/
+.cache/
+coverage/
+*.lcov
+.nyc_output/
+
+# Package manager lockfiles are committed (Cargo.lock, package-lock.json)
+# but yarn/pnpm caches are not
+.yarn/cache/
+.yarn/unplugged/
+.yarn/install-state.gz
+.pnp.*
+
+# -----------------------------------------------------------------------------
+# Tauri
+# -----------------------------------------------------------------------------
+src-tauri/target/
+src-tauri/gen/
+# Tauri bundle outputs (installers, DMGs, AppImages, etc.)
+src-tauri/target/release/bundle/
+*.AppImage
+*.deb
+*.rpm
+*.dmg
+*.app
+*.msi
+*.exe
+*.nsis
+*.snap
+
+# WiX / NSIS installer intermediates
+*.wixobj
+*.wixpdb
+*.mst
+
+# -----------------------------------------------------------------------------
+# Environment and secrets
+# -----------------------------------------------------------------------------
 .env
+.env.*
+!.env.example
 .mcp.json
+*.pem
+*.key
+*.p12
+*.keystore
+
+# -----------------------------------------------------------------------------
+# IDE and editor files
+# -----------------------------------------------------------------------------
+# VS Code
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# JetBrains (CLion, IntelliJ, WebStorm, RustRover)
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Vim / Neovim
+*.swp
+*.swo
+*~
+tags
+.tags
+
+# Emacs
+\#*\#
+.#*
+*.elc
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# -----------------------------------------------------------------------------
+# OS artifacts
+# -----------------------------------------------------------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.directory
+*~
+
+# -----------------------------------------------------------------------------
+# Miscellaneous
+# -----------------------------------------------------------------------------
+# Profiling and benchmarks
+perf.data
+perf.data.old
+flamegraph.svg
+*.profraw
+*.profdata
+
+# ONNX / ML model files (downloaded at runtime, not committed)
+*.onnx
+*.ort
+
+# Log files
+*.log
+
+# Backup files
+*.bak
+*.orig
+*.rej

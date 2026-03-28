@@ -23,6 +23,16 @@
 - sherpa-rs v0.6.8 (TTS via sherpa-onnx)
 - Rust 2024 edition, 1.85+
 
+### Workspace Implementation Notes (Story 001, completed 2026-03-27)
+- Virtual workspaces require explicit `resolver = "3"` even with edition 2024
+- `luminos-core` has `luminos-gpu` as optional dep (needed for `test_utils` feature propagation)
+- Tauri deps are in workspace.dependencies but NOT in luminos-app deps (need system libs)
+- `tauri-specta` v2 is still RC only: `2.0.0-rc.21`
+- sherpa-rs-sys v0.6.8 build script panics under custom Cargo profiles (`dist`)
+- deny.toml v0.19 format: [advisories] uses `ignore = []`, not `vulnerability = "deny"`
+- Additional licenses needed beyond spec: BSL-1.0, CC0-1.0, Apache-2.0 WITH LLVM-exception, CDLA-Permissive-2.0
+- RUSTSEC-2024-0436 (paste crate unmaintained) must be ignored (transitive via wgpu->metal)
+
 ### Rendering Pipeline Patterns
 - `CaptureFrame` has `Arc<[u8]>` data field, `PixelFormat` enum (Bgra8, Rgba8)
 - BGRA->RGBA conversion done via shader swizzle (uniform flag), NOT CPU-side

@@ -1,9 +1,9 @@
 # Epic E01: Project Scaffolding, Platform Traits & CI/CD
 
-**Status:** NOT STARTED
+**Status:** IN PROGRESS
 **Roadmap Ref:** [tech-strategy/09-implementation-roadmap.md Section 4.1](../tech-strategy/09-implementation-roadmap.md#41-epic-1----project-scaffolding-platform-traits--cicd)
 **Phase:** Phase 0: Foundation (Months 1-3)
-**Started:** ---
+**Started:** 2026-03-27
 **Completed:** ---
 **Hard Dependencies:** None (first epic)
 **Soft Dependencies:** None
@@ -36,13 +36,13 @@ Copied verbatim from [doc-09 Section 4.1](../tech-strategy/09-implementation-roa
 
 | # | Story | Status | Depends On | Est. Effort | Notes |
 |---|-------|--------|------------|-------------|-------|
-| 001 | Cargo Workspace & Build Profiles | NOT STARTED | --- | M (6-10 subtasks) | Foundation; unblocks all other stories |
-| 002 | Platform Trait Definitions & Common Types | NOT STARTED | 001 | L (11-15 subtasks) | All 6 traits + associated types from doc-02 |
+| 001 | Cargo Workspace & Build Profiles | DONE | --- | M (9 subtasks) | Completed 2026-03-28. Foundation established; unblocks 002 and 005. |
+| 002 | Platform Trait Definitions & Common Types | NOT STARTED | 001 | L (11-15 subtasks) | All 6 traits + associated types from doc-02. UNBLOCKED. |
 | 003 | Mock Implementations & Test Utilities | NOT STARTED | 002 | L (11-15 subtasks) | Can run parallel with 004 after 002 |
 | 004 | Error Hierarchy & Core Data Types | NOT STARTED | 002 | M (6-10 subtasks) | Can run parallel with 003 after 002 |
-| 005 | CI/CD Pipeline | NOT STARTED | 001 | M (6-10 subtasks) | Can run parallel with 002, 003, 004 |
+| 005 | CI/CD Pipeline | NOT STARTED | 001 | M (6-10 subtasks) | Can run parallel with 002, 003, 004. UNBLOCKED. |
 
-**Total Stories:** 5 | **Done:** 0 | **In Progress:** 0 | **Blocked:** 0
+**Total Stories:** 5 | **Done:** 1 | **In Progress:** 0 | **Blocked:** 0
 
 **Dependency graph:**
 
@@ -264,12 +264,21 @@ The following types are defined across Stories 002 and 004. Later stories refere
 
 ### Discovered Constraints
 
-_To be updated as stories are implemented. Pre-populated with known constraints:_
+_Updated as stories are implemented._
 
-- **Tauri is not set up in E1:** `luminos-app` is a binary crate but does NOT include Tauri setup in this epic. It has a minimal `fn main()` that compiles. Tauri initialization is Epic 4 (Control Panel Foundation).
+- **Tauri is not set up in E1:** `luminos-app` is a binary crate but does NOT include Tauri setup in this epic. It has a minimal `fn main()` that compiles. Tauri initialization is Epic 4 (Control Panel Foundation). **Story 001 finding:** Tauri dependencies are declared in `[workspace.dependencies]` and in `luminos-app/Cargo.toml` as **optional deps gated behind a `tauri` feature flag** (`default = []`). This allows `cargo build --workspace` to succeed without WebKit GTK system libraries, while `cargo deny check --all-features` validates Tauri license compliance via the lockfile. To compile with Tauri: `cargo build -p luminos-app --features tauri` (requires webkit2gtk-4.1, libsoup-3.0, javascriptcoregtk-4.1). E4 should change `default = ["tauri"]` when the control panel is implemented.
+- **`cargo clippy --all-features` requires Tauri system libs:** The AC-1.2 clippy command uses `--all-features`, which enables the `tauri` feature on `luminos-app` and attempts compilation requiring system libraries. On machines without these libs, run clippy without `--all-features`: `cargo clippy --workspace --all-targets -- -D warnings ...`. The `--all-features` variant is validated in CI (Story 005) where system deps are available.
 - **No platform backends in E1:** All `linux_x11/`, `linux_wayland/`, `macos/`, `openbsd/`, `windows/` modules are empty stubs (declared with `#[cfg]` gates but containing no code). Real backends start in E2.
 - **TypeScript/frontend deferred to E4:** The `ui/` directory is not created in E1. TypeScript CI stages are added in E4.
 - **GitHub Actions macOS runners do NOT auto-grant Screen Recording permission** (actions/runner-images#8951) -- not relevant to E1 (Linux-only CI) but worth noting for E2+.
+- **Virtual workspaces require explicit `resolver = "3"`:** Despite using edition 2024, Cargo does not auto-infer resolver 3 for virtual workspace manifests (only for package manifests). The workspace `Cargo.toml` must have `resolver = "3"` explicitly set. Removing it causes a warning and incorrect resolver v1 behavior.
+- **`luminos-core` has `luminos-gpu` as optional dependency:** The `test_utils` feature in `luminos-core` enables `luminos-gpu/test_utils`, which requires `luminos-gpu` to be a dependency. It is declared as `optional = true` so it does not affect the production dependency graph. The `test_utils` feature uses `"dep:luminos-gpu"` to activate it.
+- **`tauri-specta` v2 is release-candidate only:** No stable v2 release exists. Pinned to `2.0.0-rc.21` in workspace dependencies.
+- **`sherpa-rs-sys` v0.6.8 panics under custom Cargo profiles:** The build script's `get_cargo_target_dir().unwrap()` fails when using the `dist` profile. This is an upstream bug. The dist profile configuration is correct and verified working on crates that don't transitively depend on sherpa-rs.
+- **Duplicate transitive dependencies are expected:** `cargo tree -d` shows duplicates in bindgen (v0.69/v0.72), bitflags (v1/v2), zbus (v4/v5), hashbrown (v0.15/v0.16), thiserror (v1/v2), rand (v0.8/v0.9), rustix (v0.38/v1), nix (v0.29/v0.30). All from independent upstream ecosystems; not resolvable at workspace level.
+- **`deny.toml` uses cargo-deny v0.19 format:** The `[advisories]` section uses `ignore = [...]` (not the older `vulnerability = "deny"` / `unmaintained = "warn"` format). License allowlist includes 4 additional permissive licenses beyond the original spec: `BSL-1.0`, `CC0-1.0`, `Apache-2.0 WITH LLVM-exception`, `CDLA-Permissive-2.0`. RUSTSEC-2024-0436 (paste crate unmaintained) is ignored.
+- **Resolved dependency versions (locked in Cargo.lock):** wgpu 28.0.0, winit 0.30.13, xcap 0.9.3, sherpa-rs 0.6.8, cpal 0.17.3, x11rb 0.13.2, atspi 0.22.0, rdev 0.5.3, arboard 3.6.1, thiserror 2.0.18, serde 1.0.228, arc-swap 1.9.0, tauri 2.10.3, tauri-build 2.5.6. Total: 1038 packages (801 core + 237 Tauri).
+- **Tauri transitive deps have 18 security/unmaintained advisories:** All ignored in `deny.toml` — 11 from GTK3 bindings (awaiting GTK4 migration in tao/tauri), plus proc-macro-error, fxhash, unic-* crates, and a quick-xml stack exhaustion vulnerability. All are transitive deps with no upstream fix available. See `deny.toml` for full list with rationale.
 
 ### Cross-Story Dependencies
 

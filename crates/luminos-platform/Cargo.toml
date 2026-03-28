@@ -1,0 +1,37 @@
+[package]
+name = "luminos-platform"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[features]
+default = []
+wayland = ["ashpd"]
+xshm = ["x11rb/shm"]
+test_utils = []
+ci_platform_tests = []
+
+[dependencies]
+thiserror = { workspace = true }
+log = { workspace = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+x11rb = { workspace = true }
+xcap = { workspace = true }
+atspi = { workspace = true }
+rdev = { workspace = true }
+
+[target.'cfg(target_os = "linux")'.dependencies.ashpd]
+version = "0.10"
+optional = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+xcap = { workspace = true }
+
+[target.'cfg(target_os = "openbsd")'.dependencies]
+x11rb = { workspace = true }
+xcap = { workspace = true }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+xcap = { workspace = true }

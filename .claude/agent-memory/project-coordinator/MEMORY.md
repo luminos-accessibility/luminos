@@ -1,0 +1,1 @@
+- [E01 Implementation Decisions](project_e01_decisions.md) — Repo URL, commit style, parallelism, spec approval for Epic 01

@@ -1,0 +1,16 @@
+[package]
+name = "luminos-tts"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[features]
+default = []
+test_utils = []
+
+[dependencies]
+luminos-platform = { workspace = true }
+sherpa-rs = { workspace = true }
+cpal = { workspace = true }
+log = { workspace = true }

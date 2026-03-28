@@ -1,7 +1,7 @@
 # Story E01/001: Cargo Workspace & Build Profiles
 
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** DONE
 **Depends On:** None (first story in epic)
 
 ---

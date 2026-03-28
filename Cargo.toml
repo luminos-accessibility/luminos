@@ -1,0 +1,91 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/luminos-core",
+    "crates/luminos-platform",
+    "crates/luminos-gpu",
+    "crates/luminos-tts",
+    "crates/luminos-app",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-only"
+repository = "https://github.com/luminos-accessibility/luminos"
+homepage = "https://luminos.dev"
+authors = ["Luminos Contributors"]
+rust-version = "1.85"
+
+[workspace.dependencies]
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+# Concurrency and state
+arc-swap = "1"
+crossbeam-channel = "0.5"
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+
+# Error handling
+thiserror = "2"
+
+# Platform abstraction (internal crates)
+luminos-platform = { path = "crates/luminos-platform" }
+luminos-core = { path = "crates/luminos-core" }
+luminos-gpu = { path = "crates/luminos-gpu" }
+luminos-tts = { path = "crates/luminos-tts" }
+
+# GPU rendering
+wgpu = "28.0"
+winit = "0.30"
+
+# Screen capture
+xcap = "0.9"
+
+# TTS
+sherpa-rs = "0.6"
+cpal = "0.17"
+
+# Clipboard
+arboard = "3"
+
+# Application framework
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-build = "2"
+tauri-specta = { version = "2.0.0-rc.21", features = ["derive", "typescript"] }
+specta-typescript = "0.0.9"
+
+# X11 protocol (Linux + OpenBSD)
+x11rb = { version = "0.13", features = ["randr", "shm"] }
+
+# Linux accessibility
+atspi = "0.22"
+
+# Input monitoring
+rdev = "0.5"
+
+# Build profiles
+[profile.dev]
+opt-level = 0
+debug = true
+incremental = true
+
+[profile.release]
+opt-level = 3
+debug = false
+lto = "thin"
+codegen-units = 16
+strip = "debuginfo"
+
+[profile.dist]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
