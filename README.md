@@ -216,6 +216,10 @@ This project is designed to be built primarily with AI agent assistance:
 - **Trait-based abstractions** define clear implementation contracts for AI agents to target
 - **Spec-driven development** provides structured context that prevents inconsistent AI output
 
+## Versioning
+
+Luminos follows [Semantic Versioning 2.0.0](https://semver.org/) with lockstep workspace versioning. See [VERSIONING.md](VERSIONING.md) for the complete versioning policy, bump rules, and milestone definitions.
+
 ## Contributing
 
 Luminos is in active development (Phase 0: Foundation). Contributions are welcome in several areas:

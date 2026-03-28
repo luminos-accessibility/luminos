@@ -1,2 +1,3 @@
 - [E01 Implementation Decisions](project_e01_decisions.md) — Repo URL, commit style, parallelism, spec approval for Epic 01
 - [E02 Decomposition Decisions](project_e02_decisions.md) — xcap RGBA, unmap/remap self-capture, story structure, audit findings for Epic 02
+- [Versioning & 1.0.0 Milestone](project_versioning_milestone.md) — Lockstep SemVer; 1.0.0 = production-ready X11 magnification at end of Phase 1

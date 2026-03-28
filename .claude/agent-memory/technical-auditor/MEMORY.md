@@ -161,6 +161,20 @@ Key gaps: DESIGN.md lifecycle oversimplified, missing TypeScript TDD exception, 
 - NEW PATTERN: HLP-level research corrections may not propagate to story-level specs (check all 3 files per story)
 - NEW PATTERN: API signature drift between HLP and DESIGN.md -- check method names, parameter types, trait vs struct level
 
+### SemVer Versioning Conflict Audit (2026-03-28, updated with cross-check)
+- New versioning decisions: lockstep SemVer, 1.0.0 = end of Phase 1, pre-1.0 covers Phases 0-1, post-1.0 features as 1.x.y
+- Source of truth: CLAUDE.md lines 300-319, README.md lines 329-339 (Versioning + Milestone Versions sections)
+- CRITICAL: doc-09 Section 9.2 release schedule table says v1.0.0 = Phase 4 (Month 20); new decision says Phase 1
+- CRITICAL: doc-09 Phase 4 exit criteria (line 1406) says "This is the v1.0 release"
+- HIGH: doc-09 phase exit criteria: Phase 1 = v0.1.0 (line 728), Phase 2 = v0.2.0 (line 930), Phase 3 = v0.3.0 (line 1164)
+- HIGH: doc-09 "Phase 4 → v1.0 Gate" checklist title (line 1559)
+- MEDIUM: doc-08 line 1334 says "full Linux support" instead of "production-ready X11 magnification"
+- MEDIUM: Product Strategy Section 10.3 uses v1.0/v3.0 as milestone column headers with feature counts that exceed Phase 1 scope (TTS, 4 modes)
+- MEDIUM: README internal contradiction: feature roadmap (line 52) puts Wayland in Phase 1, milestone table (line 337) puts it in post-1.0 1.x.y
+- MEDIUM: doc-09 Gantt chart (line 1450) shows v1.0 at Month 20
+- v1.0.0 scope defined differently in 3+ documents (doc-08=Phase1, doc-09=Phase4, doc-10=Phase2, Product Strategy=ambiguous)
+- Wayland scope ambiguity: Phase 1 epic (E8) in all roadmap docs, but README milestone table explicitly puts Wayland post-1.0
+
 ### Common Patterns of Imprecision Found
 - Phase attribution errors (features attributed to wrong phase)
 - Illustrative code examples contradicting canonical definitions in earlier docs

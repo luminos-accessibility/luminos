@@ -296,3 +296,7 @@ Follow Conventional Commits v1.0.0 (https://www.conventionalcommits.org/en/v1.0.
 - Body and footers are separated from the description by a blank line.
 - Keep the subject line under 72 characters.
 - One logical change per commit — if a commit spans multiple types, split it.
+
+## Versioning
+
+See [VERSIONING.md](VERSIONING.md) for the complete versioning policy (SemVer 2.0.0, lockstep workspace versioning, bump rules, milestones).
