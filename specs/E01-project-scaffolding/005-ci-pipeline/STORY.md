@@ -1,7 +1,7 @@
 # Story E01/005: CI/CD Pipeline
 
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** DONE
 **Depends On:** 001 (workspace must exist for CI to build and lint against)
 
 ---

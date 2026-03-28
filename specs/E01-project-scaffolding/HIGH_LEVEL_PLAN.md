@@ -1,10 +1,10 @@
 # Epic E01: Project Scaffolding, Platform Traits & CI/CD
 
-**Status:** IN PROGRESS
+**Status:** DONE
 **Roadmap Ref:** [tech-strategy/09-implementation-roadmap.md Section 4.1](../tech-strategy/09-implementation-roadmap.md#41-epic-1----project-scaffolding-platform-traits--cicd)
 **Phase:** Phase 0: Foundation (Months 1-3)
 **Started:** 2026-03-27
-**Completed:** ---
+**Completed:** 2026-03-28
 **Hard Dependencies:** None (first epic)
 **Soft Dependencies:** None
 **Primary Docs:** [01 -- System Architecture](../tech-strategy/01-system-architecture.md) Section 7, [02 -- Platform Abstraction](../tech-strategy/02-platform-abstraction.md) Sections 2-4 and 7, [07 -- Testing Strategy](../tech-strategy/07-testing-strategy.md) Sections 4.1-4.4, [08 -- Build and Distribution](../tech-strategy/08-build-and-distribution.md) Sections 2 and 4
@@ -40,9 +40,9 @@ Copied verbatim from [doc-09 Section 4.1](../tech-strategy/09-implementation-roa
 | 002 | Platform Trait Definitions & Common Types | DONE | 001 | L (14 subtasks) | Completed 2026-03-28. All 6 traits, common types, error enums, module structure, 39 tests. Unblocks 003 and 004. |
 | 003 | Mock Implementations & Test Utilities | DONE | 002 | L (12 subtasks) | Completed 2026-03-28. 6 mock structs, 44 mock tests, 83 total platform tests. Unblocks E2+ testing. |
 | 004 | Error Hierarchy & Core Data Types | DONE | 002 | M (10 subtasks) | Completed 2026-03-28. LuminosError + AppSettings + AppState + 4 config enums, 31 core tests. Unblocks E2+ development. |
-| 005 | CI/CD Pipeline | NOT STARTED | 001 | M (6-10 subtasks) | Can run parallel with 002, 003, 004. UNBLOCKED. |
+| 005 | CI/CD Pipeline | DONE | 001 | M (8 subtasks) | Completed 2026-03-28. GitHub Actions CI workflow (lint, test, security), pre-commit hook. Epic E01 complete. |
 
-**Total Stories:** 5 | **Done:** 4 | **In Progress:** 0 | **Blocked:** 0
+**Total Stories:** 5 | **Done:** 5 | **In Progress:** 0 | **Blocked:** 0
 
 **Dependency graph:**
 
@@ -290,6 +290,10 @@ _Updated as stories are implemented._
 - **TOML cannot serialize `None` inside `HashMap`:** The non-default `AppSettings` TOML roundtrip test uses only `Some(KeyBinding)` values in keybindings. JSON roundtrip handles `null` correctly. This means `config.toml` cannot represent "unbound" hotkeys as null — they must be omitted from the map entirely (which `HashMap` handles naturally via absence).
 - **`AppSettings` keybindings default to empty `HashMap`:** No default key bindings are shipped. doc-05 Section 3 shows specific defaults (Ctrl+= for ZoomIn, etc.) in the UI table. A future story (E4+) should populate default keybindings or ship a built-in profile.
 - **No runtime validation of `AppSettings` field ranges:** Fields like `zoom_level: f32` (spec: 1.5-20.0) accept any value at the type level. Range validation belongs at the IPC boundary (doc-05 Section 4.2). A future `AppSettings::validate()` method would close this gap for config.toml deserialization.
+- **CI lint job requires Tauri system dependencies:** `cargo clippy --all-features` enables the `tauri` feature on `luminos-app`, which requires `libwebkit2gtk-4.1-dev`, `libgtk-3-dev`, `libsoup-3.0-dev`, `javascriptcoregtk-4.1-dev` on Ubuntu. The CI workflow installs these via `apt-get` before running clippy. This is a deviation from the DESIGN.md spec (which omitted the step) but is necessary and documented. The `test-rust-unit` job avoids this by using `--exclude luminos-app`.
+- **`cargo deny` runs in both lint and security jobs:** Intentional duplication (~10s overhead) for improved PR status visibility. The `lint` job catches issues early; the `security` job provides a dedicated, named status check for security concerns.
+- **CI pipeline warm-cache time pending verification:** AC-5.1 (pipeline < 10min with warm cache) and NFR-1 cannot be verified until the first actual GitHub Actions execution. The structural design (parallel jobs, `actions/cache`, `taiki-e/install-action` pre-built binaries) makes the target very likely achievable.
+- **`RUSTFLAGS="--deny warnings"` applies globally:** Set at workflow level, affects all jobs including `cargo nextest run`. This is intentional per FR-8 for deterministic CI builds but means dependency warnings could theoretically fail the test job. Unlikely in practice.
 
 ### Cross-Story Dependencies
 
