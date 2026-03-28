@@ -66,6 +66,16 @@ Key gaps: DESIGN.md lifecycle oversimplified, missing TypeScript TDD exception, 
 - cargo-cyclonedx flags: -f json, --spec-version 1.5, --manifest-path all valid
 - WebAIM Screen Reader Survey #10: ~86% Windows (not ">90%" as sometimes cited)
 
+### E01 HIGH_LEVEL_PLAN.md Audit (2026-03-27, re-audited 2026-03-28)
+- Verdict: APPROVED (after revisions; 3 MEDIUM resolved, 1 LOW unresolved)
+- F-001 RESOLVED: TrackingMode now Cursor/Focus/TextCaret per doc-05
+- F-002 RESOLVED: Now ColorFilterType with SmartInvert included
+- F-003 RESOLVED: PlatformBackends now correctly says "five of the six"
+- F-004 RESOLVED: Scope expansion acknowledged with rationale
+- F-005 NOT RESOLVED (LOW): RISK-001, RISK-017, RISK-024 still missing from Relevant Risks table
+- Pre-existing discrepancy confirmed: doc-09 says GPL-3.0-or-later, doc-08 says GPL-3.0-only
+- Note: RISK-017 custom Debug for CaptureFrame is a Story 002 implementation requirement
+
 ### Common Patterns of Imprecision Found
 - Phase attribution errors (features attributed to wrong phase)
 - Illustrative code examples contradicting canonical definitions in earlier docs
@@ -78,3 +88,6 @@ Key gaps: DESIGN.md lifecycle oversimplified, missing TypeScript TDD exception, 
 - Summary/distribution counts in tables often wrong (doc-10 score distribution)
 - Terminology drift between "shared memory" and "Shared Context" in SDD docs
 - Skills/summaries tend to oversimplify lifecycle transitions (dropping intermediate states)
+- Enum variant names invented instead of using canonical names from doc-05 (TrackingMode, ColorFilterType)
+- Trait object counts stated incorrectly (PlatformBackends has 5, not 6)
+- Risk references omit risks with explicit E1 mitigation actions (check doc-10 mitigations for "in E1" text)
