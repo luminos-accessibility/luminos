@@ -1,7 +1,7 @@
 # Story E01/003: Mock Implementations & Test Utilities
 
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** DONE
 **Depends On:** 002
 
 ---

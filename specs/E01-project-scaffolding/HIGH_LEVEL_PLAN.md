@@ -38,11 +38,11 @@ Copied verbatim from [doc-09 Section 4.1](../tech-strategy/09-implementation-roa
 |---|-------|--------|------------|-------------|-------|
 | 001 | Cargo Workspace & Build Profiles | DONE | --- | M (9 subtasks) | Completed 2026-03-28. Foundation established; unblocks 002 and 005. |
 | 002 | Platform Trait Definitions & Common Types | DONE | 001 | L (14 subtasks) | Completed 2026-03-28. All 6 traits, common types, error enums, module structure, 39 tests. Unblocks 003 and 004. |
-| 003 | Mock Implementations & Test Utilities | NOT STARTED | 002 | L (11-15 subtasks) | Can run parallel with 004 after 002 |
-| 004 | Error Hierarchy & Core Data Types | NOT STARTED | 002 | M (6-10 subtasks) | Can run parallel with 003 after 002 |
+| 003 | Mock Implementations & Test Utilities | DONE | 002 | L (12 subtasks) | Completed 2026-03-28. 6 mock structs, 44 mock tests, 83 total platform tests. Unblocks E2+ testing. |
+| 004 | Error Hierarchy & Core Data Types | DONE | 002 | M (10 subtasks) | Completed 2026-03-28. LuminosError + AppSettings + AppState + 4 config enums, 31 core tests. Unblocks E2+ development. |
 | 005 | CI/CD Pipeline | NOT STARTED | 001 | M (6-10 subtasks) | Can run parallel with 002, 003, 004. UNBLOCKED. |
 
-**Total Stories:** 5 | **Done:** 2 | **In Progress:** 0 | **Blocked:** 0
+**Total Stories:** 5 | **Done:** 4 | **In Progress:** 0 | **Blocked:** 0
 
 **Dependency graph:**
 
@@ -284,6 +284,12 @@ _Updated as stories are implemented._
 - **KeyCode enum uses `#[allow(missing_docs)]` for self-documenting variants:** 63+ key name variants (Key0, A, F1, Space, etc.) are self-documenting. The enum itself has a doc-comment. Accepted as pragmatic deviation from NFR-3 by code review and tech audit.
 - **CaptureError::Platform is the only error with source chain:** Only `CaptureError::Platform` carries `Option<Box<dyn Error + Send + Sync>>`. Other errors' Platform variants have only `message: String`. If E2+ backends need error chaining in other subsystems, trait surface area revision will be needed (RISK-003).
 - **PlatformBackends struct verification is compile-only:** Full construction test requires mock implementations from Story 003. Story 002 uses a compile-only `#[allow(dead_code)]` function to verify struct field types.
+- **Mock module-level `#[cfg]` gate is sufficient:** DESIGN.md for Story 003 showed per-struct `#[cfg(any(test, feature = "test_utils"))]` attributes, but the module-level gate in `lib.rs` (`#[cfg(any(test, feature = "test_utils"))] pub mod mock;`) is functionally equivalent and cleaner. Per-struct gating is redundant when the entire module is conditionally compiled.
+- **`tokio` dev-dependency with expanded features for async tests:** `luminos-platform/Cargo.toml` adds `tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }` as a `[dev-dependencies]` entry for `#[tokio::test]` in MockTtsEngine async tests. The workspace `tokio` dep retains minimal "sync" feature for production code.
+- **`DockEdge` and `LensShape` are defined independently in both crates:** `luminos-platform::traits::window_manager` defines them (without serde) for the `OverlayMode` trait API. `luminos-core::config::schema` defines them (with `Serialize`/`Deserialize`) for `AppSettings` persistence. Future reconciliation may unify them via re-export or shared definition. Conversion layer needed when E2+ bridges settings to overlay mode changes.
+- **TOML cannot serialize `None` inside `HashMap`:** The non-default `AppSettings` TOML roundtrip test uses only `Some(KeyBinding)` values in keybindings. JSON roundtrip handles `null` correctly. This means `config.toml` cannot represent "unbound" hotkeys as null — they must be omitted from the map entirely (which `HashMap` handles naturally via absence).
+- **`AppSettings` keybindings default to empty `HashMap`:** No default key bindings are shipped. doc-05 Section 3 shows specific defaults (Ctrl+= for ZoomIn, etc.) in the UI table. A future story (E4+) should populate default keybindings or ship a built-in profile.
+- **No runtime validation of `AppSettings` field ranges:** Fields like `zoom_level: f32` (spec: 1.5-20.0) accept any value at the type level. Range validation belongs at the IPC boundary (doc-05 Section 4.2). A future `AppSettings::validate()` method would close this gap for config.toml deserialization.
 
 ### Cross-Story Dependencies
 

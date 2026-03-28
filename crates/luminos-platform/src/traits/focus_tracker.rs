@@ -117,10 +117,7 @@ pub trait FocusTracker: Send + Sync {
     /// The `element_id` is the platform-specific identifier from a prior
     /// `FocusChangedEvent`. Returns `None` if the element no longer exists
     /// or its bounds cannot be determined.
-    fn get_element_bounds(
-        &self,
-        element_id: &str,
-    ) -> Result<Option<ScreenRect>, FocusError>;
+    fn get_element_bounds(&self, element_id: &str) -> Result<Option<ScreenRect>, FocusError>;
 }
 
 #[cfg(test)]

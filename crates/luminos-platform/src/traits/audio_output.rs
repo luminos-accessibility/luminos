@@ -67,11 +67,7 @@ pub trait AudioOutput: Send + Sync {
     /// Plays the given audio sample.
     ///
     /// If `interrupt` is `true`, stops current playback first.
-    fn play_audio(
-        &self,
-        sample: AudioSample,
-        interrupt: bool,
-    ) -> Result<(), AudioError>;
+    fn play_audio(&self, sample: AudioSample, interrupt: bool) -> Result<(), AudioError>;
 
     /// Stops any audio currently playing.
     fn stop_audio(&self) -> Result<(), AudioError>;

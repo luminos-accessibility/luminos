@@ -4,8 +4,8 @@
 //! backends implement these traits; the core engine programs against the
 //! trait interfaces exclusively.
 
-pub mod traits;
 pub mod error;
+pub mod traits;
 
 #[cfg(any(test, feature = "test_utils"))]
 pub mod mock;

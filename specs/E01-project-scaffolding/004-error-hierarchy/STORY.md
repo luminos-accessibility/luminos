@@ -1,7 +1,7 @@
 # Story E01/004: Error Hierarchy & Core Data Types
 
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** DONE
 **Depends On:** 002 (subsystem error types in `luminos-platform` must exist for `From` conversions)
 
 ---

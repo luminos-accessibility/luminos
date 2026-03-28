@@ -104,11 +104,7 @@ pub mod test_utils {
     /// - `width`: Frame width in pixels.
     /// - `height`: Frame height in pixels.
     /// - `color`: BGRA color value `[b, g, r, a]` for every pixel.
-    pub fn generate_test_capture_frame(
-        width: u32,
-        height: u32,
-        color: [u8; 4],
-    ) -> CaptureFrame {
+    pub fn generate_test_capture_frame(width: u32, height: u32, color: [u8; 4]) -> CaptureFrame {
         let stride = width * 4;
         let data: Vec<u8> = color
             .iter()
@@ -245,7 +241,10 @@ mod tests {
         let frame = test_utils::generate_test_capture_frame(4, 2, [255, 0, 0, 255]);
         let debug = format!("{frame:?}");
         // Must contain the "bytes" placeholder
-        assert!(debug.contains("bytes"), "debug output must contain 'bytes' placeholder");
+        assert!(
+            debug.contains("bytes"),
+            "debug output must contain 'bytes' placeholder"
+        );
         // Must NOT contain raw pixel data patterns
         assert!(
             !debug.contains("[255, 0, 0, 255"),

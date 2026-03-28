@@ -37,3 +37,6 @@ xcap = { workspace = true }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 xcap = { workspace = true }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
