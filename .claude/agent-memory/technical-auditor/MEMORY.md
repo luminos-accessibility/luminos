@@ -76,6 +76,15 @@ Key gaps: DESIGN.md lifecycle oversimplified, missing TypeScript TDD exception, 
 - Pre-existing discrepancy confirmed: doc-09 says GPL-3.0-or-later, doc-08 says GPL-3.0-only
 - Note: RISK-017 custom Debug for CaptureFrame is a Story 002 implementation requirement
 
+### E01 STORY.md Audit (2026-03-28, final)
+- Verdict: ALL 5 STORIES APPROVED (after one revision cycle)
+- Initial: 8 findings (1 HIGH, 5 MEDIUM, 2 LOW), 3 pointers
+- All 6 MEDIUM+ findings resolved in revision cycle
+- 103 total ACs across 5 stories, all Given-When-Then format
+- D1-D6 and SC1-SC6 fully covered and testable
+- 2 LOW findings accepted (F-007 nextest wording, F-008 associated type field-level ACs)
+- NEW PATTERN: AudioOutput consistently omitted from enumerated lists (both 002 and 003 initially skipped it)
+
 ### Common Patterns of Imprecision Found
 - Phase attribution errors (features attributed to wrong phase)
 - Illustrative code examples contradicting canonical definitions in earlier docs
@@ -91,3 +100,7 @@ Key gaps: DESIGN.md lifecycle oversimplified, missing TypeScript TDD exception, 
 - Enum variant names invented instead of using canonical names from doc-05 (TrackingMode, ColorFilterType)
 - Trait object counts stated incorrectly (PlatformBackends has 5, not 6)
 - Risk references omit risks with explicit E1 mitigation actions (check doc-10 mitigations for "in E1" text)
+- AudioOutput/AudioError consistently dropped from enumerated lists when authors list "all six" traits/errors
+- FR traceability claims broader AC coverage than actually exists (FR-8 claims AC-2.5 covers Voice, but it only covers AudioSample)
+- "at minimum" framing in ACs allows canonical list items to be omitted (deny.toml LGPL variants)
+- nextest slow-timeout and retries are commonly conflated in descriptions
