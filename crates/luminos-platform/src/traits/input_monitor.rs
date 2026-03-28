@@ -10,6 +10,7 @@ use super::types::ScreenPoint;
 
 /// Keyboard modifier state.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct Modifiers {
     /// Shift key is held.
     pub shift: bool,
@@ -224,12 +225,20 @@ pub trait InputMonitor: Send + Sync {
     /// The implementation spawns an internal event loop that captures
     /// global input events and sends them to the returned channel.
     /// The channel is bounded (`buffer_size` capacity).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`InputError`] if input monitoring is unavailable or permission is denied.
     fn subscribe_input_events(
         &self,
         buffer_size: usize,
     ) -> Result<mpsc::Receiver<InputEvent>, InputError>;
 
     /// Returns the current mouse pointer position.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`InputError`] if the mouse position cannot be queried.
     fn get_mouse_position(&self) -> Result<ScreenPoint, InputError>;
 }
 

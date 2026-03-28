@@ -54,7 +54,7 @@ pub struct DisplayInfo {
 pub enum PixelFormat {
     /// Blue, Green, Red, Alpha (8 bits each). Native format on X11 and Windows.
     Bgra8,
-    /// Red, Green, Blue, Alpha (8 bits each). Native format on macOS (ScreenCaptureKit).
+    /// Red, Green, Blue, Alpha (8 bits each). Native format on macOS (`ScreenCaptureKit`).
     Rgba8,
 }
 
@@ -78,7 +78,7 @@ pub struct CaptureFrame {
     pub format: PixelFormat,
 }
 
-/// Custom Debug impl for CaptureFrame that omits pixel data (RISK-017).
+/// Custom Debug impl for `CaptureFrame` that omits pixel data (RISK-017).
 ///
 /// Prints metadata only: width, height, stride, format, and the byte
 /// length of the data buffer. Never prints raw pixel content.
@@ -104,6 +104,7 @@ pub mod test_utils {
     /// - `width`: Frame width in pixels.
     /// - `height`: Frame height in pixels.
     /// - `color`: BGRA color value `[b, g, r, a]` for every pixel.
+    #[must_use]
     pub fn generate_test_capture_frame(width: u32, height: u32, color: [u8; 4]) -> CaptureFrame {
         let stride = width * 4;
         let data: Vec<u8> = color
@@ -122,6 +123,7 @@ pub mod test_utils {
     }
 
     /// Generates a test `DisplayInfo` with configurable parameters.
+    #[must_use]
     pub fn generate_test_display_info(
         id: &str,
         width: u32,
@@ -162,7 +164,7 @@ mod tests {
         // Clone + Copy
         let copied = rect;
         assert_eq!(rect, copied);
-        let cloned = rect.clone();
+        let cloned = rect;
         assert_eq!(rect, cloned);
         // Eq + Hash
         let mut set = HashSet::new();

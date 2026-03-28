@@ -101,6 +101,10 @@ pub trait FocusTracker: Send + Sync {
     ///
     /// Calling this method multiple times is idempotent; subsequent calls
     /// return new receivers attached to the same internal event source.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`FocusError`] if the accessibility API is unavailable or permission is denied.
     fn subscribe_focus_changes(
         &self,
         buffer_size: usize,
@@ -110,6 +114,10 @@ pub trait FocusTracker: Send + Sync {
     ///
     /// Returns `None` if no element has focus or if the accessibility API
     /// cannot determine the focused element.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`FocusError`] if querying the focused element fails.
     fn get_focused_element(&self) -> Result<Option<FocusChangedEvent>, FocusError>;
 
     /// Returns the screen-coordinate bounds of a previously identified element.
@@ -117,6 +125,10 @@ pub trait FocusTracker: Send + Sync {
     /// The `element_id` is the platform-specific identifier from a prior
     /// `FocusChangedEvent`. Returns `None` if the element no longer exists
     /// or its bounds cannot be determined.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`FocusError`] if the element bounds cannot be queried.
     fn get_element_bounds(&self, element_id: &str) -> Result<Option<ScreenRect>, FocusError>;
 }
 

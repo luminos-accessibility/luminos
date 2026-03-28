@@ -14,6 +14,7 @@ pub struct MockAudioOutput {
 
 impl MockAudioOutput {
     /// Creates a mock with default (success) behavior.
+    #[must_use]
     pub fn generate_test_mock_audio_output() -> Self {
         Self {
             device_name: Some("Mock Audio Device".to_string()),
@@ -22,6 +23,7 @@ impl MockAudioOutput {
     }
 
     /// Configures the mock to return an error on every method call.
+    #[must_use]
     pub fn with_error<F>(mut self, factory: F) -> Self
     where
         F: Fn() -> AudioError + Send + Sync + 'static,
@@ -62,6 +64,7 @@ impl AudioOutput for MockAudioOutput {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
 

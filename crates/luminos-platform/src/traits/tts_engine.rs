@@ -28,7 +28,7 @@ pub enum TtsBackend {
     Kokoro,
     /// Piper VITS model via sherpa-onnx runtime (language breadth fallback).
     Piper,
-    /// Platform-native TTS (AVSpeech, SAPI, speech-dispatcher).
+    /// Platform-native TTS (`AVSpeech`, SAPI, speech-dispatcher).
     Native,
 }
 
@@ -101,18 +101,38 @@ pub trait TtsEngine: Send + Sync {
     ) -> Pin<Box<dyn Future<Output = Result<(), TtsError>> + Send + '_>>;
 
     /// Stops any speech currently in progress or queued.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`TtsError`] if stopping speech fails.
     fn stop(&self) -> Result<(), TtsError>;
 
     /// Sets the active voice by its ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`TtsError`] if the voice is not found or cannot be activated.
     fn set_voice(&self, voice_id: &str) -> Result<(), TtsError>;
 
     /// Sets the speech rate. 1.0 = normal, clamped to \[0.25, 4.0\].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`TtsError`] if the rate cannot be applied.
     fn set_rate(&self, rate: f32) -> Result<(), TtsError>;
 
     /// Sets the speech pitch. 1.0 = normal, clamped to \[0.5, 2.0\].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`TtsError`] if the pitch cannot be applied.
     fn set_pitch(&self, pitch: f32) -> Result<(), TtsError>;
 
     /// Returns all available voices across all engines.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`TtsError`] if the voice list cannot be retrieved.
     fn get_voices(&self) -> Result<Vec<Voice>, TtsError>;
 
     /// Returns `true` if speech is currently being played.

@@ -15,6 +15,7 @@ pub struct MockWindowManager {
 
 impl MockWindowManager {
     /// Creates a mock window manager with default (success) behavior.
+    #[must_use]
     pub fn generate_test_mock_window_manager() -> Self {
         Self {
             overlay_created: false,
@@ -24,6 +25,7 @@ impl MockWindowManager {
 
     /// Configures the mock to return an error on every method call
     /// that returns `Result<_, WindowError>`.
+    #[must_use]
     pub fn with_error<F>(mut self, factory: F) -> Self
     where
         F: Fn() -> WindowError + Send + Sync + 'static,
@@ -82,6 +84,7 @@ impl WindowManager for MockWindowManager {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
     use crate::traits::window_manager::OverlayMode;

@@ -35,6 +35,7 @@ pub struct MockScreenCapture {
 
 impl MockScreenCapture {
     /// Creates a mock that returns fixed display info and capture frames.
+    #[must_use]
     pub fn generate_test_mock_screen_capture(
         displays: Vec<DisplayInfo>,
         frame: CaptureFrame,
@@ -51,6 +52,7 @@ impl MockScreenCapture {
     ///
     /// The factory is called each time to produce a fresh error value
     /// (error types are not `Clone`).
+    #[must_use]
     pub fn with_error<F>(mut self, factory: F) -> Self
     where
         F: Fn() -> CaptureError + Send + Sync + 'static,
@@ -97,6 +99,7 @@ impl ScreenCapture for MockScreenCapture {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
     use crate::traits::types::test_utils::*;

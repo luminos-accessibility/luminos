@@ -18,6 +18,7 @@ pub struct MockTtsEngine {
 
 impl MockTtsEngine {
     /// Creates a mock with a pre-configured voice list.
+    #[must_use]
     pub fn generate_test_mock_tts_engine(voices: Vec<Voice>) -> Self {
         Self {
             voices,
@@ -26,6 +27,7 @@ impl MockTtsEngine {
     }
 
     /// Configures the mock to return an error on every method call.
+    #[must_use]
     pub fn with_error<F>(mut self, factory: F) -> Self
     where
         F: Fn() -> TtsError + Send + Sync + 'static,
@@ -90,6 +92,7 @@ impl TtsEngine for MockTtsEngine {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
     use crate::traits::tts_engine::TtsBackend;

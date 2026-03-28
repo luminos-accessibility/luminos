@@ -15,6 +15,7 @@ pub struct MockFocusTracker {
 
 impl MockFocusTracker {
     /// Creates a mock with an optional pre-configured focused element.
+    #[must_use]
     pub fn generate_test_mock_focus_tracker(focused_element: Option<FocusChangedEvent>) -> Self {
         Self {
             focused_element,
@@ -23,6 +24,7 @@ impl MockFocusTracker {
     }
 
     /// Configures the mock to return an error on every method call.
+    #[must_use]
     pub fn with_error<F>(mut self, factory: F) -> Self
     where
         F: Fn() -> FocusError + Send + Sync + 'static,
@@ -61,6 +63,7 @@ impl FocusTracker for MockFocusTracker {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
     use crate::traits::focus_tracker::ElementType;

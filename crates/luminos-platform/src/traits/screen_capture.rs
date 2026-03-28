@@ -77,6 +77,10 @@ pub trait ScreenCapture: Send + Sync {
     ///
     /// Returns display metadata including bounds and scale factor.
     /// Used during initialization and when displays are added/removed.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CaptureError`] if the display list cannot be queried.
     fn list_displays(&self) -> Result<Vec<DisplayInfo>, CaptureError>;
 
     /// Captures a rectangular region of the specified display.
@@ -87,6 +91,11 @@ pub trait ScreenCapture: Send + Sync {
     /// This is the hot-path method called every frame (up to 60fps).
     /// Implementations must target <8ms for the source region sizes typical
     /// in magnification (small regions at high zoom).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CaptureError`] if the display is not found, the region is out of bounds,
+    /// permission is denied, or a platform-specific capture failure occurs.
     fn capture_frame(
         &self,
         display_id: &str,
@@ -103,6 +112,11 @@ pub trait ScreenCapture: Send + Sync {
     /// Returns `Err` if the platform does not support display change
     /// notifications (graceful degradation: the engine can poll
     /// `list_displays()` periodically as a fallback).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CaptureError`] if display change notifications are not supported
+    /// by the platform backend.
     fn subscribe_display_changes(
         &self,
         buffer_size: usize,

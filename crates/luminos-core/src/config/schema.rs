@@ -38,7 +38,7 @@ pub enum LensShape {
     Ellipse,
 }
 
-/// VSync / frame presentation strategy.
+/// `VSync` / frame presentation strategy.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum PresentMode {
     /// VSync-locked (Fifo), smooth, no tearing.
@@ -316,6 +316,7 @@ impl Default for AppSettings {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
 

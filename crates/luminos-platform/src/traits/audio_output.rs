@@ -67,15 +67,31 @@ pub trait AudioOutput: Send + Sync {
     /// Plays the given audio sample.
     ///
     /// If `interrupt` is `true`, stops current playback first.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AudioError`] if the audio device is unavailable or playback fails.
     fn play_audio(&self, sample: AudioSample, interrupt: bool) -> Result<(), AudioError>;
 
     /// Stops any audio currently playing.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AudioError`] if the audio device is unavailable or stopping playback fails.
     fn stop_audio(&self) -> Result<(), AudioError>;
 
     /// Sets the output volume. Linear scale 0.0 (silent) to 1.0 (full).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AudioError`] if the audio device is unavailable or the volume cannot be set.
     fn set_volume(&self, volume: f32) -> Result<(), AudioError>;
 
     /// Returns the name of the default audio output device, if available.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AudioError`] if querying the default device fails.
     fn get_default_device_name(&self) -> Result<Option<String>, AudioError>;
 }
 

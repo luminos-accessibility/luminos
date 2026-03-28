@@ -16,6 +16,7 @@ pub struct MockInputMonitor {
 
 impl MockInputMonitor {
     /// Creates a mock with a pre-configured mouse position.
+    #[must_use]
     pub fn generate_test_mock_input_monitor(mouse_position: ScreenPoint) -> Self {
         Self {
             mouse_position,
@@ -24,6 +25,7 @@ impl MockInputMonitor {
     }
 
     /// Configures the mock to return an error on every method call.
+    #[must_use]
     pub fn with_error<F>(mut self, factory: F) -> Self
     where
         F: Fn() -> InputError + Send + Sync + 'static,
@@ -54,6 +56,7 @@ impl InputMonitor for MockInputMonitor {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
 

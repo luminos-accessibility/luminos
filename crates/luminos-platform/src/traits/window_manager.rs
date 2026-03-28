@@ -106,18 +106,38 @@ pub enum WindowError {
 /// | Windows | `Win32WindowManager` | `SHAppBarMessage` / AppBar API |
 pub trait WindowManager: Send + Sync {
     /// Creates the magnification overlay window on the specified display.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WindowError`] if the overlay window cannot be created on the specified display.
     fn create_overlay(&mut self, display_id: &str) -> Result<(), WindowError>;
 
     /// Sets the overlay's position and size in screen coordinates.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WindowError`] if the overlay bounds cannot be applied.
     fn set_overlay_bounds(&self, bounds: ScreenRect) -> Result<(), WindowError>;
 
     /// Switches the overlay to the specified display mode.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WindowError`] if the overlay mode cannot be changed.
     fn set_overlay_mode(&mut self, mode: OverlayMode) -> Result<(), WindowError>;
 
     /// Sets whether the overlay is always above other windows.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WindowError`] if the always-on-top property cannot be set.
     fn set_always_on_top(&self, always_on_top: bool) -> Result<(), WindowError>;
 
     /// Shows or hides the overlay window.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WindowError`] if the visibility cannot be changed.
     fn set_visible(&self, visible: bool) -> Result<(), WindowError>;
 
     /// Returns the raw window handle for wgpu surface creation.
