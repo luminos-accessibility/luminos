@@ -226,13 +226,17 @@ The product roadmap allocates 20 months, providing substantial schedule margin (
 
 **Estimated Duration:** 3 weeks (1.5 sprints)
 
+**Status: COMPLETE** (2026-03-28)
+
+Delivered in 5 stories (53 subtasks): Cargo workspace & build profiles, 6 platform trait definitions (39 tests), 6 mock implementations (44 mock tests), error hierarchy & core data types (31 tests), CI/CD pipeline (GitHub Actions workflow, pre-commit hook). Total: 114 workspace tests passing, clippy clean, fmt clean.
+
 **Success Criteria:**
-- [ ] `cargo build --workspace` compiles with zero warnings
-- [ ] `cargo nextest run --workspace` passes all mock-based unit tests
-- [ ] `cargo clippy --workspace -- -D warnings` passes
-- [ ] `cargo deny check` passes (all dependencies GPLv3-compatible)
-- [ ] CI pipeline runs end-to-end on a PR and reports status
-- [ ] A new contributor can clone the repo, run `cargo build`, and get a clean result
+- [x] `cargo build --workspace` compiles with zero warnings
+- [x] `cargo nextest run --workspace` passes all mock-based unit tests
+- [x] `cargo clippy --workspace -- -D warnings` passes
+- [x] `cargo deny check` passes (all dependencies GPLv3-compatible)
+- [x] CI pipeline runs end-to-end on a PR and reports status
+- [x] A new contributor can clone the repo, run `cargo build`, and get a clean result
 
 **Primary Docs:** [01 -- System Architecture](./01-system-architecture.md) Section 7, [02 -- Platform Abstraction](./02-platform-abstraction.md) Sections 2-4 and 7, [07 -- Testing Strategy](./07-testing-strategy.md) Sections 4.1-4.4, [08 -- Build and Distribution](./08-build-and-distribution.md) Sections 2 and 4
 

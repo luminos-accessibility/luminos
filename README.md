@@ -2,13 +2,13 @@
 
 **See clearly. Hear everything.**
 
-[![Project Status: Research](https://img.shields.io/badge/status-research%20phase-yellow)](specs/PRODUCT_STRATEGY.md)
+[![Project Status: Phase 0 Foundation](https://img.shields.io/badge/status-Phase%200%20Foundation-brightgreen)](specs/PRODUCT_STRATEGY.md)
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
 [![Platforms: Linux, macOS, OpenBSD, Windows](https://img.shields.io/badge/platforms-Linux%20%7C%20macOS%20%7C%20OpenBSD%20%7C%20Windows-blue)](#platform-support)
 
 Luminos is a GPLv3-licensed, cross-platform screen magnification and text-to-speech accessibility suite for low-vision users. It combines GPU-accelerated magnification with neural TTS in a single application that works the same way on Linux, macOS, Windows, and OpenBSD.
 
-> **Project Status:** Luminos is in the **pre-development research phase**. Product strategy, technical architecture, and development methodology are defined. No application code exists yet. Contributions to research, design, and planning are welcome.
+> **Project Status:** Luminos is in **Phase 0: Foundation**. Epic E01 (Project Scaffolding, Platform Traits & CI/CD) is complete -- the Cargo workspace has 5 crates with trait definitions, mock implementations, error hierarchy, core data types, 114 unit tests, and a GitHub Actions CI pipeline. Next up: Epic E02 (X11 Screen Capture & GPU Magnification). No user-facing functionality exists yet.
 
 ---
 
@@ -61,7 +61,7 @@ Each phase is decomposed into self-contained engineering epics (2-6 weeks each).
 | Epic | Name | Duration | Deliverable |
 |------|------|----------|-------------|
 | | **Phase 0: Foundation (Months 1-3)** | | |
-| E1 | Project Scaffolding, Platform Traits & CI/CD | 3 weeks | Compiling workspace, 6 trait definitions, CI pipeline |
+| E1 | Project Scaffolding, Platform Traits & CI/CD | 3 weeks | **COMPLETE** -- 5 crates, 6 traits, 6 mocks, error hierarchy, CI pipeline, 114 tests |
 | E2 | X11 Screen Capture & GPU Magnification | 4 weeks | Magnified screen content at 60fps on Linux X11 |
 | E3 | Input Tracking & Interactive Magnification | 3 weeks | Cursor-following magnifier with keyboard shortcuts |
 | E4 | Tauri Control Panel & Settings Persistence | 3 weeks | Settings UI, IPC, config persistence, system tray |
@@ -147,7 +147,7 @@ See [Tech Stack Evaluation](specs/TECH_STACK_EVALUATION.md) for the full validat
 
 | Platform | Status | Notes |
 |----------|--------|-------|
-| Linux X11 | Planned (Phase 0) | Development starts here -- GNOME, KDE, standalone WMs |
+| Linux X11 | In Progress (Phase 0) | Foundation complete (E01), X11 capture + GPU rendering next (E02) |
 | Linux Wayland | Planned (Phase 1) | PipeWire + XDG Portal |
 | macOS (Tahoe+) | Planned (Phase 2) | Full feature port |
 | OpenBSD | Planned (Phase 3) | X11 via xenocara, incremental from Linux X11 |
@@ -181,8 +181,13 @@ luminos/
 │           ├── STORY.md        #     Requirements specification
 │           ├── DESIGN.md       #     Technical design document
 │           └── SUBTASKS.md     #     TDD task breakdown + progress tracking
+├── crates/                    # Rust workspace crates
+│   ├── luminos-core/          #   Error hierarchy, core data types, app settings
+│   ├── luminos-platform/      #   Platform traits, mock implementations
+│   ├── luminos-gpu/           #   GPU rendering (stub, populated in E02)
+│   ├── luminos-tts/           #   TTS pipeline (stub, populated in E10)
+│   └── luminos-app/           #   Application entry point (stub)
 ├── docs/                      # Product documentation + user manuals (future)
-└── src/                       # Application source (not yet created)
 ```
 
 ## Development Methodology
@@ -211,14 +216,15 @@ This project is designed to be built primarily with AI agent assistance:
 
 ## Contributing
 
-Luminos is in pre-development. The most valuable contributions right now are:
+Luminos is in active development (Phase 0: Foundation). Contributions are welcome in several areas:
 
+- **Code** -- The Rust codebase is established with trait definitions and mocks; platform backend implementations are starting with Epic E02 (X11 Screen Capture & GPU Magnification)
 - **Research** -- Validate assumptions in the [product strategy](specs/PRODUCT_STRATEGY.md), especially around AT user needs
-- **Design** -- Help define the first implementation stories using the [SDD methodology](specs/README.md)
+- **Design** -- Help define implementation stories for upcoming epics using the [SDD methodology](specs/README.md)
 - **Accessibility expertise** -- Review our approach from the perspective of low-vision users and AT specialists
 - **Technical review** -- Audit the [tech stack evaluation](specs/TECH_STACK_EVALUATION.md) against your platform experience
 
-Once development begins, contributions will follow the spec-driven workflow: every feature starts as a specification before any code is written.
+All contributions follow the spec-driven workflow: every feature starts as a specification before any code is written.
 
 ### Getting Started (Contributors)
 
@@ -227,6 +233,15 @@ Once development begins, contributions will follow the spec-driven workflow: eve
 # Replace with actual repository URL
 git clone https://github.com/<your-username>/luminos.git
 cd luminos
+
+# Build the workspace
+cargo build --workspace
+
+# Run all tests
+cargo nextest run --workspace   # or: cargo test --workspace
+
+# Lint
+cargo clippy --workspace -- -D warnings
 
 # Read the project context
 cat CLAUDE.md                       # Architecture, coding rules, constraints
