@@ -135,6 +135,32 @@ Key gaps: DESIGN.md lifecycle oversimplified, missing TypeScript TDD exception, 
 - ignore list format unchanged: { id = "RUSTSEC-...", reason = "..." } still works
 - [bans] section unchanged: multiple-versions = "warn", wildcards = "deny" still valid
 
+### E02 Spec Artifacts Audit (2026-03-28, FINAL)
+- Verdict: PASS WITH FINDINGS -- all 3 Major RESOLVED, 3 Minor pending (non-blocking)
+- 16 files reviewed: HIGH_LEVEL_PLAN.md + 5 stories x 3 files; 10 findings total
+- F-001 MAJOR RESOLVED: D5 explained via sequential pipeline (no concurrent read/write hazard)
+- F-002 MAJOR RESOLVED: Docked/lens ACs removed from Story 002; FullScreen only in E02
+- F-009 MAJOR RESOLVED: `set_excluded_windows(&mut self, window_ids: &[u64])` now consistent across HLP, STORY.md, DESIGN.md, SUBTASKS.md
+- F-003 MINOR pending: ci_platform_tests wording (cosmetic)
+- F-004 MINOR handled: SUBTASKS.md T001 adds `image` workspace dep
+- F-005 MINOR RESOLVED: anchor fixed to #65-event-loop-integration
+- F-006 MINOR RESOLVED: bicubic scope change documented in Discovered Constraints
+- F-007 MINOR pending: dead receiver vs BackendUnavailable (can fix during impl)
+- F-008 MINOR pending: f32::from(u32) compile error (can fix during impl)
+- F-010 MINOR deferred: xcap scale_factor return type verification
+- P-001 RESOLVED: RISK-001 added to HLP with deferral note
+- P-002 RESOLVED by F-002: docked mode removed from E02
+- Total subtasks: 67 across 5 stories (11-14 per story)
+- wgpu 28.0 API usage verified correct
+- Research findings all integrated after supplementary audit
+- VERIFIED: xcap 0.9.3 returns RGBA on X11 (not BGRA); doc-03 Section 4.3 is wrong for xcap path
+- VERIFIED: composite pixmap self-capture prevention is INCORRECT; unmap/remap cycle is correct
+- NEW PATTERN: Deliverable-to-story mapping can be inconsistent when scope is narrowed in STORY.md
+- NEW PATTERN: HLP story descriptions and STORY.md scope can diverge (HLP is less detailed)
+- NEW PATTERN: f32::from(u32) is NOT valid Rust -- common in AI-generated code; always verify From trait availability
+- NEW PATTERN: HLP-level research corrections may not propagate to story-level specs (check all 3 files per story)
+- NEW PATTERN: API signature drift between HLP and DESIGN.md -- check method names, parameter types, trait vs struct level
+
 ### Common Patterns of Imprecision Found
 - Phase attribution errors (features attributed to wrong phase)
 - Illustrative code examples contradicting canonical definitions in earlier docs

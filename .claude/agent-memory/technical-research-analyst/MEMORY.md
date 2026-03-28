@@ -78,6 +78,16 @@
 - Claude Code settings docs: code.claude.com/docs/en/settings
 - Claude Code env vars docs: code.claude.com/docs/en/env-vars
 
+## X11 Self-Capture & API Research (researched 2026-03-28)
+- See `x11-self-capture-research.md` for full findings
+- RISK-002 mitigation #2 in risk register is INCORRECT: xcb_composite_redirect_window does NOT exclude override-redirect windows from captures
+- Primary solution: unmap/remap overlay window around each capture_frame() call
+- xcap 0.9.3 captures from root window, returns RgbaImage, no exclusion API, no XShm
+- winit 0.30.13: with_override_redirect(true) via WindowAttributesExtX11 trait
+- wgpu: CompositeAlphaMode::PreMultiplied for transparency; varies by driver
+- CI: Xvfb + lavapipe (mesa-vulkan-drivers) for headless Vulkan testing
+- Authoritative sources: x.org composite extension spec, xcap GitHub source, winit/wgpu docs
+
 ## Research Methodology Notes
 - Third-party "guide" sites often contain AI-generated content with fabricated CLI flags. Always cross-reference with official docs.rs, GitHub README, or crates.io pages.
 - For Cargo profile settings, the official Cargo Book is the single source of truth.
