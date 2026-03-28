@@ -78,6 +78,64 @@ Luminos is licensed under **GPLv3**. espeak-ng (GPL-3.0) is used for phonemizati
 - **Trait-based platform abstraction** — `ScreenCapture`, `FocusTracker`, `TtsEngine`, `WindowManager`, `InputMonitor`, `AudioOutput` traits with per-platform backends
 - **Local-first, privacy by design** — All AI inference on-device, no telemetry by default
 
+## CI / Quality Assurance Commands
+
+These commands mirror the GitHub Actions CI pipeline. Run them locally before pushing. CI sets `RUSTFLAGS="--deny warnings"` — replicate this to catch warning-as-error failures locally.
+
+### Formatting
+
+```bash
+cargo fmt --all -- --check
+```
+
+### Linting (Clippy)
+
+```bash
+cargo clippy --workspace --all-targets --all-features \
+  -- -D warnings \
+  -W clippy::unwrap_used \
+  -W clippy::expect_used \
+  -W clippy::pedantic \
+  -A clippy::module_name_repetitions
+```
+
+### Unit Tests
+
+Requires [cargo-nextest](https://nexte.st/). The `ci` profile enables retries and relaxed timeouts (see `.config/nextest.toml`).
+
+```bash
+cargo nextest run --workspace --exclude luminos-app
+```
+
+### Security Audit
+
+Requires [cargo-deny](https://github.com/EmbarkStudios/cargo-deny) and [cargo-audit](https://github.com/rustsec/rustsec/tree/main/cargo-audit).
+
+```bash
+cargo deny check licenses advisories
+cargo audit
+```
+
+### Test Coverage
+
+Requires [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov).
+
+```bash
+cargo llvm-cov --workspace --exclude luminos-app --lcov --output-path lcov.info
+```
+
+### Full Local QA (all checks in sequence)
+
+```bash
+cargo fmt --all -- --check \
+  && cargo clippy --workspace --all-targets --all-features \
+       -- -D warnings -W clippy::unwrap_used -W clippy::expect_used \
+       -W clippy::pedantic -A clippy::module_name_repetitions \
+  && cargo nextest run --workspace --exclude luminos-app \
+  && cargo deny check licenses advisories \
+  && cargo audit
+```
+
 ## Current Project Phase
 
 **Technical strategy is COMPLETE.** The project is in **Phase 0: Foundation** (Months 1-3).

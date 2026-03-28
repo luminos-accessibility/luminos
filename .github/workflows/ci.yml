@@ -47,6 +47,7 @@ jobs:
           libx11-dev
           libxi-dev
           libxtst-dev
+          libegl-dev
 
       - name: Check formatting
         run: cargo fmt --all -- --check
@@ -86,6 +87,7 @@ jobs:
           libx11-dev
           libxi-dev
           libxtst-dev
+          libegl-dev
 
       - name: Cache Cargo registry and build artifacts
         uses: actions/cache@v4
@@ -160,6 +162,7 @@ jobs:
           libx11-dev
           libxi-dev
           libxtst-dev
+          libegl-dev
 
       - name: Cache Cargo registry and build artifacts
         uses: actions/cache@v4
