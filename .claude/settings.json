@@ -1,46 +1,55 @@
 {
-    "enabledMcpjsonServers": ["context7"],
-    "permissions": {
-        "allow": [
-            "mcp__context7__*",
-            "Read",
-            "Glob",
-            "Grep",
-            "Agent",
-            "WebSearch",
-            "WebFetch(domain:crates.io)",
-            "WebFetch(domain:v2.tauri.app)",
-            "WebFetch(domain:schema.tauri.app)",
-            "WebFetch(domain:docs.rs)",
+  "permissions": {
+    "allow": [
+      "mcp__context7__*",
+      "Read",
+      "Glob",
+      "Grep",
+      "Agent",
+      "WebSearch",
+      "WebFetch(domain:crates.io)",
+      "WebFetch(domain:v2.tauri.app)",
+      "WebFetch(domain:schema.tauri.app)",
+      "WebFetch(domain:docs.rs)",
       "WebFetch(domain:docs.anthropic.com)",
-            "WebFetch(domain:github.com)",
-            "WebFetch(domain:webgpufundamentals.org)",
-            "WebFetch(domain:gist.github.com)",
-            "WebFetch(domain:man.archlinux.org)",
-            "WebFetch(domain:k2-fsa.github.io)",
-            "WebFetch(domain:specta.dev)",
-            "Bash(git status:*)",
-            "Bash(git diff:*)",
-            "Bash(git log:*)",
-            "Bash(ls:*)",
-            "Bash(find:*)",
-            "Bash(cat:*)",
-            "Bash(head:*)",
-            "Bash(tail:*)",
-            "Bash(grep:*)"
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:webgpufundamentals.org)",
+      "WebFetch(domain:gist.github.com)",
+      "WebFetch(domain:man.archlinux.org)",
+      "WebFetch(domain:k2-fsa.github.io)",
+      "WebFetch(domain:specta.dev)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(awk:*)",
+      "Bash(grep:*)",
+      "Bash(sed:*)",
+      "Bash(tee:*)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "context7"
+  ],
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/skill-router.sh\"",
+            "timeout": 30
+          }
         ]
-    },
-    "hooks": {
-        "UserPromptSubmit": [
-            {
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/skill-router.sh\"",
-                        "timeout": 30
-                    }
-                ]
-            }
-        ]
-    }
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true
+  }
 }

@@ -189,3 +189,46 @@ Epics live in `specs/ENN-epic-name/` folders. Stories live in `specs/ENN-epic-na
 - Create custom types/interfaces for complex structures
 - Use 'readonly' for immutable properties
 - If an import is only used as a type in the file, use 'import type' instead of 'import'
+
+## Commit Messages
+
+Follow Conventional Commits v1.0.0 (https://www.conventionalcommits.org/en/v1.0.0/).
+
+### Format
+
+```
+<type>[(scope)][!]: <description>
+
+[body]
+
+[footer(s)]
+```
+
+### Types
+
+| Type       | When to use                                      |
+|------------|--------------------------------------------------|
+| feat       | New feature (→ SemVer MINOR)                     |
+| fix        | Bug fix (→ SemVer PATCH)                         |
+| docs       | Documentation only                               |
+| style      | Formatting, whitespace — no logic change         |
+| refactor   | Code change that neither fixes nor adds features |
+| perf       | Performance improvement                          |
+| test       | Adding or correcting tests                       |
+| build      | Build system or external dependency changes      |
+| ci         | CI configuration and scripts                     |
+| chore      | Maintenance tasks that don't modify src or tests |
+| revert     | Reverts a previous commit                        |
+
+### Rules
+
+- The description MUST immediately follow <type>[(scope)]: with a single space.
+- Use imperative, present tense ("add", not "added" or "adds").
+- Do NOT capitalize the first letter of the description.
+- Do NOT end the description with a period.
+- Scope is optional — use a noun describing the affected area: feat(parser):, fix(api):.
+- Breaking changes MUST append ! before the colon OR include a BREAKING CHANGE: footer (or both).
+- A BREAKING CHANGE footer triggers a SemVer MAJOR bump regardless of type.
+- Body and footers are separated from the description by a blank line.
+- Keep the subject line under 72 characters.
+- One logical change per commit — if a commit spans multiple types, split it.
