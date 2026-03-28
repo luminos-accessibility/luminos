@@ -31,6 +31,8 @@ pub struct MockScreenCapture {
     frame: CaptureFrame,
     /// Error factory: called to produce an error when set.
     error_factory: Option<Box<dyn Fn() -> CaptureError + Send + Sync>>,
+    /// Window IDs set via `set_excluded_windows()`, for test assertions.
+    excluded_window_ids: Vec<u64>,
 }
 
 impl MockScreenCapture {
@@ -44,6 +46,7 @@ impl MockScreenCapture {
             displays,
             frame,
             error_factory: None,
+            excluded_window_ids: Vec::new(),
         }
     }
 
@@ -59,6 +62,12 @@ impl MockScreenCapture {
     {
         self.error_factory = Some(Box::new(factory));
         self
+    }
+
+    /// Returns the currently excluded window IDs (for test assertions).
+    #[must_use]
+    pub fn excluded_window_ids(&self) -> &[u64] {
+        &self.excluded_window_ids
     }
 }
 
@@ -95,6 +104,10 @@ impl ScreenCapture for MockScreenCapture {
         // Return an empty channel -- no real display changes in mock mode
         let (_tx, rx) = mpsc::channel(buffer_size);
         Ok(rx)
+    }
+
+    fn set_excluded_windows(&mut self, window_ids: &[u64]) {
+        self.excluded_window_ids = window_ids.to_vec();
     }
 }
 
@@ -187,6 +200,28 @@ mod tests {
 
         let result = capture.subscribe_display_changes(16);
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn mock_screen_capture_set_excluded_windows_stores_ids() {
+        let displays = vec![generate_test_display_info("test-0", 1920, 1080, true)];
+        let frame = generate_test_capture_frame(64, 48, [0, 0, 0, 255]);
+        let mut capture = MockScreenCapture::generate_test_mock_screen_capture(displays, frame);
+
+        capture.set_excluded_windows(&[42, 99]);
+        assert_eq!(capture.excluded_window_ids(), &[42, 99]);
+    }
+
+    #[test]
+    fn mock_screen_capture_set_excluded_windows_clear() {
+        let displays = vec![generate_test_display_info("test-0", 1920, 1080, true)];
+        let frame = generate_test_capture_frame(64, 48, [0, 0, 0, 255]);
+        let mut capture = MockScreenCapture::generate_test_mock_screen_capture(displays, frame);
+
+        capture.set_excluded_windows(&[42, 99]);
+        assert_eq!(capture.excluded_window_ids(), &[42, 99]);
+        capture.set_excluded_windows(&[]);
+        assert!(capture.excluded_window_ids().is_empty());
     }
 
     #[test]

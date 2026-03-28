@@ -30,7 +30,7 @@
 - `tauri-specta` v2 is still RC only: `2.0.0-rc.21`
 - sherpa-rs-sys v0.6.8 build script panics under custom Cargo profiles (`dist`)
 - deny.toml v0.19 format: [advisories] uses `ignore = []`, not `vulnerability = "deny"`
-- Additional licenses needed beyond spec: BSL-1.0, CC0-1.0, Apache-2.0 WITH LLVM-exception, CDLA-Permissive-2.0
+- Additional licenses needed beyond spec: BSL-1.0, CC0-1.0, Apache-2.0 WITH LLVM-exception, CDLA-Permissive-2.0, NCSA
 - RUSTSEC-2024-0436 (paste crate unmaintained) must be ignored (transitive via wgpu->metal)
 
 ### Rendering Pipeline Patterns
@@ -49,6 +49,9 @@
 - OpenBSD does not mount /proc by default -- use sysctl/kvm_getprocs for process memory
 - `AtomicF32` not in Rust std -- use `AtomicU32` + `f32::to_bits()/from_bits()`
 - TTS pipeline pipelining: phonemization on Coordinator thread, synthesis on Inference thread
+
+### xcap 0.9.3 API Notes
+- [xcap API notes](xcap_api_notes.md) - All Monitor methods return Result, not bare values; has native capture_region(); XWayland incompatible
 
 ### Common Pitfalls (from audits)
 - WGSL `smoothstep(edge0, edge1, x)` REQUIRES edge0 < edge1 (validation error otherwise)

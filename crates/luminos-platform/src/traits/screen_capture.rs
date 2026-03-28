@@ -121,11 +121,68 @@ pub trait ScreenCapture: Send + Sync {
         &self,
         buffer_size: usize,
     ) -> Result<mpsc::Receiver<DisplayChangeEvent>, CaptureError>;
+
+    /// Configures window IDs to exclude from capture (self-capture prevention).
+    ///
+    /// Platform backends that support self-capture exclusion (e.g., X11 via
+    /// unmap/remap) override this method to store the IDs and exclude those
+    /// windows during [`capture_frame()`](Self::capture_frame). The default
+    /// implementation is a no-op, allowing backends that do not support
+    /// exclusion to compile unchanged.
+    ///
+    /// Window IDs are `u64` to accommodate platform-native identifiers:
+    /// X11 window IDs are `u32`, Windows HWND values fit in `u64`.
+    ///
+    /// # Arguments
+    ///
+    /// * `window_ids` - Slice of platform-native window identifiers to exclude.
+    ///   Pass an empty slice to clear exclusion.
+    fn set_excluded_windows(&mut self, _window_ids: &[u64]) {
+        // Default no-op: backends that do not support self-capture exclusion
+        // ignore this call. Override in platform-specific implementations.
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Minimal struct implementing `ScreenCapture` to test the default
+    /// `set_excluded_windows()` no-op behavior.
+    struct MinimalCapture;
+
+    impl ScreenCapture for MinimalCapture {
+        fn list_displays(&self) -> Result<Vec<super::super::types::DisplayInfo>, CaptureError> {
+            Ok(vec![])
+        }
+
+        fn capture_frame(
+            &self,
+            _display_id: &str,
+            _region: Option<super::super::types::ScreenRect>,
+        ) -> Result<super::super::types::CaptureFrame, CaptureError> {
+            Err(CaptureError::BackendUnavailable {
+                reason: "minimal".into(),
+            })
+        }
+
+        fn subscribe_display_changes(
+            &self,
+            _buffer_size: usize,
+        ) -> Result<mpsc::Receiver<DisplayChangeEvent>, CaptureError> {
+            Err(CaptureError::BackendUnavailable {
+                reason: "minimal".into(),
+            })
+        }
+    }
+
+    #[test]
+    fn screen_capture_trait_set_excluded_windows_default_noop() {
+        let mut capture = MinimalCapture;
+        // The default no-op should not panic
+        capture.set_excluded_windows(&[42, 99]);
+        capture.set_excluded_windows(&[]);
+    }
 
     #[test]
     fn error_capture_error_display_not_found() {

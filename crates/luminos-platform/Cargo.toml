@@ -21,6 +21,7 @@ raw-window-handle = { workspace = true }
 [target.'cfg(target_os = "linux")'.dependencies]
 x11rb = { workspace = true }
 xcap = { workspace = true }
+image = { workspace = true }
 atspi = { workspace = true }
 rdev = { workspace = true }
 

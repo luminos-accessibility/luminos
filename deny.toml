@@ -21,6 +21,7 @@ allow = [
     "LGPL-2.1-or-later",
     "LGPL-3.0-only",
     "LGPL-3.0-or-later",
+    "NCSA",
     "Unicode-3.0",
     "Unicode-DFS-2016",
 ]
