@@ -445,7 +445,7 @@ steps:
 
   # Parse results and compare against baseline
   - name: Check benchmark regression
-    run: python3 scripts/check_benchmarks.py target/benchmark-results.txt
+    run: npx tsx scripts/check-benchmarks.ts target/benchmark-results.txt
 
   # Additional non-bench checks
   - name: Check binary size
@@ -692,7 +692,7 @@ This hardware profile is deliberately modest -- it represents the lower end of t
 
 ### 6.3 Benchmark Data Management
 
-Benchmark results are stored as JSON artifacts attached to each CI run. A simple Python script (`scripts/check_benchmarks.py`) compares the current run against the last main baseline:
+Benchmark results are stored as JSON artifacts attached to each CI run. A TypeScript script (`scripts/check-benchmarks.ts`) run via `npx tsx` compares the current run against the last main baseline:
 
 ```json
 {

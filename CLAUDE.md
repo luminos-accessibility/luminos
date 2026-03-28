@@ -10,6 +10,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ONLY consider tasks done when reviewers, QA and auditors give explicit approval. Keep iterating until then.
 - ALWAYS prefer using existing specialist agents in this project when spawning new teammates for the Agent Team. Create quality on-demand agent if a fitting specialist is not available.
 
+## Language Policy
+
+- **NEVER use Python** anywhere in this project. All scripts, tooling, and automation MUST use TypeScript executed with `npx tsx`.
+- This applies to CI pipelines, build scripts, utility scripts, benchmarks, and any new tooling.
+- The `.claude/skills/` directory is exempt from this policy as it contains third-party tools.
+
 ## Project Overview
 
 **Luminos** is a GPLv3-licensed, cross-platform (Linux/macOS/OpenBSD/Windows) screen magnification + text-to-speech accessibility suite targeting low-vision users. The project has completed its **technical strategy phase** and **Epic E01 (Project Scaffolding, Platform Traits & CI/CD)**. The repository contains the complete product strategy, technology evaluation, and technical strategy documents (10 documents covering architecture through risk management), plus the foundational Rust codebase: 5 crates with trait definitions, mock implementations, error hierarchy, core data types, and 114 unit tests, backed by a GitHub Actions CI pipeline. No user-facing functionality exists yet (that starts in E02).

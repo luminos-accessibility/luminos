@@ -153,7 +153,7 @@
 ---
 
 **Checkpoint:** After completing Phase 2, verify:
-- [x] `ci.yml` is valid YAML (validated with `python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"`)
+- [x] `ci.yml` is valid YAML (validated with `npx tsx -e "import { readFileSync } from 'fs'; import { parse } from 'yaml'; parse(readFileSync('.github/workflows/ci.yml', 'utf8'))"`)
 - [x] Job dependency chain: lint -> (test-rust-unit, security) in parallel
 - [x] Placeholder jobs are disabled with `if: false`
 - [x] All tool installations use `taiki-e/install-action`
