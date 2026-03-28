@@ -2,6 +2,8 @@
 
 **See clearly. Hear everything.**
 
+[![CI](https://github.com/luminos-accessibility/luminos/actions/workflows/ci.yml/badge.svg)](https://github.com/luminos-accessibility/luminos/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/luminos-accessibility/luminos/graph/badge.svg)](https://codecov.io/gh/luminos-accessibility/luminos)
 [![Project Status: Phase 0 Foundation](https://img.shields.io/badge/status-Phase%200%20Foundation-brightgreen)](specs/PRODUCT_STRATEGY.md)
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
 [![Platforms: Linux, macOS, OpenBSD, Windows](https://img.shields.io/badge/platforms-Linux%20%7C%20macOS%20%7C%20OpenBSD%20%7C%20Windows-blue)](#platform-support)
