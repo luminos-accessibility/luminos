@@ -76,6 +76,20 @@ Key gaps: DESIGN.md lifecycle oversimplified, missing TypeScript TDD exception, 
 - Pre-existing discrepancy confirmed: doc-09 says GPL-3.0-or-later, doc-08 says GPL-3.0-only
 - Note: RISK-017 custom Debug for CaptureFrame is a Story 002 implementation requirement
 
+### E01 DESIGN.md Audit (2026-03-28)
+- Verdict: ALL 5 DESIGNS APPROVED (PASS WITH FINDINGS, no revisions needed)
+- 4 LOW findings, 5 pointers for consideration, 0 blocking issues
+- Story 002 critical check: all 6 traits, all common types, all 6 error enums match doc-02 EXACTLY
+- CaptureFrame custom Debug, PlatformBackends 5 fields (no TtsEngine), module structure all correct
+- F-001: default=[] vs default=["wayland"] pre-existing doc-02/doc-08 discrepancy (designs follow doc-08)
+- F-002: error.rs in luminos-platform is re-exports only (design more correct than doc-02 Section 5.1)
+- F-003: DockEdge/LensShape duplicated between Story 002 (luminos-platform) and Story 004 (luminos-core)
+- F-004: #[serde(rename_all = "PascalCase")] not shown on enums (default behavior correct but FR-4 calls for it)
+- P-002 ACTIONABLE: tokio and raw-window-handle missing from workspace deps (needed by Story 002 traits)
+- Cross-story consistency verified: types, features, CI commands all consistent
+- NEW PATTERN: Type duplication across crate boundaries (DockEdge/LensShape in both platform and core)
+- NEW PATTERN: Workspace dependency gaps when trait signatures reference external crates not yet declared
+
 ### E01 STORY.md Audit (2026-03-28, final)
 - Verdict: ALL 5 STORIES APPROVED (after one revision cycle)
 - Initial: 8 findings (1 HIGH, 5 MEDIUM, 2 LOW), 3 pointers
@@ -104,3 +118,6 @@ Key gaps: DESIGN.md lifecycle oversimplified, missing TypeScript TDD exception, 
 - FR traceability claims broader AC coverage than actually exists (FR-8 claims AC-2.5 covers Voice, but it only covers AudioSample)
 - "at minimum" framing in ACs allows canonical list items to be omitted (deny.toml LGPL variants)
 - nextest slow-timeout and retries are commonly conflated in descriptions
+- Type duplication across crate boundaries without noting re-export vs independent definition
+- Workspace dependency lists incomplete when trait signatures reference crates not yet declared (tokio, raw-window-handle)
+- DESIGN.md quality generally high when copying directly from canonical doc-02 signatures (low invention risk)
