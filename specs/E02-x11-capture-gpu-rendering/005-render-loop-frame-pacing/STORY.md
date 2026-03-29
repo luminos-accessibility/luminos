@@ -1,7 +1,7 @@
 # Story E02/005: Render Loop, Frame Pacing & CI
 
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** DONE
 **Depends On:** 001 (X11 screen capture), 003 (GPU texture pipeline), 004 (magnification shaders & viewport)
 
 ---

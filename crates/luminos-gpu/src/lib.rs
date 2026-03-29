@@ -5,6 +5,8 @@
 
 pub mod device;
 pub mod error;
+pub mod frame_timings;
+pub mod renderer;
 pub mod shaders;
 pub mod surface;
 pub mod texture;

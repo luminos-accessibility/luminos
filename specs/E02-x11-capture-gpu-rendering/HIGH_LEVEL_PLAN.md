@@ -1,10 +1,10 @@
 # Epic E02: X11 Screen Capture & GPU Magnification
 
-**Status:** IN PROGRESS
+**Status:** DONE
 **Roadmap Ref:** [tech-strategy/09-implementation-roadmap.md Section 4.2](../tech-strategy/09-implementation-roadmap.md#42-epic-2----x11-screen-capture--gpu-magnification)
 **Phase:** Phase 0: Foundation (Months 1-3)
-**Started:** ---
-**Completed:** ---
+**Started:** 2026-03-28
+**Completed:** 2026-03-28
 **Hard Dependencies:** E1 (Project Scaffolding, Platform Traits & CI/CD) -- DONE 2026-03-28
 **Soft Dependencies:** None
 **Primary Docs:** [02 -- Platform Abstraction](../tech-strategy/02-platform-abstraction.md) Section 8.1, [03 -- Rendering Pipeline](../tech-strategy/03-rendering-pipeline.md) Sections 2-10, [07 -- Testing Strategy](../tech-strategy/07-testing-strategy.md) Sections 4.5 and 10
@@ -39,9 +39,9 @@ Copied from [doc-09 Section 4.2](../tech-strategy/09-implementation-roadmap.md#4
 | 002 | X11 Overlay Window & GPU Surface | DONE | --- | L (14 subtasks) | Parallel with 001. Covers D2. Type unification done via luminos-types crate. |
 | 003 | GPU Texture Pipeline | DONE | 002 | M (11 subtasks) | Needs wgpu device/surface from 002. Covers D5. |
 | 004 | Magnification Shaders & Viewport | DONE | 002 | L (14 subtasks) | Needs wgpu device for shader compilation. Covers D3. |
-| 005 | Render Loop, Frame Pacing & CI | NOT STARTED | 001, 003, 004 | L (12-16 subtasks) | Assembles full pipeline. Covers D4. |
+| 005 | Render Loop, Frame Pacing & CI | DONE | 001, 003, 004 | L (14 subtasks) | Assembles full pipeline. Covers D4. 32 new tests (23 unit + 9 headless integration). |
 
-**Total Stories:** 5 | **Done:** 4 | **In Progress:** 0 | **Blocked:** 0
+**Total Stories:** 5 | **Done:** 5 | **In Progress:** 0 | **Blocked:** 0
 
 **Dependency graph:**
 
@@ -322,6 +322,26 @@ _Updated as stories are implemented. Research findings from Task #1 are marked w
 - **[IMPL] `bytemuck` added as workspace dependency.** Version 1.x with `derive` feature, used for `MagnifyUniforms` GPU buffer serialization via `Pod` and `Zeroable` derives.
 
 - **[IMPL] Integration tests in separate files.** `tests/pipeline_creation.rs` for pipeline compilation tests, `tests/shader_output.rs` for render-and-readback tests. Both use headless GPU rendering (no window) for CI compatibility.
+
+#### Story 005 Implementation Findings
+
+- **[IMPL] Reused existing `RenderError` from `crate::error` instead of creating a duplicate.** The DESIGN.md proposed a new `RenderError` enum in `renderer.rs`. The implementation imports `RenderError` from `crate::error` (created in Story 002), which already contains all needed variants: `SurfaceTexture`, `NoAdapter`, `DeviceCreation`, `ShaderCompilation`. Used `RenderError::SurfaceTexture` instead of the proposed `SurfaceError` variant name.
+
+- **[IMPL] `CaptureFrame` imported from `luminos_types` (canonical).** Consistent with Story 003's finding. All E02 code imports shared types from `luminos_types` directly.
+
+- **[IMPL] `Renderer` stores `MagnifyPipeline` (from Story 004) as a field.** The `MagnifyPipeline` struct bundles `RenderPipeline`, `BindGroupLayout`, and uniform `Buffer`. This simplified `Renderer` construction and `render_frame()` implementation.
+
+- **[IMPL] `Renderer` clones `wgpu::Device` for `SourceTextureManager`.** `SourceTextureManager::new()` takes ownership of the device (Story 003 finding). `Renderer` clones the device to retain its own reference while passing one to the texture manager.
+
+- **[IMPL] Sampler explicitly specifies `ClampToEdge` and `MipmapFilterMode::Nearest`.** The DESIGN.md showed a minimal sampler descriptor with `..Default::default()`. The implementation explicitly sets `address_mode_u/v/w: ClampToEdge` and `mipmap_filter: MipmapFilterMode::Nearest` for clarity and to avoid relying on default values.
+
+- **[IMPL] `surface_format` field marked `#[allow(dead_code)]`.** Stored for potential future surface reconfiguration but not currently read. Clippy pedantic would flag it without the annotation.
+
+- **[IMPL] Integration tests split into headless and platform-gated.** 9 headless tests (no display server required) run in all CI environments. 6 platform-gated tests (requiring X11/Xvfb) are behind `#[cfg(all(test, target_os = "linux", feature = "ci_platform_tests"))]` in a `platform_integration` submodule.
+
+- **[IMPL] `--features ci_platform_tests` added to `test-gpu` CI job.** Technical audit finding: the platform-gated integration tests in `luminos-gpu/tests/integration.rs` require the `ci_platform_tests` feature flag. Without it, only headless tests run in the `test-gpu` job.
+
+- **[IMPL] 275 total tests across workspace (32 new in Story 005).** 23 unit tests in `frame_timings.rs`, 9 headless integration tests in `tests/integration.rs`, plus 6 platform-gated integration tests. All pass with 0 regressions.
 
 #### wgpu v28 API Deviations from DESIGN.md
 

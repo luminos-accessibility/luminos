@@ -1,8 +1,8 @@
 # Subtasks: Story E02/005 -- Render Loop, Frame Pacing & CI
 
-**Status:** NOT STARTED
-**Started:** ---
-**Completed:** ---
+**Status:** DONE
+**Started:** 2026-03-28
+**Completed:** 2026-03-28
 **Story:** [STORY.md](./STORY.md)
 **Design:** [DESIGN.md](./DESIGN.md)
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
@@ -13,11 +13,11 @@
 
 | Phase | Total | Done | Blocked | Remaining |
 |-------|-------|------|---------|-----------|
-| 1. Setup | 2 | 0 | 0 | 2 |
-| 2. Core Implementation | 6 | 0 | 0 | 6 |
-| 3. Integration | 4 | 0 | 0 | 4 |
-| 4. Polish & Acceptance | 2 | 0 | 0 | 2 |
-| **Total** | **14** | **0** | **0** | **14** |
+| 1. Setup | 2 | 2 | 0 | 0 |
+| 2. Core Implementation | 6 | 6 | 0 | 0 |
+| 3. Integration | 4 | 4 | 0 | 0 |
+| 4. Polish & Acceptance | 2 | 2 | 0 | 0 |
+| **Total** | **14** | **14** | **0** | **0** |
 
 ---
 
@@ -26,7 +26,7 @@
 ### T001 -- Create frame_timings module structure
 
 **Traces to:** FR-6, FR-9
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/src/lib.rs`, `crates/luminos-gpu/src/frame_timings.rs`
 
 **Steps:**
@@ -60,14 +60,14 @@
 4. Verify `cargo build -p luminos-gpu` compiles
 
 **Completion Notes:**
->
+> Module created with `pub mod frame_timings;` in `lib.rs`. All structs and constants implemented as specified. Added `#[must_use]` annotations on all public methods per clippy pedantic. Module-level doc-comment added referencing doc-03 Section 8.3.
 
 ---
 
 ### T002 -- Create renderer module structure
 
 **Traces to:** FR-1
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/src/lib.rs`, `crates/luminos-gpu/src/renderer.rs`
 
 **Steps:**
@@ -106,15 +106,15 @@
 4. Verify `cargo build -p luminos-gpu` compiles (may require stub modules from Stories 003/004 if not yet implemented; this task depends on those stories being complete)
 
 **Completion Notes:**
->
+> Module created with `pub mod renderer;` in `lib.rs`. **Deviation:** No new `RenderError` enum created in `renderer.rs`. Reused existing `RenderError` from `crate::error` module (Story 002), which already has `SurfaceTexture`, `NoAdapter`, `DeviceCreation`, and `ShaderCompilation` variants. Used `RenderError::SurfaceTexture` variant instead of the proposed `SurfaceError`. Imports `CaptureFrame` from `luminos_types` (canonical source per Story 002 type unification), not `luminos_platform::traits::types`. Added `#[allow(dead_code)]` on `surface_format` field (stored for future reconfiguration but not yet read).
 
 ---
 
 **Checkpoint:** After completing Phase 1, verify:
-- [ ] `cargo build -p luminos-gpu` compiles
-- [ ] `FrameTimings` and `FrameTimingSummary` structs exist in `frame_timings.rs`
-- [ ] `Renderer` struct and `RenderError` enum exist in `renderer.rs`
-- [ ] Both modules are exported from `lib.rs`
+- [x] `cargo build -p luminos-gpu` compiles
+- [x] `FrameTimings` and `FrameTimingSummary` structs exist in `frame_timings.rs`
+- [x] `Renderer` struct exists in `renderer.rs` (uses `RenderError` from `error.rs`)
+- [x] Both modules are exported from `lib.rs`
 
 ---
 
@@ -123,7 +123,7 @@
 ### T003 -- Implement FrameTimings constructor, record, and circular buffer
 
 **Traces to:** FR-6, FR-7, AC-2.1
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/src/frame_timings.rs`
 
 **TDD Cycle:**
@@ -138,17 +138,17 @@
    - [ ] Implement `Default` for `FrameTimings`
    - [ ] Implement `FrameTimings::record()` writing to circular buffer, incrementing index modulo 120, saturating count at 120
 3. **Refactor** -- Clean up:
-   - [ ] Use `self.history.len()` instead of hardcoded `120` in all index/count calculations
+   - [x] Use `self.history.len()` instead of hardcoded `120` in all index/count calculations
 
 **Completion Notes:**
->
+> All 5 tests pass. `new()`, `Default`, and `record()` implemented as designed. Circular buffer uses `self.history.len()` throughout. Added `#[must_use]` on `new()`.
 
 ---
 
 ### T004 -- Implement FrameTimings aggregate statistics (p99, average, min, max)
 
 **Traces to:** FR-7, AC-2.1, AC-2.2
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/src/frame_timings.rs`
 
 **TDD Cycle:**
@@ -168,17 +168,17 @@
    - [ ] Implement `min()` using iterator `.min()` with `unwrap_or(Duration::ZERO)`
    - [ ] Implement `max()` using iterator `.max()` with `unwrap_or(Duration::ZERO)`
 3. **Refactor** -- Clean up:
-   - [ ] Add doc-comments to each method referencing doc-03 Section 8.3
+   - [x] Add doc-comments to each method referencing doc-03 Section 8.3
 
 **Completion Notes:**
->
+> All 9 tests pass. `p99()` uses sorted copy with `ceil(0.99 * count) - 1` index. Added `#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_precision_loss)]` for the P99 index calculation. `average()` uses `#[allow(clippy::cast_possible_truncation)]` for count-to-u32 cast. `min()`/`max()` use `.unwrap_or(Duration::ZERO)` for empty-buffer case. All public methods have `#[must_use]` and `///` doc-comments.
 
 ---
 
 ### T005 -- Implement FrameTimingSummary and summary() method
 
 **Traces to:** FR-9, AC-2.3
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/src/frame_timings.rs`
 
 **TDD Cycle:**
@@ -189,17 +189,17 @@
 2. **Green** -- Implement:
    - [ ] Implement `FrameTimings::summary()` constructing `FrameTimingSummary` from individual method calls
 3. **Refactor** -- Clean up:
-   - [ ] Add doc-comments to `FrameTimingSummary` fields noting units (milliseconds) and IPC usage (E04+)
+   - [x] Add doc-comments to `FrameTimingSummary` fields noting units (milliseconds) and IPC usage (E04+)
 
 **Completion Notes:**
->
+> All 3 tests pass. `summary()` delegates to individual methods. `FrameTimingSummary` has `///` doc-comments on all fields noting millisecond units and E04+ IPC usage. Uses epsilon-based float comparisons in tests.
 
 ---
 
 ### T006 -- Implement performance threshold detection
 
 **Traces to:** FR-8, AC-2.4, AC-2.5
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/src/frame_timings.rs`
 
 **TDD Cycle:**
@@ -215,17 +215,17 @@
    - [ ] Call `check_thresholds()` from `record()` only when `count == self.history.len()` (buffer full)
 3. **Refactor** -- Clean up:
    - [ ] Verify log messages follow convention: single-quoted dynamic values, descriptive static text
-   - [ ] Ensure `check_thresholds()` is called after buffer write (so P99 reflects the latest frame)
+   - [x] Ensure `check_thresholds()` is called after buffer write (so P99 reflects the latest frame)
 
 **Completion Notes:**
->
+> All 6 tests pass. `check_thresholds()` is private, called from `record()` only when buffer is full. Uses `concat!` for multiline log messages per logging convention. Added `#[cfg(test)]` `pub(crate)` accessors (`warn_streak()`, `critical_streak()`) for testing streak counters without exposing them publicly. Log messages use `{:.2}` format for millisecond precision.
 
 ---
 
 ### T007 -- Implement Renderer constructor
 
 **Traces to:** FR-1, FR-2, AC-4.1, AC-4.2
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/src/renderer.rs`
 
 **TDD Cycle:**
@@ -237,17 +237,17 @@
    - [ ] Implement `Renderer::new()` per DESIGN.md: create bind group layout, magnify pipeline (via `create_magnify_pipeline()`), `SourceTextureManager` with initial dimensions `(viewport_width / 2, viewport_height / 2)`, linear sampler
    - [ ] Implement `Renderer::frame_timings()` getter returning `&FrameTimings`
 3. **Refactor** -- Clean up:
-   - [ ] Add doc-comments with parameter descriptions
+   - [x] Add doc-comments with parameter descriptions
 
 **Completion Notes:**
->
+> All 3 integration tests pass (renderer_new_bilinear_succeeds, renderer_new_bicubic_succeeds, renderer_new_frame_timings_empty). Constructor creates bind group layout, magnify pipeline, `SourceTextureManager` with initial dimensions `(viewport_width / 2, viewport_height / 2)`, and linear sampler with `ClampToEdge` address mode and `MipmapFilterMode::Nearest`. Added explicit `address_mode_u/v/w` and `mipmap_filter` fields beyond `..Default::default()`. Tests use `generate_test_gpu_device()` helper with graceful skip when no adapter available.
 
 ---
 
 ### T008 -- Implement render_frame, handle_capture_failure, and resize
 
 **Traces to:** FR-3, FR-4, FR-5, AC-1.1, AC-3.1, AC-3.2, AC-5.1, AC-5.2
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/src/renderer.rs`
 
 **TDD Cycle:**
@@ -263,17 +263,17 @@
    - [ ] Implement `Renderer::resize()` guarding against zero dimensions
 3. **Refactor** -- Clean up:
    - [ ] Extract uniform buffer update into a helper if it improves readability
-   - [ ] Ensure no `unwrap()` or `expect()` in any production code path
+   - [x] Ensure no `unwrap()` or `expect()` in any production code path
 
 **Completion Notes:**
->
+> All 5 integration tests pass (renderer_handle_capture_failure_allows_subsequent_render, renderer_resize_updates_viewport, renderer_resize_zero_ignored, plus 2 platform-gated surface-based tests). `render_frame()` uses `RenderError::SurfaceTexture` (existing variant from `error.rs`). wgpu v28: `RenderPassDescriptor` includes `depth_slice: None` and `multiview_mask: None`. `#[allow(clippy::cast_precision_loss)]` on uniforms construction. No `unwrap()`/`expect()` in production code.
 
 ---
 
 **Checkpoint:** After completing Phase 2, run full test suite and verify:
-- [ ] All unit tests pass: `cargo nextest run -p luminos-gpu -E 'test(~frame_timings_)'`
-- [ ] All integration tests pass on Mesa llvmpipe: `xvfb-run cargo nextest run -p luminos-gpu -E 'test(~renderer_)'`
-- [ ] `cargo clippy -p luminos-gpu -- -D warnings -W clippy::unwrap_used -W clippy::expect_used -W clippy::pedantic -A clippy::module_name_repetitions` passes
+- [x] All unit tests pass: `cargo nextest run -p luminos-gpu -E 'test(~frame_timings_)'`
+- [x] All integration tests pass on Mesa llvmpipe: `xvfb-run cargo nextest run -p luminos-gpu -E 'test(~renderer_)'`
+- [x] `cargo clippy -p luminos-gpu -- -D warnings -W clippy::unwrap_used -W clippy::expect_used -W clippy::pedantic -A clippy::module_name_repetitions` passes
 
 ---
 
@@ -282,7 +282,7 @@
 ### T009 -- Full pipeline integration test (capture-to-present)
 
 **Traces to:** FR-11, AC-7.1, AC-7.2, AC-7.3, AC-1.1
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/tests/integration.rs`
 
 **TDD Cycle:**
@@ -298,17 +298,17 @@
 2. **Green** -- Tests should pass with existing implementation from Phase 2
 3. **Refactor** -- Clean up:
    - [ ] Extract GPU test device/surface creation into a shared test helper function `generate_test_gpu_surface()` for reuse across GPU tests
-   - [ ] Add descriptive assertion messages for CI failure diagnosis
+   - [x] Add descriptive assertion messages for CI failure diagnosis
 
 **Completion Notes:**
->
+> 2 platform-gated tests pass: `render_pipeline_capture_to_present` (AC-1.1, AC-7.1, AC-7.3) and `render_pipeline_stale_frame_recovery` (AC-3.1, AC-3.2). Tests use synthetic solid-color `CaptureFrame` via `generate_test_capture_frame()`. Full pipeline helper `create_gpu_pipeline()` creates X11WindowManager overlay, wgpu instance/surface/device/queue via `create_gpu_device()` and `configure_surface()`. All assertions include descriptive messages. Shared GPU test helpers extracted into top-level functions (`generate_test_gpu_device()`, `generate_test_capture_frame()`, `generate_test_render_target()`).
 
 ---
 
 ### T010 -- Shader variant selection integration test
 
 **Traces to:** AC-4.1, AC-4.2
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/tests/integration.rs`
 
 **TDD Cycle:**
@@ -318,17 +318,17 @@
    - [ ] `render_pipeline_both_shaders_produce_output` -- Render same test frame with bilinear and bicubic, verify both produce non-error results and record frame timings
 2. **Green** -- Tests should pass with existing implementation
 3. **Refactor** -- Clean up:
-   - [ ] Consider parameterizing the test with a helper to reduce code duplication between bilinear and bicubic paths
+   - [x] Consider parameterizing the test with a helper to reduce code duplication between bilinear and bicubic paths
 
 **Completion Notes:**
->
+> 3 headless tests + 2 platform-gated tests pass. Headless tests (`renderer_bilinear_shader_creates_pipeline`, `renderer_bicubic_shader_creates_pipeline`, `renderer_both_shaders_create_pipelines`) use `render_frame_offscreen()` helper for code dedup. Platform-gated tests (`render_pipeline_bilinear_shader_renders`, `render_pipeline_bicubic_shader_renders`) use full surface-based rendering. Both shader variants verified independently and together.
 
 ---
 
 ### T011 -- CI pipeline additions (test-platform and test-gpu jobs)
 
 **Traces to:** FR-10, AC-6.1, AC-6.2, AC-6.3, AC-6.4
-**Status:** TODO
+**Status:** DONE
 **Files:** `.github/workflows/ci.yml`
 
 **Steps:**
@@ -349,14 +349,14 @@
 4. Verify `test-platform` and `test-gpu` are included in the final job dependency chain (e.g., if there is a `ci-complete` summary job, add these as dependencies)
 
 **Completion Notes:**
->
+> Both CI jobs added to `.github/workflows/ci.yml`. `test-platform` runs `xvfb-run` with picom compositor, `cargo nextest run --profile ci -p luminos-platform --features ci_platform_tests`. `test-gpu` sets `MESA_GL_VERSION_OVERRIDE=4.5` and `LIBGL_ALWAYS_SOFTWARE=1`, runs `cargo nextest run --profile ci -p luminos-gpu` under Xvfb with picom. Both depend on `lint` job. Both install `mesa-vulkan-drivers`, `picom`, and `libgbm-dev`. Technical audit finding: `--features ci_platform_tests` added to `test-gpu` job to enable platform-gated integration tests.
 
 ---
 
 ### T012 -- Resize and surface reconfiguration integration test
 
 **Traces to:** AC-5.1, AC-5.2
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/tests/integration.rs`
 
 **TDD Cycle:**
@@ -365,18 +365,18 @@
    - [ ] `render_pipeline_resize_zero_dimensions_ignored` -- Create `Renderer`, call `resize(0, 0)`, render a frame, verify render succeeds at original dimensions
 2. **Green** -- Tests should pass with existing implementation
 3. **Refactor** -- Clean up:
-   - [ ] Add assertion messages describing expected vs actual behavior for CI logs
+   - [x] Add assertion messages describing expected vs actual behavior for CI logs
 
 **Completion Notes:**
->
+> 2 platform-gated tests pass: `render_pipeline_resize_and_render` (resize from monitor dimensions to 640x480, reconfigure surface, render at new dimensions) and `render_pipeline_resize_zero_dimensions_ignored` (zero-resize silently ignored, render succeeds at original dimensions). All assertions include descriptive messages.
 
 ---
 
 **Checkpoint:** After completing Phase 3, run full test suite and verify:
-- [ ] All unit tests pass: `cargo nextest run -p luminos-gpu`
-- [ ] All integration tests pass on Mesa llvmpipe: `xvfb-run cargo nextest run -p luminos-gpu`
-- [ ] CI YAML is valid and both new jobs are properly configured
-- [ ] Full pipeline test (capture-to-present) passes under Xvfb
+- [x] All unit tests pass: `cargo nextest run -p luminos-gpu`
+- [x] All integration tests pass on Mesa llvmpipe: `xvfb-run cargo nextest run -p luminos-gpu`
+- [x] CI YAML is valid and both new jobs are properly configured
+- [x] Full pipeline test (capture-to-present) passes under Xvfb
 
 ---
 
@@ -385,7 +385,7 @@
 ### T013 -- Documentation and clippy compliance
 
 **Traces to:** NFR-3, NFR-4, NFR-5
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/src/frame_timings.rs`, `crates/luminos-gpu/src/renderer.rs`
 
 **Steps:**
@@ -399,44 +399,44 @@
 6. Run `cargo fmt --all -- --check` and fix any formatting issues
 
 **Completion Notes:**
->
+> All public items have `///` doc-comments. `cargo doc -p luminos-gpu --no-deps` produces no warnings. Clippy passes with project standard configuration. No `unwrap()`/`expect()` in production code (only in `#[cfg(test)]` blocks with `#[allow(clippy::unwrap_used)]`). `cargo fmt --all -- --check` passes.
 
 ---
 
 ### T014 -- Acceptance test verification
 
 **Traces to:** All ACs
-**Status:** TODO
+**Status:** DONE
 
 **Verification Checklist:**
-- [ ] AC-1.1: `render_frame()` executes the full pipeline (upload, shader, present) without error
-- [ ] AC-1.2: Pipeline delivers frames at approximately 60fps under Fifo vsync (verified informally; strict fps assertion relaxed for CI software rendering)
-- [ ] AC-1.3: `FrameTimings::p99()` returns under 20ms for a 120-frame sequence (relaxed to < 50ms for CI with Mesa llvmpipe)
-- [ ] AC-2.1: `p99()` returns the correct 99th percentile from 120 samples
-- [ ] AC-2.2: `average()`, `min()`, `max()` return correct aggregate statistics
-- [ ] AC-2.3: `summary(60)` returns `FrameTimingSummary` with correct fields
-- [ ] AC-2.4: Warn streak fires at 300 consecutive recordings with P99 > 20ms
-- [ ] AC-2.5: Critical streak fires at 300 consecutive recordings with P99 > 33ms
-- [ ] AC-3.1: `handle_capture_failure()` allows stale frame rendering (no blank screen)
-- [ ] AC-3.2: After capture failure, successful upload resets stale state
-- [ ] AC-4.1: `Renderer::new()` with `InterpolationMethod::Bilinear` renders successfully
-- [ ] AC-4.2: `Renderer::new()` with `InterpolationMethod::Bicubic` renders successfully
-- [ ] AC-5.1: `resize()` updates viewport dimensions
-- [ ] AC-5.2: Render after resize fills new dimensions without distortion
-- [ ] AC-6.1: `test-platform` CI job runs under Xvfb with 1920x1080 screen
-- [ ] AC-6.2: `test-gpu` CI job runs with Mesa llvmpipe (GL backend)
-- [ ] AC-6.3: `test-platform` executes `cargo nextest run -p luminos-platform --features ci_platform_tests`
-- [ ] AC-6.4: `test-gpu` executes `cargo nextest run -p luminos-gpu` under Xvfb
-- [ ] AC-7.1: `render_pipeline_capture_to_present` integration test completes without error
-- [ ] AC-7.2: Output frame has non-zero pixel data
-- [ ] AC-7.3: `FrameTimings` has at least one recorded frame after pipeline test
-- [ ] All clippy warnings resolved
-- [ ] No `unwrap()` in production code paths
-- [ ] Doc-comments on all public items
-- [ ] `cargo fmt --all -- --check` passes
+- [x] AC-1.1: `render_frame()` executes the full pipeline (upload, shader, present) without error
+- [x] AC-1.2: Pipeline delivers frames at approximately 60fps under Fifo vsync (verified informally; strict fps assertion relaxed for CI software rendering)
+- [x] AC-1.3: `FrameTimings::p99()` returns under 20ms for a 120-frame sequence (relaxed to < 50ms for CI with Mesa llvmpipe)
+- [x] AC-2.1: `p99()` returns the correct 99th percentile from 120 samples
+- [x] AC-2.2: `average()`, `min()`, `max()` return correct aggregate statistics
+- [x] AC-2.3: `summary(60)` returns `FrameTimingSummary` with correct fields
+- [x] AC-2.4: Warn streak fires at 300 consecutive recordings with P99 > 20ms
+- [x] AC-2.5: Critical streak fires at 300 consecutive recordings with P99 > 33ms
+- [x] AC-3.1: `handle_capture_failure()` allows stale frame rendering (no blank screen)
+- [x] AC-3.2: After capture failure, successful upload resets stale state
+- [x] AC-4.1: `Renderer::new()` with `InterpolationMethod::Bilinear` renders successfully
+- [x] AC-4.2: `Renderer::new()` with `InterpolationMethod::Bicubic` renders successfully
+- [x] AC-5.1: `resize()` updates viewport dimensions
+- [x] AC-5.2: Render after resize fills new dimensions without distortion
+- [x] AC-6.1: `test-platform` CI job runs under Xvfb with 1920x1080 screen
+- [x] AC-6.2: `test-gpu` CI job runs with Mesa llvmpipe (GL backend)
+- [x] AC-6.3: `test-platform` executes `cargo nextest run -p luminos-platform --features ci_platform_tests`
+- [x] AC-6.4: `test-gpu` executes `cargo nextest run -p luminos-gpu` under Xvfb
+- [x] AC-7.1: `render_pipeline_capture_to_present` integration test completes without error
+- [x] AC-7.2: Output frame has non-zero pixel data
+- [x] AC-7.3: `FrameTimings` has at least one recorded frame after pipeline test
+- [x] All clippy warnings resolved
+- [x] No `unwrap()` in production code paths
+- [x] Doc-comments on all public items
+- [x] `cargo fmt --all -- --check` passes
 
 **Completion Notes:**
->
+> All 21 acceptance criteria verified. 275 total tests (32 new in Story 005: 23 unit tests in frame_timings.rs, 9 headless integration tests in integration.rs). 6 additional platform-gated integration tests run under Xvfb with `ci_platform_tests` feature. Code review: 0 critical, 0 major, 4 minor. QA: 0 regressions. Technical audit: 0 critical, 0 high, 1 medium (fixed: added `--features ci_platform_tests` to test-gpu CI job).
 
 ---
 
@@ -444,11 +444,15 @@
 
 | ID | Date | Description | Resolution | Status |
 |----|------|-------------|------------|--------|
-| B001 | --- | Stories 001, 003, 004 must be implemented before integration tests (T009, T010) can run | These stories deliver `XcbCapture`, `SourceTextureManager`, and `MagnifyPipeline` respectively | Open |
-| B002 | --- | Story 002 must be implemented before `Renderer` struct can compile (depends on GPU device/surface setup) | Story 002 delivers `device.rs` and `surface.rs` modules | Open |
+| B001 | 2026-03-28 | Stories 001, 003, 004 must be implemented before integration tests (T009, T010) can run | All prerequisite stories completed before Story 005 started | Resolved |
+| B002 | 2026-03-28 | Story 002 must be implemented before `Renderer` struct can compile (depends on GPU device/surface setup) | Story 002 completed, `device.rs` and `surface.rs` available | Resolved |
 
 ## Deviations from Design
 
 | Task | Deviation | Rationale |
 |------|-----------|-----------|
-| --- | --- | --- |
+| T002 | Reused existing `RenderError` from `crate::error` instead of creating a new `RenderError` enum in `renderer.rs` | `error.rs` (Story 002) already defines all needed variants (`SurfaceTexture`, `NoAdapter`, `DeviceCreation`, `ShaderCompilation`). Avoids duplicate error types. |
+| T002 | Used `RenderError::SurfaceTexture` variant instead of DESIGN.md's proposed `SurfaceError` | Consistent naming with existing error module. Error message text is equivalent. |
+| T002 | Imports `CaptureFrame` from `luminos_types` instead of `luminos_platform::traits::types` | `luminos_types` is the canonical source per Story 002 type unification. |
+| T008 | wgpu v28: `RenderPassColorAttachment` includes `depth_slice: None`, `RenderPassDescriptor` includes `multiview_mask: None` | Required by wgpu v28 API (same adaptation as Stories 003/004). |
+| T011 | `--features ci_platform_tests` added to `test-gpu` CI job | Technical audit finding: platform-gated integration tests in `luminos-gpu` require this feature flag to run under Xvfb. |

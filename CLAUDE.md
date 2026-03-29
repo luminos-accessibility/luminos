@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Luminos** is a GPLv3-licensed, cross-platform (Linux/macOS/OpenBSD/Windows) screen magnification + text-to-speech accessibility suite targeting low-vision users. The project has completed its **technical strategy phase** and **Epic E01 (Project Scaffolding, Platform Traits & CI/CD)**. The repository contains the complete product strategy, technology evaluation, and technical strategy documents (10 documents covering architecture through risk management), plus the foundational Rust codebase: 6 crates (`luminos-types`, `luminos-core`, `luminos-platform`, `luminos-gpu`, `luminos-tts`, `luminos-app`) with trait definitions, mock implementations, error hierarchy, core data types, and 181 unit tests, backed by a GitHub Actions CI pipeline. Epic E02 (X11 Screen Capture & GPU Magnification) is in progress.
+**Luminos** is a GPLv3-licensed, cross-platform (Linux/macOS/OpenBSD/Windows) screen magnification + text-to-speech accessibility suite targeting low-vision users. The project has completed its **technical strategy phase**, **Epic E01 (Project Scaffolding, Platform Traits & CI/CD)**, and **Epic E02 (X11 Screen Capture & GPU Magnification)**. The repository contains the complete product strategy, technology evaluation, and technical strategy documents (10 documents covering architecture through risk management), plus the Rust codebase: 6 crates (`luminos-types`, `luminos-core`, `luminos-platform`, `luminos-gpu`, `luminos-tts`, `luminos-app`) with trait definitions, mock implementations, error hierarchy, core data types, X11 screen capture backend, GPU rendering pipeline (texture management, magnification shaders, frame pacing), and 275 tests, backed by a GitHub Actions CI pipeline with dedicated platform (X11/Xvfb) and GPU (Mesa llvmpipe) test jobs.
 
 ## Repository Structure
 
@@ -151,11 +151,11 @@ cargo fmt --all -- --check \
 Phase 0 epics (from `specs/tech-strategy/09-implementation-roadmap.md`):
 
 - **E1:** Project Scaffolding, Platform Traits & CI/CD -- **COMPLETE** (2026-03-28). 5 stories, 53 subtasks, 114 tests passing, clippy clean, fmt clean.
-- **E2:** X11 Screen Capture + GPU Rendering -- **IN PROGRESS**. Epic decomposed into 5 stories. Stories 001-004 complete (Screen Capture, Overlay Window, GPU Texture Pipeline, Magnification Shaders & Viewport): 243 tests passing, clippy clean, fmt clean. New modules in `luminos-gpu`: `texture.rs` (`SourceTextureManager`), `viewport.rs` (`compute_source_region`, `smooth_viewport_position`), `shaders/` (bilinear + bicubic WGSL magnification shaders, `MagnifyUniforms`, `MagnifyPipeline`, `InterpolationMethod`). Story 005 (Render Loop, Frame Pacing & CI) remaining.
+- **E2:** X11 Screen Capture + GPU Rendering -- **COMPLETE** (2026-03-28). 5 stories, 14 subtasks in final story, 275 tests passing, clippy clean, fmt clean. New modules in `luminos-gpu`: `texture.rs` (`SourceTextureManager`), `viewport.rs` (`compute_source_region`, `smooth_viewport_position`), `shaders/` (bilinear + bicubic WGSL magnification shaders, `MagnifyUniforms`, `MagnifyPipeline`, `InterpolationMethod`), `frame_timings.rs` (`FrameTimings` ring buffer, `FrameTimingSummary`, performance threshold detection), `renderer.rs` (`Renderer` struct orchestrating capture-upload-render-present pipeline). CI additions: `test-platform` (X11/Xvfb) and `test-gpu` (Mesa llvmpipe) jobs.
 - **E3:** Focus Tracking + Input Monitoring (AT-SPI2, rdev)
 - **E4:** Control Panel Foundation (Tauri IPC, React settings UI)
 
-**Current work:** Epic E02 (X11 Screen Capture & GPU Magnification) -- Stories 001-004 complete. Story 005 (Render Loop, Frame Pacing & CI) is next.
+**Current work:** Epics E01 and E02 are complete. Next epics are E03 (Focus Tracking + Input Monitoring) and E04 (Control Panel Foundation).
 
 ## When Editing Strategy Documents
 

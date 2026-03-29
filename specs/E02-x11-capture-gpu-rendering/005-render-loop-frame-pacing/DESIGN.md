@@ -2,7 +2,7 @@
 
 **Story:** [STORY.md](./STORY.md)
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED
 **Author:** Spec Writer Agent
 **Risk Refs:** [RISK-002](../../tech-strategy/10-risk-register.md#risk-002-self-capture-infinite-feedback-loop) (self-capture, validated here), [RISK-004](../../tech-strategy/10-risk-register.md#risk-004-render-thread-starvation-under-load) (render thread starvation), [RISK-007](../../tech-strategy/10-risk-register.md#risk-007-x11-capture-bottleneck-at-low-zoom-on-high-resolution-displays) (X11 capture bottleneck), [RISK-027](../../tech-strategy/10-risk-register.md#risk-027-ci-pipeline-performance-and-platform-coverage-gaps) (CI pipeline gaps)
 

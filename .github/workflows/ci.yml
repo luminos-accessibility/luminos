@@ -196,6 +196,107 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
 
+  test-platform:
+    name: Platform Tests (X11)
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install system dependencies
+        run: >
+          sudo apt-get update && sudo apt-get install -y
+          xvfb
+          picom
+          mesa-utils
+          mesa-vulkan-drivers
+          libegl-dev
+          libgl1-mesa-dri
+          libgbm-dev
+          libpipewire-0.3-dev
+          libasound2-dev
+          libx11-dev
+          libxi-dev
+          libxtst-dev
+
+      - name: Cache Cargo registry and build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: platform-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            platform-${{ runner.os }}-cargo-
+
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@nextest
+
+      - name: Run platform tests under Xvfb
+        run: >
+          xvfb-run -s "-screen 0 1920x1080x24" bash -c
+          "picom --backend xrender --daemon && cargo nextest run
+          --profile ci
+          -p luminos-platform
+          --features ci_platform_tests"
+
+  test-gpu:
+    name: GPU Tests (Mesa llvmpipe)
+    runs-on: ubuntu-latest
+    needs: [lint]
+    env:
+      MESA_GL_VERSION_OVERRIDE: "4.5"
+      LIBGL_ALWAYS_SOFTWARE: "1"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install system dependencies
+        run: >
+          sudo apt-get update && sudo apt-get install -y
+          xvfb
+          picom
+          mesa-utils
+          mesa-vulkan-drivers
+          libegl-dev
+          libgl1-mesa-dri
+          libgbm-dev
+          libpipewire-0.3-dev
+          libasound2-dev
+          libx11-dev
+          libxi-dev
+          libxtst-dev
+
+      - name: Cache Cargo registry and build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: gpu-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            gpu-${{ runner.os }}-cargo-
+
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@nextest
+
+      - name: Run GPU tests under Xvfb
+        run: >
+          xvfb-run -s "-screen 0 1920x1080x24" bash -c
+          "picom --backend xrender --daemon && cargo nextest run
+          --profile ci
+          -p luminos-gpu
+          --features ci_platform_tests"
+
   # --- Placeholder jobs (activated in E2+) ---
 
   test-shaders:
