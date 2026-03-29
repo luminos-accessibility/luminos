@@ -43,6 +43,7 @@ luminos-gpu = { path = "crates/luminos-gpu" }
 luminos-tts = { path = "crates/luminos-tts" }
 
 # GPU rendering
+bytemuck = { version = "1", features = ["derive"] }
 wgpu = "28.0"
 winit = "0.30"
 

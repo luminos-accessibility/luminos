@@ -15,6 +15,7 @@ ci_platform_tests = []
 [dependencies]
 luminos-types = { workspace = true }
 luminos-platform = { workspace = true }
+bytemuck = { workspace = true }
 wgpu = { workspace = true }
 winit = { workspace = true }
 log = { workspace = true }

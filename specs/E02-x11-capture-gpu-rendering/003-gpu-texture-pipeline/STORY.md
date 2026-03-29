@@ -1,7 +1,7 @@
 # Story E02/003: GPU Texture Pipeline
 
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** DONE
 **Depends On:** 002 (wgpu device and queue must be initialized)
 
 ---

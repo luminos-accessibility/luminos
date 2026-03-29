@@ -1,7 +1,7 @@
 # Story E02/004: Magnification Shaders & Viewport
 
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** DONE
 **Depends On:** 002
 
 ---

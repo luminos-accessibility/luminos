@@ -3482,6 +3482,7 @@ dependencies = [
 name = "luminos-gpu"
 version = "0.1.0"
 dependencies = [
+ "bytemuck",
  "log",
  "luminos-platform",
  "luminos-types",

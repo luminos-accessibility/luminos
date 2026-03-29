@@ -35,13 +35,13 @@ Copied from [doc-09 Section 4.2](../tech-strategy/09-implementation-roadmap.md#4
 
 | # | Story | Status | Depends On | Est. Effort | Notes |
 |---|-------|--------|------------|-------------|-------|
-| 001 | X11 Screen Capture Backend | NOT STARTED | --- | L (12-16 subtasks) | Parallel with 002. Covers D1. |
-| 002 | X11 Overlay Window & GPU Surface | IN PROGRESS | --- | L (14 subtasks) | Parallel with 001. Covers D2. Type unification done via luminos-types crate. |
-| 003 | GPU Texture Pipeline | NOT STARTED | 002 | M (8-12 subtasks) | Needs wgpu device/surface from 002. Covers D5. |
-| 004 | Magnification Shaders & Viewport | NOT STARTED | 002 | L (12-16 subtasks) | Needs wgpu device for shader compilation. Covers D3. |
+| 001 | X11 Screen Capture Backend | DONE | --- | L (12-16 subtasks) | Parallel with 002. Covers D1. |
+| 002 | X11 Overlay Window & GPU Surface | DONE | --- | L (14 subtasks) | Parallel with 001. Covers D2. Type unification done via luminos-types crate. |
+| 003 | GPU Texture Pipeline | DONE | 002 | M (11 subtasks) | Needs wgpu device/surface from 002. Covers D5. |
+| 004 | Magnification Shaders & Viewport | DONE | 002 | L (14 subtasks) | Needs wgpu device for shader compilation. Covers D3. |
 | 005 | Render Loop, Frame Pacing & CI | NOT STARTED | 001, 003, 004 | L (12-16 subtasks) | Assembles full pipeline. Covers D4. |
 
-**Total Stories:** 5 | **Done:** 0 | **In Progress:** 1 | **Blocked:** 0
+**Total Stories:** 5 | **Done:** 4 | **In Progress:** 0 | **Blocked:** 0
 
 **Dependency graph:**
 
@@ -294,6 +294,51 @@ _Updated as stories are implemented. Research findings from Task #1 are marked w
 - **[IMPL] wgpu v28 API difference: `request_adapter` returns `Result`, not `Option`.** The DESIGN.md code sample showed `.await.ok_or(RenderError::NoAdapter)?` but wgpu v28's `request_adapter` returns `Result<Adapter, RequestAdapterError>`. The implementation uses `.await.map_err(|_| RenderError::NoAdapter)?`.
 
 - **[IMPL] `linux_x11` module made `pub` for cross-crate integration tests.** The `X11WindowManager` struct needs to be accessible from `luminos-gpu` integration tests that wire together the full window-to-GPU pipeline. The module was changed from `mod linux_x11` to `pub mod linux_x11` in `luminos-platform/src/lib.rs`.
+
+#### Story 003 Implementation Findings
+
+- **[IMPL] `SourceTextureManager` takes ownership of `wgpu::Device`.** The constructor signature is `new(device: wgpu::Device, initial_width: u32, initial_height: u32)`. The device is stored as a field because it is needed for texture reallocation (creating new textures when capacity is exceeded). Story 005's `Renderer` must account for this ownership pattern.
+
+- **[IMPL] `over_allocate()` uses `f64` arithmetic, not `f32`.** The DESIGN.md showed `f32` for the over-allocation calculation, but `f32` has only 24 bits of mantissa, which would cause precision loss for dimensions > 16 million pixels. `f64` avoids this. The `#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]` annotation handles the float-to-int cast.
+
+- **[IMPL] `CaptureFrame` imported from `luminos_types`, not `luminos_platform`.** Due to Story 002's type unification into `luminos-types`, the import path is `luminos_types::CaptureFrame`, not `luminos_platform::traits::types::CaptureFrame` as the DESIGN.md originally specified.
+
+- **[IMPL] `capacity()` accessor added beyond DESIGN.md spec.** A public `capacity() -> (u32, u32)` method was added to `SourceTextureManager` for integration tests to verify over-allocation behavior without accessing private fields. Not in original DESIGN.md.
+
+- **[IMPL] Test helpers use GL+Vulkan backends for CI compatibility.** `generate_test_gpu_device()` requests adapters with `Backends::GL | Backends::VULKAN` and gracefully skips tests when no adapter is available (returns `Option`). This pattern is reused by Story 004's integration tests.
+
+#### Story 004 Implementation Findings
+
+- **[IMPL] `MagnifyPipeline` struct introduced to bundle pipeline resources.** Not in the original DESIGN.md. Bundles `RenderPipeline`, `BindGroupLayout`, and uniform `Buffer` into a single struct returned by `create_magnify_pipeline()`. Simplifies resource management for Story 005's `Renderer`.
+
+- **[IMPL] `MagnifyUniforms._pad` is `[f32; 3]` array, not separate fields.** The WGSL struct has `_pad: f32` and `_pad2: vec2f` for alignment, but the Rust `#[repr(C)]` struct uses `_pad: [f32; 3]` for simplicity. Both produce identical 32-byte layout.
+
+- **[IMPL] `create_magnify_pipeline()` combines shader compilation + pipeline creation.** The DESIGN.md showed separate functions for shader module creation and pipeline creation. The implementation combines them into a single function that returns `Result<MagnifyPipeline, RenderError>`, adding `ShaderCompilation` variant to `RenderError`.
+
+- **[IMPL] Shader files loaded via `include_str!()` at compile time.** Both `.wgsl` files are embedded in the binary via `include_str!()` in `shaders/mod.rs`. No runtime file I/O needed. The `shaders/` directory contains only the WGSL files and `mod.rs`.
+
+- **[IMPL] Viewport module placed in `luminos-gpu`, not `luminos-core`.** The DESIGN.md mentioned `luminos-core` as an alternative location for `viewport.rs`. The implementation placed it in `luminos-gpu` alongside the shader infrastructure, keeping the viewport calculation co-located with its primary consumers.
+
+- **[IMPL] `bytemuck` added as workspace dependency.** Version 1.x with `derive` feature, used for `MagnifyUniforms` GPU buffer serialization via `Pod` and `Zeroable` derives.
+
+- **[IMPL] Integration tests in separate files.** `tests/pipeline_creation.rs` for pipeline compilation tests, `tests/shader_output.rs` for render-and-readback tests. Both use headless GPU rendering (no window) for CI compatibility.
+
+#### wgpu v28 API Deviations from DESIGN.md
+
+The E02 DESIGN.md documents were authored based on earlier wgpu versions. The following wgpu v28.0.0 API differences were discovered during Stories 002-004 and must be used by Story 005 (and all future GPU code):
+
+1. **`Instance::new(&InstanceDescriptor)`** — takes a reference, not an owned value.
+2. **`request_adapter()` returns `Result<Adapter, RequestAdapterError>`** — NOT `Option<Adapter>`. Use `.map_err()`, not `.ok_or()`.
+3. **`request_device(&DeviceDescriptor)` takes only 1 arg** — NO `trace_path: Option<&Path>` second parameter. Tracing is configured via `DeviceDescriptor.trace`.
+4. **`DeviceDescriptor` has 6 fields** — `label`, `required_features`, `required_limits`, `experimental_features`, `memory_hints`, `trace`. Use `..Default::default()` for trailing fields.
+5. **`PipelineLayoutDescriptor` uses `immediate_size: 0`** — NOT `push_constant_ranges: &[]`.
+6. **`RenderPipelineDescriptor` uses `multiview_mask: None`** — NOT `multiview: None`.
+7. **`SamplerDescriptor.mipmap_filter`** is `wgpu::MipmapFilterMode::Nearest` — NOT `wgpu::FilterMode::Nearest` (separate type).
+8. **`device.poll()` takes `PollType::Wait { submission_index: None, timeout: None }`** — NOT `Maintain::Wait`.
+9. **`RenderPassDescriptor` requires `multiview_mask: None`** field.
+10. **`RenderPassColorAttachment` requires `depth_slice: None`** field.
+
+**Impact for Story 005:** The `Renderer` struct will create render passes, poll the device, and manage pipelines. All of the above apply. Future DESIGN.md documents should be validated against `cargo doc -p wgpu` output before approval.
 
 #### Audit Findings (pre-implementation)
 

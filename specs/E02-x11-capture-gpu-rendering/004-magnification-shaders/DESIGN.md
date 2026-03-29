@@ -2,7 +2,7 @@
 
 **Story:** [STORY.md](./STORY.md)
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED
 **Author:** Spec Writer 2
 **Risk Refs:** [RISK-004](../../tech-strategy/10-risk-register.md) (render thread starvation), [RISK-006](../../tech-strategy/10-risk-register.md) (multi-display coordinate inconsistencies), [RISK-016](../../tech-strategy/10-risk-register.md) (wgpu backend compatibility)
 

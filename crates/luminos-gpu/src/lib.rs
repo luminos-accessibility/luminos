@@ -5,4 +5,7 @@
 
 pub mod device;
 pub mod error;
+pub mod shaders;
 pub mod surface;
+pub mod texture;
+pub mod viewport;

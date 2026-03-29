@@ -151,11 +151,11 @@ cargo fmt --all -- --check \
 Phase 0 epics (from `specs/tech-strategy/09-implementation-roadmap.md`):
 
 - **E1:** Project Scaffolding, Platform Traits & CI/CD -- **COMPLETE** (2026-03-28). 5 stories, 53 subtasks, 114 tests passing, clippy clean, fmt clean.
-- **E2:** X11 Screen Capture + GPU Rendering -- **IN PROGRESS**. Epic decomposed into 5 stories. Story 002 (Overlay Window & GPU Surface) in progress: 181 tests passing, type unification done via `luminos-types` crate.
+- **E2:** X11 Screen Capture + GPU Rendering -- **IN PROGRESS**. Epic decomposed into 5 stories. Stories 001-004 complete (Screen Capture, Overlay Window, GPU Texture Pipeline, Magnification Shaders & Viewport): 243 tests passing, clippy clean, fmt clean. New modules in `luminos-gpu`: `texture.rs` (`SourceTextureManager`), `viewport.rs` (`compute_source_region`, `smooth_viewport_position`), `shaders/` (bilinear + bicubic WGSL magnification shaders, `MagnifyUniforms`, `MagnifyPipeline`, `InterpolationMethod`). Story 005 (Render Loop, Frame Pacing & CI) remaining.
 - **E3:** Focus Tracking + Input Monitoring (AT-SPI2, rdev)
 - **E4:** Control Panel Foundation (Tauri IPC, React settings UI)
 
-**Current work:** Epic E02 (X11 Screen Capture & GPU Magnification) -- Stories 001 and 002 are in parallel implementation.
+**Current work:** Epic E02 (X11 Screen Capture & GPU Magnification) -- Stories 001-004 complete. Story 005 (Render Loop, Frame Pacing & CI) is next.
 
 ## When Editing Strategy Documents
 

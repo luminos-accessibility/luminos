@@ -2,7 +2,7 @@
 
 **Story:** [STORY.md](./STORY.md)
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED
 **Author:** Spec Writer Agent
 **Risk Refs:** [RISK-008](../../tech-strategy/10-risk-register.md#risk-008-cpu-to-gpu-texture-upload-bandwidth-pressure) (texture upload bandwidth), [RISK-010](../../tech-strategy/10-risk-register.md#risk-010-memory-pressure-on-4gb-total-ram-systems) (memory pressure), [RISK-017](../../tech-strategy/10-risk-register.md#risk-017-screen-content-and-tts-text-leakage-via-logs-and-gpu-memory) (screen content leakage)
 
