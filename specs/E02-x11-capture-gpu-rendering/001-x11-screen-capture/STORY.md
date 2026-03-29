@@ -1,7 +1,7 @@
 # Story E02/001: X11 Screen Capture Backend
 
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** DONE
 **Depends On:** None (can start immediately; soft dependency on E02/002 for overlay window ID used in self-capture prevention)
 
 ---

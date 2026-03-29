@@ -1,8 +1,8 @@
 # Subtasks: Story E02/001 -- X11 Screen Capture Backend
 
-**Status:** IN PROGRESS
+**Status:** DONE
 **Started:** 2026-03-28
-**Completed:** ---
+**Completed:** 2026-03-28
 **Story:** [STORY.md](./STORY.md)
 **Design:** [DESIGN.md](./DESIGN.md)
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)

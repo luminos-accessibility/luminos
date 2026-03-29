@@ -1,7 +1,7 @@
 # Story E02/002: X11 Overlay Window & GPU Surface
 
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** IN PROGRESS
+**Status:** DONE
 **Depends On:** None (parallel with 001)
 
 ---
