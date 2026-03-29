@@ -6,8 +6,14 @@
 
 pub mod config;
 pub mod error;
+pub mod event;
 pub mod state;
+pub mod state_manager;
 
 pub use config::schema::AppSettings;
 pub use error::LuminosError;
-pub use state::{AppState, ColorFilterType, MagnificationMode, TrackingMode, TtsStatus};
+pub use event::LuminosEvent;
+pub use state::{
+    AppState, ColorFilterType, MagnificationMode, ScreenPoint, TrackingMode, TtsStatus,
+};
+pub use state_manager::StateManager;

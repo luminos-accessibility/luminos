@@ -5,7 +5,9 @@
 //! runtime state container that wraps [`AppSettings`] with transient
 //! runtime fields.
 
-pub use luminos_types::{ColorFilterType, MagnificationMode, ScreenRect, TrackingMode, TtsStatus};
+pub use luminos_types::{
+    ColorFilterType, MagnificationMode, ScreenPoint, ScreenRect, TrackingMode, TtsStatus,
+};
 
 use crate::config::schema::AppSettings;
 
@@ -27,6 +29,11 @@ pub struct AppState {
     pub active_display_id: Option<String>,
     /// Whether magnification is currently active.
     pub is_active: bool,
+    /// Current mouse cursor position in screen coordinates.
+    ///
+    /// Updated by the input monitoring thread via
+    /// [`StateManager::update_mouse_position()`](crate::state_manager::StateManager::update_mouse_position).
+    pub mouse_position: ScreenPoint,
 }
 
 impl Default for AppState {
@@ -42,6 +49,7 @@ impl Default for AppState {
             tts_status: TtsStatus::Idle,
             active_display_id: None,
             is_active: false,
+            mouse_position: ScreenPoint { x: 0, y: 0 },
         }
     }
 }
@@ -150,5 +158,23 @@ mod tests {
     #[test]
     fn app_state_default_no_active_display() {
         assert!(AppState::default().active_display_id.is_none());
+    }
+
+    // E03/002 T001 tests
+
+    #[test]
+    fn app_state_default_mouse_position_at_origin() {
+        let state = AppState::default();
+        assert_eq!(state.mouse_position, ScreenPoint { x: 0, y: 0 });
+    }
+
+    #[test]
+    fn app_state_clone_preserves_mouse_position() {
+        let state = AppState {
+            mouse_position: ScreenPoint { x: 100, y: 200 },
+            ..AppState::default()
+        };
+        let cloned = state.clone();
+        assert_eq!(cloned.mouse_position, ScreenPoint { x: 100, y: 200 });
     }
 }
