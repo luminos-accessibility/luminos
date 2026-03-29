@@ -203,6 +203,25 @@ Key gaps: DESIGN.md lifecycle oversimplified, missing TypeScript TDD exception, 
 - STORY.md ACs not updated when implementation deviates (AC-4.1/4.2 still say "luminos-platform" after luminos-types crate created)
 - Tautological assertions in integration tests (e.g. `x || !x`) -- check test assertions for actual verification value
 - DESIGN.md status field not updated after implementation begins (stays DRAFT)
+- RustConnection (x11rb) is Send+Sync -- claims otherwise are wrong (verified 2026-03-28)
+- "ZoomText conventions" attribution is imprecise -- ZoomText uses Caps Lock, not Ctrl+Alt
+- Dependency direction issues when core crate imports from GPU crate for trivial math functions
+
+### E03 Spec Artifacts Audit (2026-03-29, FINAL)
+- Verdict: APPROVED WITH FINDINGS (0 BLOCKING, 3 ADVISORY, 4 INFO, 6 pointers)
+- See [e03-audit.md](e03-audit.md) for full details
+- All 16 files reviewed: HLP + 5 stories x 3 files each
+- F-001 ADVISORY: "ZoomText convention" claim MISLEADING (ZoomText uses Caps Lock, not Ctrl+Alt)
+- F-002 ADVISORY: Story 004 SUBTASKS T002 says Ctrl+Alt+M, should be Ctrl+Alt+F1 (matches DESIGN)
+- F-003 ADVISORY: Story 005 SUBTASKS T003 fabricates `modifiers` field on MouseButton/Scroll events
+- F-004 INFO: luminos-core->luminos-gpu dep issue for TrackingEngine (gpu is optional dep)
+- F-005 INFO: x11rb 0.13 XIEventMask is newtype with UPPER_SNAKE_CASE, Device::ALL_MASTER is type-safe API
+- F-007 INFO: HLP says prefer try_recv() but DESIGN correctly uses blocking_recv() for dedicated thread
+- P-001: Ctrl+Alt+F1 conflicts with Linux VT switching
+- P-005: GetKeyboardMapping insufficient for non-Latin layouts in E07
+- Modifiers needs Hash derive added (correctly identified in DESIGN 004)
+- Cross-story consistency VERIFIED: all 5 stories consume/produce types consistently
+- File ownership: no conflicts between stories
 
 ### E02 Story 002 Implementation Audit (2026-03-28)
 See [e02-002-impl-audit.md](e02-002-impl-audit.md) for full details.
