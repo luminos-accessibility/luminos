@@ -1,154 +1,27 @@
 //! Common types shared across platform abstraction traits.
 //!
 //! These types form the data exchange vocabulary between the core engine
-//! and all platform backends. They are defined here to avoid circular
-//! dependencies between trait modules.
+//! and all platform backends. They are re-exported from [`luminos_types`]
+//! to maintain backwards compatibility with existing import paths.
 
-use std::fmt;
-use std::sync::Arc;
+pub use luminos_types::{CaptureFrame, DisplayInfo, PixelFormat, ScreenPoint, ScreenRect};
 
-/// A rectangle in screen coordinates (pixels).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct ScreenRect {
-    /// X position of the top-left corner.
-    pub x: i32,
-    /// Y position of the top-left corner.
-    pub y: i32,
-    /// Width of the rectangle in pixels.
-    pub width: u32,
-    /// Height of the rectangle in pixels.
-    pub height: u32,
-}
-
-/// A point in screen coordinates (pixels).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct ScreenPoint {
-    /// X coordinate.
-    pub x: i32,
-    /// Y coordinate.
-    pub y: i32,
-}
-
-/// Information about a connected display.
-#[derive(Debug, Clone, PartialEq)]
-pub struct DisplayInfo {
-    /// Unique identifier for this display (platform-specific format).
-    pub id: String,
-    /// Human-readable display name.
-    pub name: String,
-    /// Display bounds in virtual screen coordinates.
-    pub bounds: ScreenRect,
-    /// Scale factor (e.g., 2.0 for HiDPI/Retina).
-    pub scale_factor: f64,
-    /// Whether this is the primary display.
-    pub is_primary: bool,
-}
-
-/// Pixel format of captured frame data.
-///
-/// All pixel data is assumed to be in **sRGB color space** (nonlinear,
-/// gamma-encoded). The GPU rendering pipeline performs gamma-correct
-/// resampling by converting to linear space before interpolation and
-/// back to sRGB for display.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PixelFormat {
-    /// Blue, Green, Red, Alpha (8 bits each). Native format on X11 and Windows.
-    Bgra8,
-    /// Red, Green, Blue, Alpha (8 bits each). Native format on macOS (`ScreenCaptureKit`).
-    Rgba8,
-}
-
-/// A captured frame of screen content.
-///
-/// **Privacy:** This struct contains raw screen pixels that may include
-/// sensitive content (passwords, banking, medical records). The custom
-/// `Debug` implementation intentionally omits the `data` field to prevent
-/// accidental leakage in log output. See RISK-017.
-#[derive(Clone)]
-pub struct CaptureFrame {
-    /// Raw pixel data in row-major order, top-left origin.
-    pub data: Arc<[u8]>,
-    /// Width of the captured frame in pixels.
-    pub width: u32,
-    /// Height of the captured frame in pixels.
-    pub height: u32,
-    /// Bytes per row (may include padding).
-    pub stride: u32,
-    /// Pixel format of the data.
-    pub format: PixelFormat,
-}
-
-/// Custom Debug impl for `CaptureFrame` that omits pixel data (RISK-017).
-///
-/// Prints metadata only: width, height, stride, format, and the byte
-/// length of the data buffer. Never prints raw pixel content.
-impl fmt::Debug for CaptureFrame {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("CaptureFrame")
-            .field("data", &format_args!("[<{} bytes>]", self.data.len()))
-            .field("width", &self.width)
-            .field("height", &self.height)
-            .field("stride", &self.stride)
-            .field("format", &self.format)
-            .finish()
-    }
-}
-
-#[cfg(test)]
+#[cfg(any(test, feature = "test_utils"))]
 pub mod test_utils {
-    use super::*;
+    //! Test utilities for common types.
+    //!
+    //! Re-exported from [`luminos_types`] capture and display test utilities.
 
-    /// Generates a test `CaptureFrame` with solid-color BGRA pixel data.
-    ///
-    /// # Parameters
-    /// - `width`: Frame width in pixels.
-    /// - `height`: Frame height in pixels.
-    /// - `color`: BGRA color value `[b, g, r, a]` for every pixel.
-    #[must_use]
-    pub fn generate_test_capture_frame(width: u32, height: u32, color: [u8; 4]) -> CaptureFrame {
-        let stride = width * 4;
-        let data: Vec<u8> = color
-            .iter()
-            .cycle()
-            .take((stride * height) as usize)
-            .copied()
-            .collect();
-        CaptureFrame {
-            data: data.into(),
-            width,
-            height,
-            stride,
-            format: PixelFormat::Bgra8,
-        }
-    }
-
-    /// Generates a test `DisplayInfo` with configurable parameters.
-    #[must_use]
-    pub fn generate_test_display_info(
-        id: &str,
-        width: u32,
-        height: u32,
-        is_primary: bool,
-    ) -> DisplayInfo {
-        DisplayInfo {
-            id: id.to_string(),
-            name: format!("Test Display {id}"),
-            bounds: ScreenRect {
-                x: 0,
-                y: 0,
-                width,
-                height,
-            },
-            scale_factor: 1.0,
-            is_primary,
-        }
-    }
+    pub use luminos_types::capture::test_utils::generate_test_capture_frame;
+    pub use luminos_types::display::test_utils::generate_test_display_info;
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
     use std::collections::HashSet;
+    use std::sync::Arc;
 
     #[test]
     fn types_screen_rect_fields_and_derives() {

@@ -1,6 +1,6 @@
 # Epic E02: X11 Screen Capture & GPU Magnification
 
-**Status:** NOT STARTED
+**Status:** IN PROGRESS
 **Roadmap Ref:** [tech-strategy/09-implementation-roadmap.md Section 4.2](../tech-strategy/09-implementation-roadmap.md#42-epic-2----x11-screen-capture--gpu-magnification)
 **Phase:** Phase 0: Foundation (Months 1-3)
 **Started:** ---
@@ -36,12 +36,12 @@ Copied from [doc-09 Section 4.2](../tech-strategy/09-implementation-roadmap.md#4
 | # | Story | Status | Depends On | Est. Effort | Notes |
 |---|-------|--------|------------|-------------|-------|
 | 001 | X11 Screen Capture Backend | NOT STARTED | --- | L (12-16 subtasks) | Parallel with 002. Covers D1. |
-| 002 | X11 Overlay Window & GPU Surface | NOT STARTED | --- | L (12-16 subtasks) | Parallel with 001. Covers D2. |
+| 002 | X11 Overlay Window & GPU Surface | IN PROGRESS | --- | L (14 subtasks) | Parallel with 001. Covers D2. Type unification done via luminos-types crate. |
 | 003 | GPU Texture Pipeline | NOT STARTED | 002 | M (8-12 subtasks) | Needs wgpu device/surface from 002. Covers D5. |
 | 004 | Magnification Shaders & Viewport | NOT STARTED | 002 | L (12-16 subtasks) | Needs wgpu device for shader compilation. Covers D3. |
 | 005 | Render Loop, Frame Pacing & CI | NOT STARTED | 001, 003, 004 | L (12-16 subtasks) | Assembles full pipeline. Covers D4. |
 
-**Total Stories:** 5 | **Done:** 0 | **In Progress:** 0 | **Blocked:** 0
+**Total Stories:** 5 | **Done:** 0 | **In Progress:** 1 | **Blocked:** 0
 
 **Dependency graph:**
 
@@ -225,23 +225,25 @@ These decisions are drawn from the tech strategy and apply across all E02 storie
 
 - **Both bilinear and bicubic shader variants in E02:** The original roadmap placed bilinear in Phase 0 and bicubic in Phase 1. User decision: include both in E02. Bilinear is the default; bicubic (Catmull-Rom, 16 taps) is available for sharper text at high zoom. Selection is at pipeline initialization time. See [doc-03 Section 6.2](../tech-strategy/03-rendering-pipeline.md#62-magnification-shader-magnifywgsl).
 
-- **`DockEdge`/`LensShape` type unification in E02:** E01 discovered duplicate definitions in `luminos-platform` (without serde) and `luminos-core` (with serde). Story 002 unifies them by adding serde derives to the `luminos-platform` definitions and re-exporting from `luminos-core`. See E01 Shared Context.
+- **`DockEdge`/`LensShape` type unification via `luminos-types` crate (Story 002):** E01 discovered duplicate definitions in `luminos-platform` (without serde) and `luminos-core` (with serde). Story 002 resolved this by creating a new `luminos-types` crate as the canonical source for all shared data types. `luminos-types` has zero workspace dependencies (only `serde`), breaking the circular dependency risk. Both `luminos-platform` and `luminos-core` re-export from `luminos-types`. This was a user-directed deviation from the original DESIGN.md approach (which proposed re-exports from `luminos-platform`). Types moved: `ScreenRect`, `ScreenPoint`, `DisplayInfo`, `PixelFormat`, `CaptureFrame`, `DockEdge`, `LensShape`, `OverlayMode`, `MagnificationMode`, `TrackingMode`, `ColorFilterType`, `TtsStatus`, `PresentMode`, `GpuPreference`, `InterpolationMode`. `CaptureFrame` skips `Serialize`/`Deserialize` (runtime GPU type with `Arc<[u8]>`). Original locations re-export from `luminos-types` for backward compatibility.
 
 ### Key Type Definitions
 
-The following types from E01 are used extensively in E02. Agents should reference these directly:
+The following types are used extensively in E02. Canonical definitions live in `luminos-types`; re-exported from `luminos-platform::traits` and `luminos-core` for backward compatibility.
 
-**From `luminos-platform::traits` (E01, unchanged):**
+**From `luminos-types` (canonical source, re-exported by `luminos-platform::traits`):**
 - `ScreenRect { x: i32, y: i32, width: u32, height: u32 }` -- screen-coordinate rectangle
 - `ScreenPoint { x: i32, y: i32 }` -- screen-coordinate point
 - `DisplayInfo { id: String, name: String, bounds: ScreenRect, scale_factor: f64, is_primary: bool }`
 - `PixelFormat` enum: `Bgra8`, `Rgba8`
-- `CaptureFrame { data: Arc<[u8]>, width: u32, height: u32, stride: u32, format: PixelFormat }`
-- `ScreenCapture` trait: `list_displays()`, `capture_frame()`, `subscribe_display_changes()`
-- `WindowManager` trait: `create_overlay()`, `set_overlay_bounds()`, `set_overlay_mode()`, `set_always_on_top()`, `set_visible()`, `raw_window_handle()`, `raw_display_handle()`
+- `CaptureFrame { data: Arc<[u8]>, width: u32, height: u32, stride: u32, format: PixelFormat }` (no serde -- runtime GPU type)
 - `OverlayMode` enum: `FullScreen`, `Lens { width, height, shape }`, `Docked { edge, size_px }`
 - `DockEdge` enum: `Top`, `Bottom`, `Left`, `Right`
 - `LensShape` enum: `Rectangle`, `Ellipse`
+
+**Traits (remain in `luminos-platform::traits`, NOT moved to `luminos-types`):**
+- `ScreenCapture` trait: `list_displays()`, `capture_frame()`, `subscribe_display_changes()`
+- `WindowManager` trait: `create_overlay()`, `set_overlay_bounds()`, `set_overlay_mode()`, `set_always_on_top()`, `set_visible()`, `raw_window_handle()`, `raw_display_handle()`
 
 **New types introduced in E02:**
 - `XcbCapture` (Story 001) -- `ScreenCapture` impl for X11
@@ -283,6 +285,16 @@ _Updated as stories are implemented. Research findings from Task #1 are marked w
 
 - **[RESEARCH] CI requires `mesa-vulkan-drivers` for lavapipe.** Mesa llvmpipe provides GL rendering but NOT Vulkan. For wgpu Vulkan testing in CI, the `mesa-vulkan-drivers` package provides lavapipe (software Vulkan). Both packages should be installed. Additionally, `picom` compositor should run under Xvfb for realistic self-capture prevention tests (unmap/remap is meaningless without a compositor). **Impact:** Story 005 (CI setup).
 
+#### Story 002 Implementation Findings
+
+- **[IMPL] `luminos-types` crate created for type unification (user-directed).** Instead of the DESIGN.md approach of canonical definitions in `luminos-platform` with re-exports from `luminos-core`, a new `luminos-types` crate was created with zero workspace dependencies (only `serde`). This avoids circular dependency risk and provides a cleaner architecture. All shared data types live in `luminos-types`; both `luminos-platform` and `luminos-core` re-export them. Backward compatibility is preserved.
+
+- **[IMPL] winit event loop: using deprecated `EventLoop::create_window()`.** On X11, the deprecated `create_window` works because the X connection is reference-counted and the window survives event loop drop. The E05 render loop will migrate to `ActiveEventLoop::create_window()` in the `Resumed` callback. This is a known deviation noted in the code.
+
+- **[IMPL] wgpu v28 API difference: `request_adapter` returns `Result`, not `Option`.** The DESIGN.md code sample showed `.await.ok_or(RenderError::NoAdapter)?` but wgpu v28's `request_adapter` returns `Result<Adapter, RequestAdapterError>`. The implementation uses `.await.map_err(|_| RenderError::NoAdapter)?`.
+
+- **[IMPL] `linux_x11` module made `pub` for cross-crate integration tests.** The `X11WindowManager` struct needs to be accessible from `luminos-gpu` integration tests that wire together the full window-to-GPU pipeline. The module was changed from `mod linux_x11` to `pub mod linux_x11` in `luminos-platform/src/lib.rs`.
+
 #### Audit Findings (pre-implementation)
 
 - **[AUDIT F-001] E02 uses single-buffer texture upload (sequential pipeline).** Double-buffered texture swap is deferred to Phase 1 when capture and render are pipelined across separate threads. D5 ("no visible tearing") is satisfied by the sequential upload-then-render order within a single frame: the texture is fully written before the shader reads it. There is no concurrent read/write hazard in the E02 sequential pipeline.
@@ -293,7 +305,7 @@ _Updated as stories are implemented. Research findings from Task #1 are marked w
 
 - **E01 carry-forward: `tokio` workspace dep has minimal "sync" feature.** E02 backends need expanded features (`rt`, `macros`) for async tests. Update workspace `tokio` dependency features or use expanded features in `[dev-dependencies]` only (as E01 Story 003 did for mock async tests).
 
-- **E01 carry-forward: `DockEdge`/`LensShape` duplication.** Story 002 resolves this. Until Story 002 is complete, agents should use the `luminos-platform::traits::window_manager` definitions as the source of truth.
+- **E01 carry-forward: `DockEdge`/`LensShape` duplication.** RESOLVED by Story 002 via `luminos-types` crate. Canonical definitions now in `luminos-types`, re-exported by both `luminos-platform::traits` and `luminos-core::config::schema`.
 
 - **E01 carry-forward: Tauri is optional behind feature flag.** `luminos-app` does not include Tauri setup. The E02 render loop is a standalone demo, not integrated with Tauri. The binary target for E02 integration testing may be a separate example binary or an integration test in `luminos-gpu`, not `luminos-app`.
 

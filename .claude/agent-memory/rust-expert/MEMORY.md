@@ -53,6 +53,9 @@
 ### xcap 0.9.3 API Notes
 - [xcap API notes](xcap_api_notes.md) - All Monitor methods return Result, not bare values; has native capture_region(); XWayland incompatible
 
+### wgpu v28 API (verified 2026-03-28)
+- [wgpu v28 API changes](wgpu_v28_api_changes.md) - Instance::new takes &ref, request_adapter returns Result not Option, request_device has no trace_path
+
 ### Common Pitfalls (from audits)
 - WGSL `smoothstep(edge0, edge1, x)` REQUIRES edge0 < edge1 (validation error otherwise)
 - Catmull-Rom weights: |x|<=1: `1.5*|x|^3 - 2.5*|x|^2 + 1`, not custom polynomial

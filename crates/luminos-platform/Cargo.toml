@@ -9,14 +9,16 @@ rust-version.workspace = true
 default = []
 wayland = ["ashpd"]
 xshm = ["x11rb/shm"]
-test_utils = []
+test_utils = ["luminos-types/test_utils"]
 ci_platform_tests = []
 
 [dependencies]
+luminos-types = { workspace = true }
 thiserror = { workspace = true }
 log = { workspace = true }
 tokio = { workspace = true }
 raw-window-handle = { workspace = true }
+serde = { workspace = true }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 x11rb = { workspace = true }
@@ -24,6 +26,7 @@ xcap = { workspace = true }
 image = { workspace = true }
 atspi = { workspace = true }
 rdev = { workspace = true }
+winit = { workspace = true }
 
 [target.'cfg(target_os = "linux")'.dependencies.ashpd]
 version = "0.10"
@@ -40,4 +43,6 @@ xcap = { workspace = true }
 xcap = { workspace = true }
 
 [dev-dependencies]
+luminos-types = { workspace = true, features = ["test_utils"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+serde_json = { workspace = true }

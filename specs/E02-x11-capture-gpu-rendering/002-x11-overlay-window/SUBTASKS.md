@@ -1,7 +1,7 @@
 # Subtasks: Story E02/002 -- X11 Overlay Window & GPU Surface
 
-**Status:** NOT STARTED
-**Started:** ---
+**Status:** IN PROGRESS
+**Started:** 2026-03-28
 **Completed:** ---
 **Story:** [STORY.md](./STORY.md)
 **Design:** [DESIGN.md](./DESIGN.md)
@@ -13,11 +13,11 @@
 
 | Phase | Total | Done | Blocked | Remaining |
 |-------|-------|------|---------|-----------|
-| 1. Setup | 3 | 0 | 0 | 3 |
-| 2. Core Implementation | 6 | 0 | 0 | 6 |
-| 3. Integration | 3 | 0 | 0 | 3 |
-| 4. Polish & Acceptance | 2 | 0 | 0 | 2 |
-| **Total** | **14** | **0** | **0** | **14** |
+| 1. Setup | 3 | 3 | 0 | 0 |
+| 2. Core Implementation | 6 | 6 | 0 | 0 |
+| 3. Integration | 3 | 3 | 0 | 0 |
+| 4. Polish & Acceptance | 2 | 1 | 0 | 1 |
+| **Total** | **14** | **13** | **0** | **1** |
 
 ---
 
@@ -26,7 +26,7 @@
 ### T001 [P] -- Unify DockEdge/LensShape types with serde derives
 
 **Traces to:** FR-6, AC-4.1, AC-4.2, AC-4.3, AC-4.4
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/Cargo.toml`, `crates/luminos-platform/src/traits/window_manager.rs`, `crates/luminos-core/src/config/schema.rs`
 
 **TDD Cycle:**
@@ -43,14 +43,14 @@
    - [ ] Remove any now-unused imports in `schema.rs`
 
 **Completion Notes:**
->
+> Implemented via `luminos-types` crate (deviation from DESIGN.md -- see Deviations table). Created `crates/luminos-types/` with modules: `display.rs` (ScreenRect, ScreenPoint, DisplayInfo), `capture.rs` (CaptureFrame, PixelFormat), `overlay.rs` (DockEdge, LensShape, OverlayMode), `state.rs` (MagnificationMode, TrackingMode, ColorFilterType, TtsStatus), `gpu.rs` (PresentMode, GpuPreference, InterpolationMode). All types have serde derives except CaptureFrame (contains Arc<[u8]>). Both `luminos-platform` and `luminos-core` re-export from `luminos-types`. All 181 tests pass. Serde roundtrip tests added in both `luminos-types` and `luminos-platform` for DockEdge, LensShape, OverlayMode.
 
 ---
 
 ### T002 [P] -- Define RenderError enum in luminos-gpu
 
 **Traces to:** FR-8, AC-2.4
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/src/error.rs`, `crates/luminos-gpu/src/lib.rs`
 
 **TDD Cycle:**
@@ -75,7 +75,7 @@
 ### T003 [P] -- Create linux_x11/window.rs module and X11WindowManager struct skeleton
 
 **Traces to:** FR-1, FR-9, AC-5.3, AC-6.2
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/src/linux_x11/mod.rs`, `crates/luminos-platform/src/linux_x11/window.rs`
 
 **TDD Cycle:**
@@ -111,7 +111,7 @@
 ### T004 -- Implement create_gpu_device() in luminos-gpu
 
 **Traces to:** FR-2, AC-2.1, AC-2.4
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/src/device.rs`, `crates/luminos-gpu/src/lib.rs`
 
 **TDD Cycle:**
@@ -133,7 +133,7 @@
 ### T005 -- Implement configure_surface() in luminos-gpu
 
 **Traces to:** FR-3, AC-2.2, AC-2.3
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/src/surface.rs`, `crates/luminos-gpu/src/lib.rs`
 
 **TDD Cycle:**
@@ -155,7 +155,7 @@
 ### T006 -- Implement X11WindowManager::create_overlay()
 
 **Traces to:** FR-1, FR-4, FR-9, AC-1.1, AC-6.1
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/src/linux_x11/window.rs`
 
 **TDD Cycle:**
@@ -179,7 +179,7 @@
 ### T007 -- Implement set_overlay_bounds, set_visible, set_always_on_top
 
 **Traces to:** FR-4, AC-1.2, AC-1.3, AC-1.4
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/src/linux_x11/window.rs`
 
 **TDD Cycle:**
@@ -205,7 +205,7 @@
 ### T008 -- Implement set_overlay_mode() (FullScreen only, E02 scope)
 
 **Traces to:** FR-5, AC-3.1
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/src/linux_x11/window.rs`
 
 **TDD Cycle:**
@@ -227,7 +227,7 @@
 ### T009 -- Implement wgpu instance creation helper
 
 **Traces to:** FR-2, AC-2.1
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/src/device.rs`
 
 **TDD Cycle:**
@@ -258,7 +258,7 @@
 ### T010 -- Integration test: window creation + wgpu device + surface on Xvfb
 
 **Traces to:** AC-1.1, AC-2.1, AC-2.2, AC-2.3, AC-5.1, AC-5.2
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-gpu/tests/integration_window_gpu.rs`
 
 **TDD Cycle:**
@@ -278,7 +278,7 @@
 ### T011 -- Integration test: FullScreen overlay mode on Xvfb
 
 **Traces to:** AC-3.1
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/tests/integration_overlay_mode.rs`
 
 **TDD Cycle:**
@@ -297,7 +297,7 @@
 ### T012 -- Verify type unification does not break existing tests
 
 **Traces to:** AC-4.3
-**Status:** TODO
+**Status:** DONE
 **Files:** (no new files -- runs existing test suite)
 
 **Steps:**
@@ -316,7 +316,7 @@
 ### T013 -- Doc-comments and clippy clean pass
 
 **Traces to:** NFR-3, NFR-4, NFR-5
-**Status:** TODO
+**Status:** DONE
 **Files:** All files created/modified in this story
 
 **Steps:**
@@ -333,7 +333,7 @@
 ### T014 -- Acceptance test verification
 
 **Traces to:** All ACs
-**Status:** TODO
+**Status:** IN PROGRESS
 
 **Verification Checklist:**
 - [ ] AC-1.1: Overlay window created on Xvfb (transparent, borderless, always-on-top)
@@ -373,4 +373,8 @@
 
 | Task | Deviation | Rationale |
 |------|-----------|-----------|
-| --- | --- | --- |
+| T001 | Created `luminos-types` crate instead of keeping canonical types in `luminos-platform` with re-exports from `luminos-core` | User-directed decision during pre-implementation planning. `luminos-types` has zero workspace deps (only serde), preventing circular dependency risk and providing a cleaner dependency graph. Both `luminos-platform` and `luminos-core` re-export from `luminos-types`. |
+| T006 | Using deprecated `EventLoop::create_window()` instead of `ActiveEventLoop::create_window()` | On X11, the deprecated API works because the X connection is reference-counted and survives event loop drop. E05 will migrate to `ActiveEventLoop` pattern in the `Resumed` callback. |
+| T004 | wgpu v28 `request_adapter` returns `Result`, not `Option` | DESIGN.md showed `.await.ok_or(...)` but wgpu v28 changed the return type. Implementation uses `.await.map_err(|_| RenderError::NoAdapter)?`. |
+| T005 | Extracted `select_alpha_mode()` and `select_texture_format()` as public helper functions | Improves testability -- alpha mode fallback and format selection can be unit-tested independently of wgpu surface creation. |
+| T010 | Made `linux_x11` module `pub` in `luminos-platform/src/lib.rs` | Cross-crate integration tests in `luminos-gpu/tests/` need to access `X11WindowManager` from `luminos-platform`. |

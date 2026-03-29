@@ -10,9 +10,18 @@ default = []
 test_utils = []
 update_refs = []
 profiling = []
+ci_platform_tests = []
 
 [dependencies]
+luminos-types = { workspace = true }
 luminos-platform = { workspace = true }
 wgpu = { workspace = true }
 winit = { workspace = true }
 log = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+[target.'cfg(target_os = "linux")'.dev-dependencies]
+xcap = { workspace = true }

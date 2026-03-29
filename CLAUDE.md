@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Luminos** is a GPLv3-licensed, cross-platform (Linux/macOS/OpenBSD/Windows) screen magnification + text-to-speech accessibility suite targeting low-vision users. The project has completed its **technical strategy phase** and **Epic E01 (Project Scaffolding, Platform Traits & CI/CD)**. The repository contains the complete product strategy, technology evaluation, and technical strategy documents (10 documents covering architecture through risk management), plus the foundational Rust codebase: 5 crates with trait definitions, mock implementations, error hierarchy, core data types, and 114 unit tests, backed by a GitHub Actions CI pipeline. No user-facing functionality exists yet (that starts in E02).
+**Luminos** is a GPLv3-licensed, cross-platform (Linux/macOS/OpenBSD/Windows) screen magnification + text-to-speech accessibility suite targeting low-vision users. The project has completed its **technical strategy phase** and **Epic E01 (Project Scaffolding, Platform Traits & CI/CD)**. The repository contains the complete product strategy, technology evaluation, and technical strategy documents (10 documents covering architecture through risk management), plus the foundational Rust codebase: 6 crates (`luminos-types`, `luminos-core`, `luminos-platform`, `luminos-gpu`, `luminos-tts`, `luminos-app`) with trait definitions, mock implementations, error hierarchy, core data types, and 181 unit tests, backed by a GitHub Actions CI pipeline. Epic E02 (X11 Screen Capture & GPU Magnification) is in progress.
 
 ## Repository Structure
 
@@ -45,6 +45,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `.claude/agent-memory/` — Persistent memory for specialized agents
 
 ## Architecture (Decided — see `specs/tech-strategy/` for full details)
+
+**Cargo workspace crates:**
+- `luminos-types` — Shared data types (zero workspace deps, only serde). Canonical definitions for `ScreenRect`, `DisplayInfo`, `CaptureFrame`, `DockEdge`, `LensShape`, `OverlayMode`, etc.
+- `luminos-platform` — Platform abstraction: 6 traits + per-platform backends. Re-exports types from `luminos-types`.
+- `luminos-core` — Application state, settings schema. Re-exports types from `luminos-types`.
+- `luminos-gpu` — GPU rendering pipeline (wgpu shaders, device/surface management, frame pacing).
+- `luminos-tts` — Text-to-speech pipeline (espeak-ng + Kokoro ONNX).
+- `luminos-app` — Tauri application shell.
 
 **Dual-window design:**
 
@@ -143,11 +151,11 @@ cargo fmt --all -- --check \
 Phase 0 epics (from `specs/tech-strategy/09-implementation-roadmap.md`):
 
 - **E1:** Project Scaffolding, Platform Traits & CI/CD -- **COMPLETE** (2026-03-28). 5 stories, 53 subtasks, 114 tests passing, clippy clean, fmt clean.
-- **E2:** X11 Screen Capture + GPU Rendering (proof-of-concept magnification)
+- **E2:** X11 Screen Capture + GPU Rendering -- **IN PROGRESS**. Epic decomposed into 5 stories. Story 002 (Overlay Window & GPU Surface) in progress: 181 tests passing, type unification done via `luminos-types` crate.
 - **E3:** Focus Tracking + Input Monitoring (AT-SPI2, rdev)
 - **E4:** Control Panel Foundation (Tauri IPC, React settings UI)
 
-**Next step:** Begin Epic E02 (X11 Screen Capture & GPU Magnification) -- decompose into stories and create STORY.md/DESIGN.md/SUBTASKS.md for each story, referencing the tech strategy docs and risk register.
+**Current work:** Epic E02 (X11 Screen Capture & GPU Magnification) -- Stories 001 and 002 are in parallel implementation.
 
 ## When Editing Strategy Documents
 

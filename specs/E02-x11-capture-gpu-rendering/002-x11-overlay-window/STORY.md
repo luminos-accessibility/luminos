@@ -1,7 +1,7 @@
 # Story E02/002: X11 Overlay Window & GPU Surface
 
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** IN PROGRESS
 **Depends On:** None (parallel with 001)
 
 ---
@@ -54,8 +54,8 @@ As a developer bridging control panel settings to overlay mode changes, I want a
 **Priority:** P1
 **Acceptance Criteria:**
 
-- **AC-4.1:** Given the `DockEdge` enum, when inspected in both `luminos-platform` and `luminos-core`, then a single definition exists (in `luminos-platform`) with `Serialize`/`Deserialize` derives, and `luminos-core` re-exports it.
-- **AC-4.2:** Given the `LensShape` enum, when inspected in both `luminos-platform` and `luminos-core`, then a single definition exists (in `luminos-platform`) with `Serialize`/`Deserialize` derives, and `luminos-core` re-exports it.
+- **AC-4.1:** Given the `DockEdge` enum, when inspected in both `luminos-platform` and `luminos-core`, then a single canonical definition exists (in `luminos-types`) with `Serialize`/`Deserialize` derives, and both `luminos-platform` and `luminos-core` re-export it. *(Deviation: original spec said `luminos-platform`; user-directed change to `luminos-types` shared crate.)*
+- **AC-4.2:** Given the `LensShape` enum, when inspected in both `luminos-platform` and `luminos-core`, then a single canonical definition exists (in `luminos-types`) with `Serialize`/`Deserialize` derives, and both `luminos-platform` and `luminos-core` re-export it. *(Deviation: original spec said `luminos-platform`; user-directed change to `luminos-types` shared crate.)*
 - **AC-4.3:** Given the existing unit tests in both crates that reference `DockEdge` and `LensShape`, when the test suite runs after unification, then all tests pass without modification (beyond import path changes).
 - **AC-4.4:** Given the `OverlayMode` enum in `luminos-platform`, when inspected, then it also derives `Serialize` and `Deserialize` to support IPC serialization.
 

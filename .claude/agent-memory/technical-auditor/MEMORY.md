@@ -200,3 +200,16 @@ Key gaps: DESIGN.md lifecycle oversimplified, missing TypeScript TDD exception, 
 - Implementation quality high when DESIGN.md provides exact code blocks to copy (Story 002 was nearly 1:1 with design)
 - Pre-provisioned dependencies (log in luminos-platform) are a recurring minor finding -- teams add deps for future use
 - #[allow(missing_docs)] is pragmatic for large enums with self-explanatory variants (KeyCode, KeyModifiers)
+- STORY.md ACs not updated when implementation deviates (AC-4.1/4.2 still say "luminos-platform" after luminos-types crate created)
+- Tautological assertions in integration tests (e.g. `x || !x`) -- check test assertions for actual verification value
+- DESIGN.md status field not updated after implementation begins (stays DRAFT)
+
+### E02 Story 002 Implementation Audit (2026-03-28)
+See [e02-002-impl-audit.md](e02-002-impl-audit.md) for full details.
+- Verdict: APPROVED (0 CRITICAL, 0 HIGH, 2 MEDIUM, 2 LOW)
+- luminos-types crate: zero workspace deps, all shared types moved, backward-compatible re-exports
+- 181/181 tests pass, clippy clean, fmt clean, cargo deny PASS
+- RISK-017 verified: CaptureFrame custom Debug preserved in luminos-types, no pixel data in logs
+- RISK-002 verified: overlay_window_id() extracts X11 ID from both Xlib and Xcb handles
+- wgpu v28 API adaptations correct: request_adapter returns Result, request_device has no trace_path
+- All deviations well-documented in SUBTASKS.md deviations table (5 entries)

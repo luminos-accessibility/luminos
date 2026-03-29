@@ -10,6 +10,7 @@ default = []
 test_utils = []
 
 [dependencies]
+luminos-types = { workspace = true }
 luminos-platform = { workspace = true }
 sherpa-rs = { workspace = true }
 cpal = { workspace = true }

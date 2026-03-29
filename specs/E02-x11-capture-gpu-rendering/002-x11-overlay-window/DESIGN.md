@@ -2,7 +2,7 @@
 
 **Story:** [STORY.md](./STORY.md)
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED
 **Author:** Spec Writer 2
 **Risk Refs:** [RISK-001](../../tech-strategy/10-risk-register.md) (dual event loop coexistence), [RISK-016](../../tech-strategy/10-risk-register.md) (wgpu backend compatibility)
 
@@ -23,10 +23,20 @@ The approach follows the dual-window architecture from doc-01 Section 3: the ove
 ### Component Diagram
 
 ```
+crates/luminos-types/src/         # NEW CRATE -- canonical shared types (zero workspace deps)
+  |
+  +-- lib.rs                     # Re-exports all type modules
+  +-- display.rs                 # ScreenRect, ScreenPoint, DisplayInfo (+ serde)
+  +-- capture.rs                 # CaptureFrame, PixelFormat (CaptureFrame skips serde)
+  +-- overlay.rs                 # DockEdge, LensShape, OverlayMode (+ serde)
+  +-- state.rs                   # MagnificationMode, TrackingMode, ColorFilterType, TtsStatus
+  +-- gpu.rs                     # PresentMode, GpuPreference, InterpolationMode
+
 crates/luminos-platform/src/
   |
   +-- traits/
-  |     +-- window_manager.rs    # DockEdge, LensShape, OverlayMode (+ serde derives)
+  |     +-- window_manager.rs    # Re-exports DockEdge, LensShape, OverlayMode from luminos-types
+  |     +-- types.rs             # Re-exports ScreenRect, DisplayInfo etc. from luminos-types
   |
   +-- linux_x11/
         +-- mod.rs               # Re-exports X11WindowManager
@@ -36,14 +46,16 @@ crates/luminos-gpu/src/
   |
   +-- lib.rs                     # Module declarations
   +-- error.rs                   # RenderError enum (NEW)
-  +-- device.rs                  # create_gpu_device() (NEW)
-  +-- surface.rs                 # configure_surface() (NEW)
+  +-- device.rs                  # create_wgpu_instance(), create_gpu_device() (NEW)
+  +-- surface.rs                 # configure_surface(), select_alpha_mode(), select_texture_format() (NEW)
 
 crates/luminos-core/src/
   |
   +-- config/
-        +-- schema.rs            # DockEdge, LensShape re-exported from luminos-platform (MODIFIED)
+        +-- schema.rs            # DockEdge, LensShape etc. re-exported from luminos-types (MODIFIED)
 ```
+
+> **Deviation from original design:** The original DESIGN.md proposed keeping canonical type definitions in `luminos-platform` and re-exporting from `luminos-core`. During pre-implementation planning, a user-directed decision created `luminos-types` as a separate crate with zero workspace dependencies, providing a cleaner dependency graph. Both `luminos-platform` and `luminos-core` now re-export from `luminos-types`.
 
 ### Affected Traits / Modules
 
@@ -397,33 +409,39 @@ pub fn configure_surface(
 }
 ```
 
-### Type Unification -- `DockEdge`/`LensShape`
+### Type Unification -- `luminos-types` Crate (Deviation from Original Design)
 
-The unification adds `serde` derives to the existing definitions in `luminos-platform` and replaces the independent definitions in `luminos-core` with re-exports.
+> **Original approach:** Add serde derives to `luminos-platform` definitions, re-export from `luminos-core`.
+> **Actual approach (user-directed):** Create `luminos-types` crate as canonical source for all shared types.
 
-**In `crates/luminos-platform/src/traits/window_manager.rs`:**
+The `luminos-types` crate has zero workspace dependencies (only `serde`), preventing circular dependency risk. All shared data types were moved to `luminos-types` with full serde support. Both `luminos-platform` and `luminos-core` re-export from `luminos-types` for backward compatibility.
+
+**Types in `crates/luminos-types/src/overlay.rs`:**
 
 ```rust
-// Add serde derives (requires adding serde to luminos-platform dependencies)
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DockEdge { Top, Bottom, Left, Right }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum LensShape { Rectangle, Ellipse }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum OverlayMode { FullScreen, Lens { width: u32, height: u32, shape: LensShape }, Docked { edge: DockEdge, size_px: u32 } }
 ```
 
-**In `crates/luminos-core/src/config/schema.rs`:**
+**Re-exports in `crates/luminos-platform/src/traits/window_manager.rs`:**
 
 ```rust
-// Replace local DockEdge/LensShape definitions with re-exports
-pub use luminos_platform::traits::DockEdge;
-pub use luminos_platform::traits::LensShape;
+pub use luminos_types::{DockEdge, LensShape, OverlayMode};
 ```
 
-**Dependency change:** Add `serde = { workspace = true, features = ["derive"] }` to `luminos-platform/Cargo.toml`.
+**Re-exports in `crates/luminos-core/src/config/schema.rs`:**
+
+```rust
+pub use luminos_types::{DockEdge, GpuPreference, InterpolationMode, LensShape, PresentMode};
+```
+
+**Note:** `CaptureFrame` is in `luminos-types` but does NOT derive `Serialize`/`Deserialize` because it contains `Arc<[u8]>` (GPU pixel data) which is a runtime type not suitable for serialization.
 
 ---
 

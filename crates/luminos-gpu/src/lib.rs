@@ -2,3 +2,7 @@
 //!
 //! Implements screen magnification via wgpu shaders, frame capture
 //! processing, and the winit-based magnification overlay window.
+
+pub mod device;
+pub mod error;
+pub mod surface;

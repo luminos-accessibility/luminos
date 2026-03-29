@@ -19,7 +19,7 @@ pub(crate) mod common;
 // chooses the active backend (see doc-02 Section 5.3).
 
 #[cfg(target_os = "linux")]
-mod linux_x11;
+pub mod linux_x11;
 
 #[cfg(target_os = "linux")]
 mod linux_wayland;

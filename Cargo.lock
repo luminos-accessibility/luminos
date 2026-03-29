@@ -3471,6 +3471,7 @@ dependencies = [
  "luminos-gpu",
  "luminos-platform",
  "luminos-tts",
+ "luminos-types",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
@@ -3483,8 +3484,12 @@ version = "0.1.0"
 dependencies = [
  "log",
  "luminos-platform",
+ "luminos-types",
+ "thiserror 2.0.18",
+ "tokio",
  "wgpu",
  "winit",
+ "xcap",
 ]
 
 [[package]]
@@ -3495,10 +3500,14 @@ dependencies = [
  "atspi",
  "image",
  "log",
+ "luminos-types",
  "raw-window-handle",
  "rdev",
+ "serde",
+ "serde_json",
  "thiserror 2.0.18",
  "tokio",
+ "winit",
  "x11rb",
  "xcap",
 ]
@@ -3510,7 +3519,16 @@ dependencies = [
  "cpal",
  "log",
  "luminos-platform",
+ "luminos-types",
  "sherpa-rs",
+]
+
+[[package]]
+name = "luminos-types"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

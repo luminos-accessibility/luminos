@@ -13,59 +13,10 @@ use serde::{Deserialize, Serialize};
 use crate::state::{ColorFilterType, MagnificationMode, TrackingMode};
 
 // ---------------------------------------------------------------------------
-// Supporting enums
+// Supporting enums (re-exported from luminos-types)
 // ---------------------------------------------------------------------------
 
-/// Screen edge for docked mode.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum DockEdge {
-    /// Top edge of the screen.
-    Top,
-    /// Bottom edge of the screen.
-    Bottom,
-    /// Left edge of the screen.
-    Left,
-    /// Right edge of the screen.
-    Right,
-}
-
-/// Lens overlay shape.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum LensShape {
-    /// Rectangular lens boundary.
-    Rectangle,
-    /// Elliptical lens boundary.
-    Ellipse,
-}
-
-/// `VSync` / frame presentation strategy.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum PresentMode {
-    /// VSync-locked (Fifo), smooth, no tearing.
-    Quality,
-    /// Mailbox, lowest input latency with GPU overhead.
-    LowLatency,
-    /// Immediate, uncapped FPS for diagnostics.
-    Performance,
-}
-
-/// GPU device preference.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum GpuPreference {
-    /// Integrated GPU (lower power, default).
-    LowPower,
-    /// Discrete GPU (higher performance).
-    HighPerformance,
-}
-
-/// Scaling interpolation algorithm.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum InterpolationMode {
-    /// Bilinear filtering (Phase 0 default).
-    Bilinear,
-    /// Bicubic filtering (Phase 1+, higher quality).
-    Bicubic,
-}
+pub use luminos_types::{DockEdge, GpuPreference, InterpolationMode, LensShape, PresentMode};
 
 /// Kokoro ONNX model quantization variant.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
