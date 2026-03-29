@@ -1,6 +1,12 @@
-# Luminos
-
-**See clearly. Hear everything.**
+```
+ ██╗     ██╗   ██╗███╗   ███╗██╗███╗   ██╗ ██████╗ ███████╗
+ ██║     ██║   ██║████╗ ████║██║████╗  ██║██╔═══██╗██╔════╝
+ ██║     ██║   ██║██╔████╔██║██║██╔██╗ ██║██║   ██║███████╗
+ ██║     ██║   ██║██║╚██╔╝██║██║██║╚██╗██║██║   ██║╚════██║
+ ███████╗╚██████╔╝██║ ╚═╝ ██║██║██║ ╚████║╚██████╔╝███████║
+ ╚══════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝
+                See clearly. Hear everything.
+```
 
 [![CI](https://github.com/luminos-accessibility/luminos/actions/workflows/ci.yml/badge.svg)](https://github.com/luminos-accessibility/luminos/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/luminos-accessibility/luminos/graph/badge.svg)](https://codecov.io/gh/luminos-accessibility/luminos)
