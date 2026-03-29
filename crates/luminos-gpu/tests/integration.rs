@@ -371,8 +371,7 @@ mod platform_integration {
         u32,
         u32,
     ) {
-        let wm: &'static X11WindowManager =
-            Box::leak(Box::new(create_overlay_on_first_monitor()));
+        let wm: &'static X11WindowManager = Box::leak(Box::new(create_overlay_on_first_monitor()));
         let instance = create_wgpu_instance();
 
         let surface = instance
