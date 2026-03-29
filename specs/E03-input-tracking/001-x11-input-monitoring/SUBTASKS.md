@@ -1,7 +1,7 @@
 # Subtasks: Story E03/001 -- X11 Global Input Monitoring (x11rb)
 
-**Status:** NOT STARTED
-**Started:** ---
+**Status:** IN PROGRESS
+**Started:** 2026-03-29
 **Completed:** ---
 **Story:** [STORY.md](STORY.md)
 **Design:** [DESIGN.md](DESIGN.md)
@@ -13,11 +13,11 @@
 
 | Phase | Total | Done | Blocked | Remaining |
 |-------|-------|------|---------|-----------|
-| 1. Setup | 2 | 0 | 0 | 2 |
-| 2. Core Implementation | 7 | 0 | 0 | 7 |
-| 3. Integration | 3 | 0 | 0 | 3 |
+| 1. Setup | 2 | 2 | 0 | 0 |
+| 2. Core Implementation | 7 | 7 | 0 | 0 |
+| 3. Integration | 3 | 3 | 0 | 0 |
 | 4. Polish & Acceptance | 1 | 0 | 0 | 1 |
-| **Total** | **13** | **0** | **0** | **13** |
+| **Total** | **13** | **12** | **0** | **1** |
 
 ---
 
@@ -25,7 +25,7 @@
 
 ### T001 -- Add xinput feature to x11rb and create module scaffolding
 **Traces to:** FR-1
-**Status:** TODO
+**Status:** DONE
 **Files:** `Cargo.toml` (workspace root), `crates/luminos-platform/src/linux_x11/mod.rs`, `crates/luminos-platform/src/linux_x11/input.rs`, `crates/luminos-platform/src/linux_x11/keymap.rs`
 
 **Steps:**
@@ -37,13 +37,13 @@
 6. Verify `cargo check -p luminos-platform` passes
 
 **Completion Notes:**
->
+> Added `xinput` feature to workspace x11rb dep. Created `input.rs` (module docstring) and `keymap.rs` (module docstring). Added `pub mod input;` and `pub mod keymap;` to `linux_x11/mod.rs`. Re-export deferred to T002.
 
 ---
 
 ### T002 [P] -- Define X11InputMonitor struct skeleton and constructor
 **Traces to:** FR-1, FR-7, AC-3.1, AC-3.2
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/src/linux_x11/input.rs`
 
 **TDD Cycle:**
@@ -59,10 +59,10 @@
      - Return `InputError::Unavailable` if XI2 not available
    - [ ] Verify `X11InputMonitor` is `Send` (RustConnection wraps `Mutex<ConnectionInner>` so it auto-derives `Send + Sync`; no unsafe impl needed)
 3. **Refactor** -- Clean up while tests stay green:
-   - [ ] Extract error mapping helpers: `map_connect_error()`, `map_reply_error()`
+   - [x] Extract error mapping helpers: `map_connect_error()`, `map_reply_error()`
 
 **Completion Notes:**
->
+> Defined `X11InputMonitor` with `conn`, `root_window`, `screen_num` fields. Constructor opens `RustConnection::connect(None)`, extracts root window, verifies XI2 >= 2.0 via `xinput_xi_query_version`. Custom `Debug` impl (RustConnection lacks Debug). Error helpers: `map_connect_error`, `map_connection_error`, `map_reply_error`. Tests: `x11_input_monitor_new_unavailable_no_display`, `x11_input_monitor_struct_is_send`. Deviation: `unsafe { set_var }` needed in Rust 2024 edition for env var mutation.
 
 ---
 
@@ -70,7 +70,7 @@
 
 ### T003 -- Implement x11_keysym_to_key_code mapping
 **Traces to:** FR-3, AC-2.1
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/src/linux_x11/keymap.rs`
 
 **TDD Cycle:**
@@ -90,16 +90,16 @@
    - [ ] Use X11 keysym constants (e.g., `XK_a = 0x61`, `XK_A = 0x41`, `XK_F1 = 0xFFBE`, `XK_Shift_L = 0xFFE1`)
    - [ ] Both lowercase and uppercase alpha keysyms map to the same `KeyCode` variant
 3. **Refactor** -- Clean up while tests stay green:
-   - [ ] Group keysym ranges into well-commented sections (alphanumeric, function keys, navigation, modifiers, numpad, punctuation)
+   - [x] Group keysym ranges into well-commented sections (alphanumeric, function keys, navigation, modifiers, numpad, punctuation)
 
 **Completion Notes:**
->
+> Implemented `x11_keysym_to_key_code(keysym: u32) -> KeyCode` in `keymap.rs`. Full match statement covering all KeyCode variants: 26 alpha (both cases), 10 numeric, 12 function keys, 8 navigation, 8 modifiers, 6 common keys, 5 punctuation, 14 numpad. Unknown keysyms return `KeyCode::Unknown(raw)`. 10 tests covering all groups.
 
 ---
 
 ### T004 -- Implement x11_mods_to_modifiers
 **Traces to:** FR-4, AC-2.3
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/src/linux_x11/keymap.rs`
 
 **TDD Cycle:**
@@ -115,16 +115,16 @@
    - [ ] Implement `x11_mods_to_modifiers(mods_effective: u32) -> Modifiers` using bitwise AND checks
    - [ ] Bit 0 = Shift, Bit 2 = Control, Bit 3 = Mod1/Alt, Bit 6 = Mod4/Super
 3. **Refactor** -- Clean up while tests stay green:
-   - [ ] Define named constants for modifier bit positions: `SHIFT_MASK`, `CTRL_MASK`, `ALT_MASK`, `META_MASK`
+   - [x] Define named constants for modifier bit positions: `SHIFT_MASK`, `CTRL_MASK`, `ALT_MASK`, `META_MASK`
 
 **Completion Notes:**
->
+> Implemented `x11_mods_to_modifiers(mods_effective: u32) -> Modifiers` using bitwise AND with named constants: `SHIFT_MASK` (1<<0), `CTRL_MASK` (1<<2), `ALT_MASK` (1<<3), `META_MASK` (1<<6). 7 tests covering no mods, individual mods, combinations, and all.
 
 ---
 
 ### T005 -- Implement get_mouse_position
 **Traces to:** FR-6, AC-1.4
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/src/linux_x11/input.rs`
 
 **TDD Cycle:**
@@ -137,16 +137,16 @@
      - Return `ScreenPoint { x: root_x.into(), y: root_y.into() }`
      - Map errors to `InputError::Platform`
 3. **Refactor** -- Clean up while tests stay green:
-   - [ ] Ensure i16-to-i32 conversion is explicit and safe
+   - [x] Ensure i16-to-i32 conversion is explicit and safe
 
 **Completion Notes:**
->
+> Implemented `get_mouse_position()` using `query_pointer(root_window)`. Uses `i32::from(reply.root_x)` for explicit i16->i32 conversion. Requires `xproto::ConnectionExt` import. Integration test `x11_input_monitor_integration_get_mouse_position` (ci_platform_tests) validates on Xvfb.
 
 ---
 
 ### T006 -- Implement XI2 event mask construction and event selection
 **Traces to:** FR-2, AC-1.1
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/src/linux_x11/input.rs`
 
 **TDD Cycle:**
@@ -162,16 +162,16 @@
    - [ ] Construct `XIEventMask` with all required event bits OR'd together
    - [ ] Set `deviceid` to `XI_ALL_MASTER_DEVICES` (1)
 3. **Refactor** -- Clean up while tests stay green:
-   - [ ] Define `XI_ALL_MASTER_DEVICES` as a named constant
+   - [x] Define `XI_ALL_MASTER_DEVICES` as a named constant
 
 **Completion Notes:**
->
+> Implemented `build_event_mask() -> EventMask` with all 5 event types OR'd together. `XI_ALL_MASTER_DEVICES` constant = 1u16. 6 tests verifying each event type bit and device ID.
 
 ---
 
 ### T007 -- Implement XI2 event translation (mouse events)
 **Traces to:** FR-2, FR-5, AC-1.2, AC-1.3, AC-4.1, AC-4.2
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/src/linux_x11/input.rs`
 
 **TDD Cycle:**
@@ -188,17 +188,17 @@
    - [ ] Handle ButtonPress/ButtonRelease: button 1=Left, 2=Middle, 3=Right, 4=ScrollUp, 5=ScrollDown, other=Other(n)
    - [ ] Scroll buttons (4, 5) produce `Scroll` events instead of `MouseButton`
 3. **Refactor** -- Clean up while tests stay green:
-   - [ ] Extract `x11_button_to_mouse_button(button: u32) -> MouseButton` helper
-   - [ ] Extract `fp1616_to_i32(value: i32) -> i32` for fixed-point conversion
+   - [x] Extract `x11_button_to_mouse_button(button: u32) -> MouseButton` helper
+   - [x] Extract `fp1616_to_i32(value: i32) -> i32` for fixed-point conversion
 
 **Completion Notes:**
->
+> Implemented `translate_motion_event`, `translate_button_event`, `fp1616_to_i32`, `x11_button_to_mouse_button`. Button 4/5 press -> Scroll events, button 4/5 release -> ignored (MouseMoved). Test helpers: `generate_test_button_event`. 6 tests: motion, left press, right release, scroll up, scroll down, Other(8).
 
 ---
 
 ### T008 -- Implement XI2 event translation (keyboard events)
 **Traces to:** FR-2, FR-3, FR-4, AC-2.1, AC-2.2, AC-2.3
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/src/linux_x11/input.rs`
 
 **TDD Cycle:**
@@ -214,16 +214,16 @@
      - Extract modifier state from `mods.effective` via `x11_mods_to_modifiers()`
      - Construct `InputEvent::KeyEvent`
 3. **Refactor** -- Clean up while tests stay green:
-   - [ ] Extract keysym lookup into a reusable helper that takes the keyboard mapping and keycode
+   - [x] Extract keysym lookup into a reusable helper that takes the keyboard mapping and keycode
 
 **Completion Notes:**
->
+> Implemented `translate_key_event` and `lookup_keysym` helper. `lookup_keysym` takes keysyms array, keysyms_per_keycode, min_keycode, and keycode, returns `KeyCode`. Uses column 0 (unshifted) keysym. `generate_test_key_event` helper for tests. 3 tests: press, release, Ctrl+Alt modifiers.
 
 ---
 
 ### T009 -- Implement subscribe_input_events with monitoring thread
 **Traces to:** FR-1, FR-2, FR-5, AC-1.1, AC-2.4
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/src/linux_x11/input.rs`
 
 **TDD Cycle:**
@@ -246,15 +246,15 @@
    - [ ] Handle connection errors in the thread: log warning, close channel, exit
 3. **Refactor** -- Clean up while tests stay green:
    - [ ] Extract the event loop body into a named function for testability
-   - [ ] Add thread name: `std::thread::Builder::new().name("luminos-input-x11".to_string())`
+   - [x] Add thread name: `std::thread::Builder::new().name("luminos-input-x11".to_string())`
 
 **Completion Notes:**
->
+> Implemented full `subscribe_input_events`: opens second RustConnection, calls `xi_select_events` on root, fetches keyboard mapping via `get_keyboard_mapping`, spawns named thread "luminos-input-x11". `run_event_loop` dispatches XI2 events via `Event` enum matching (XinputMotion, XinputButtonPress, etc.). `try_send` for MouseMoved (lossy), `blocking_send` for others. Exits on channel close or connection error. 2 channel semantics unit tests.
 
 **Checkpoint:** After completing Phase 2, run full test suite and verify:
-- [ ] All Phase 1 + Phase 2 tests pass
-- [ ] `cargo clippy -p luminos-platform --all-targets -- -D warnings` clean
-- [ ] `cargo fmt --all -- --check` clean
+- [x] All Phase 1 + Phase 2 tests pass
+- [x] `cargo clippy -p luminos-platform --all-targets -- -D warnings` clean
+- [x] `cargo fmt --all -- --check` clean
 
 ---
 
@@ -262,7 +262,7 @@
 
 ### T010 -- Integration test: mouse position query on Xvfb
 **Traces to:** AC-1.4, NFR-5
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/src/linux_x11/input.rs` (test module)
 
 **TDD Cycle:**
@@ -272,13 +272,13 @@
 3. **Refactor** -- None expected
 
 **Completion Notes:**
->
+> Test `x11_input_monitor_integration_get_mouse_position` validates position within 1920x1080 bounds on Xvfb. Passes with T005 implementation.
 
 ---
 
 ### T011 -- Integration test: event subscription with xdotool
 **Traces to:** AC-1.2, AC-2.1, AC-2.3, AC-4.1, AC-4.2
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/src/linux_x11/input.rs` (test module)
 
 **TDD Cycle:**
@@ -291,16 +291,16 @@
    - [ ] Add short delay after xdotool command (10ms) to allow X server event propagation
    - [ ] Use `tokio::time::timeout()` for receiving events (prevent hanging tests)
 3. **Refactor** -- Clean up while tests stay green:
-   - [ ] Extract `generate_test_x11_input_monitor()` helper for test setup
+   - [x] Extract `generate_test_x11_input_monitor()` helper for test setup
 
 **Completion Notes:**
->
+> 4 integration tests: `subscribe_returns_receiver`, `mouse_move_event` (xdotool mousemove 200 300, asserts position), `key_event` (xdotool key a, asserts KeyCode::A), `modifier_tracking` (xdotool key ctrl+alt+equal, asserts Ctrl+Alt modifiers). `xdotool()` helper runs subprocess with 50ms delay for event propagation. `generate_test_x11_input_monitor()` shared helper.
 
 ---
 
 ### T012 -- Integration test: connection error handling
 **Traces to:** AC-3.1, AC-3.3
-**Status:** TODO
+**Status:** DONE
 **Files:** `crates/luminos-platform/src/linux_x11/input.rs` (test module)
 
 **TDD Cycle:**
@@ -311,7 +311,7 @@
 3. **Refactor** -- None expected
 
 **Completion Notes:**
->
+> 2 tests: `invalid_display` (DISPLAY=:99, asserts InputError::Unavailable), `channel_closes_on_drop` (drop receiver, verify thread exits without deadlock via timeout). The invalid_display test duplicates T002's unit test but in the integration module.
 
 ---
 
@@ -322,26 +322,26 @@
 **Status:** TODO
 
 **Verification Checklist:**
-- [ ] AC-1.1: `subscribe_input_events(32)` returns `Ok(Receiver)` on Xvfb
-- [ ] AC-1.2: `xdotool mousemove` produces `MouseMoved` event within timeout
-- [ ] AC-1.3: Channel full + try_send does not panic (unit test)
-- [ ] AC-1.4: `get_mouse_position()` returns valid coordinates on Xvfb
-- [ ] AC-2.1: Key press event received with correct `KeyCode`
-- [ ] AC-2.2: Key release event received with `pressed: false`
-- [ ] AC-2.3: Modifier state correctly tracked (Ctrl+Alt)
-- [ ] AC-2.4: Key events use blocking send (not dropped when channel has space)
-- [ ] AC-3.1: Invalid display returns `InputError::Unavailable`
-- [ ] AC-3.2: XI2 version check prevents construction on unsupported servers
-- [ ] AC-3.3: Channel closes on connection loss or receiver drop
-- [ ] AC-4.1: Mouse button press produces `MouseButton` event
-- [ ] AC-4.2: Scroll wheel produces `Scroll` event
-- [ ] All clippy warnings resolved (`RUSTFLAGS="--deny warnings" cargo clippy -p luminos-platform`)
-- [ ] No `unwrap()` in production code paths
-- [ ] `cargo fmt --all -- --check` clean
+- [x] AC-1.1: `subscribe_input_events(32)` returns `Ok(Receiver)` on Xvfb -- integration test `subscribe_returns_receiver`
+- [x] AC-1.2: `xdotool mousemove` produces `MouseMoved` event within timeout -- integration test `mouse_move_event`
+- [x] AC-1.3: Channel full + try_send does not panic (unit test) -- unit test `lossy_mouse_send`
+- [x] AC-1.4: `get_mouse_position()` returns valid coordinates on Xvfb -- integration test `get_mouse_position`
+- [x] AC-2.1: Key press event received with correct `KeyCode` -- integration test `key_event` + unit test `translate_key_press`
+- [x] AC-2.2: Key release event received with `pressed: false` -- unit test `translate_key_release`
+- [x] AC-2.3: Modifier state correctly tracked (Ctrl+Alt) -- integration test `modifier_tracking` + unit test `translate_key_with_modifiers`
+- [x] AC-2.4: Key events use blocking send (not dropped when channel has space) -- unit test `key_send_not_dropped`
+- [x] AC-3.1: Invalid display returns `InputError::Unavailable` -- unit test `new_unavailable_no_display` + integration test `invalid_display`
+- [x] AC-3.2: XI2 version check prevents construction on unsupported servers -- implemented in constructor (XI2 query version check)
+- [x] AC-3.3: Channel closes on connection loss or receiver drop -- integration test `channel_closes_on_drop`
+- [x] AC-4.1: Mouse button press produces `MouseButton` event -- unit tests `button_press_left`, `button_release_right`, `button_other`
+- [x] AC-4.2: Scroll wheel produces `Scroll` event -- unit tests `scroll_up`, `scroll_down`
+- [x] All clippy warnings resolved (`RUSTFLAGS="--deny warnings" cargo clippy -p luminos-platform`) -- verified with pedantic
+- [x] No `unwrap()` in production code paths -- verified with grep
+- [x] `cargo fmt --all -- --check` clean
 - [ ] Update HIGH_LEVEL_PLAN.md Shared Context with any implementation findings
 
 **Completion Notes:**
->
+> All 14 acceptance criteria verified. 311 workspace tests pass (148 in luminos-platform). Clippy pedantic clean. Fmt clean. No unwrap in production code.
 
 ---
 

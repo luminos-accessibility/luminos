@@ -65,7 +65,7 @@ tauri-specta = { version = "2.0.0-rc.21", features = ["derive", "typescript"] }
 specta-typescript = "0.0.9"
 
 # X11 protocol (Linux + OpenBSD)
-x11rb = { version = "0.13", features = ["randr", "shm"] }
+x11rb = { version = "0.13", features = ["randr", "shm", "xinput"] }
 
 # Linux accessibility
 atspi = "0.22"

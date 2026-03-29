@@ -89,7 +89,7 @@ luminos-platform/src/
 3. **Event Loop (monitor thread):**
    - Calls `conn.wait_for_event()` in a loop (blocking).
    - Dispatches XInput2 events based on event type:
-     - `Motion` -> `InputEvent::MouseMoved` with position from event's `event_x`/`event_y` (fixed-point 16.16 to i32)
+     - `Motion` -> `InputEvent::MouseMoved` with position from event's `root_x`/`root_y` (fixed-point 16.16 to i32)
      - `ButtonPress`/`ButtonRelease` -> `InputEvent::MouseButton` (buttons 1-3 map to Left/Right/Middle; 4-5 are scroll, mapped to `InputEvent::Scroll`)
      - `KeyPress`/`KeyRelease` -> `InputEvent::KeyEvent` with keycode mapped via `keymap::x11_keycode_to_key_code()` and modifier state tracked from `mods.effective`
    - Mouse move events: `tx.try_send()` (lossy, per trait contract)

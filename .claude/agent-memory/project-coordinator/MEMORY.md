@@ -6,3 +6,5 @@
 - [E02/003-004 Implementation Decisions](project_e02_003_004_decisions.md) — wgpu v28 API adaptations, bytemuck, GPU test patterns, quality gate results
 - [Epic E02 Complete](project_e02_complete.md) — E02 done 2026-03-28: 5 stories, 275 tests, full capture-to-present pipeline, CI jobs added
 - [E03 Spec Decisions](project_e03_decisions.md) — x11rb over rdev, Ctrl+Alt+8 toggle (VT conflict fix), core→gpu dep, accessibility tool convention wording
+- [E03/001 Implementation Decisions](project_e03_001_decisions.md) — X11InputMonitor impl, 36+6 tests, 3 quality gates passed, LOW findings fixed
+- [E03/002 Implementation Decisions](project_e03_002_decisions.md) — StateManager, LuminosEvent, AppState mouse_position, 24 tests, 3 quality gates passed
