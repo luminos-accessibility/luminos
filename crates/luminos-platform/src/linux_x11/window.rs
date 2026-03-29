@@ -5,7 +5,7 @@
 
 use winit::dpi::{PhysicalPosition, PhysicalSize};
 use winit::event_loop::EventLoop;
-use winit::platform::x11::WindowAttributesExtX11;
+use winit::platform::x11::{EventLoopBuilderExtX11, WindowAttributesExtX11};
 use winit::window::{Window, WindowAttributes, WindowLevel};
 
 use crate::traits::{OverlayMode, ScreenRect, WindowError, WindowManager};
@@ -164,10 +164,15 @@ impl WindowManager for X11WindowManager {
         // deprecated `create_window` works because the X connection is
         // reference-counted and survives event loop drop. This will be
         // replaced in E05 with ActiveEventLoop-based creation.
+        // `with_any_thread(true)` is required because nextest (and the
+        // real app's render thread) may initialise this off the main thread.
         #[allow(deprecated)]
-        let event_loop = EventLoop::new().map_err(|e| WindowError::CreationFailed {
-            message: format!("failed to create event loop: {e}"),
-        })?;
+        let event_loop = EventLoop::builder()
+            .with_any_thread(true)
+            .build()
+            .map_err(|e| WindowError::CreationFailed {
+                message: format!("failed to create event loop: {e}"),
+            })?;
 
         #[allow(deprecated)]
         let window = event_loop

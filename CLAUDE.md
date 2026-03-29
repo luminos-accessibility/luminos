@@ -88,18 +88,22 @@ Luminos is licensed under **GPLv3**. espeak-ng (GPL-3.0) is used for phonemizati
 
 ## CI / Quality Assurance Commands
 
-These commands mirror the GitHub Actions CI pipeline. Run them locally before pushing. CI sets `RUSTFLAGS="--deny warnings"` — replicate this to catch warning-as-error failures locally.
+These commands mirror the GitHub Actions CI pipeline (`.github/workflows/ci.yml`). **Quality assurance agents MUST run ALL of these checks before considering work complete.** CI sets `RUSTFLAGS="--deny warnings"` — replicate this to catch warning-as-error failures locally.
 
-### Formatting
+**If the CI pipeline is modified, this section MUST be updated to match.** The source of truth is `.github/workflows/ci.yml`.
+
+The CI pipeline has 6 active jobs. All test/security/coverage jobs depend on lint passing first.
+
+### 1. Formatting
 
 ```bash
 cargo fmt --all -- --check
 ```
 
-### Linting (Clippy)
+### 2. Linting (Clippy)
 
 ```bash
-cargo clippy --workspace --all-targets --all-features \
+RUSTFLAGS="--deny warnings" cargo clippy --workspace --all-targets --all-features \
   -- -D warnings \
   -W clippy::unwrap_used \
   -W clippy::expect_used \
@@ -107,15 +111,15 @@ cargo clippy --workspace --all-targets --all-features \
   -A clippy::module_name_repetitions
 ```
 
-### Unit Tests
+### 3. Unit Tests
 
 Requires [cargo-nextest](https://nexte.st/). The `ci` profile enables retries and relaxed timeouts (see `.config/nextest.toml`).
 
 ```bash
-cargo nextest run --workspace --exclude luminos-app
+RUSTFLAGS="--deny warnings" cargo nextest run --profile ci --workspace --exclude luminos-app
 ```
 
-### Security Audit
+### 4. Security Audit
 
 Requires [cargo-deny](https://github.com/EmbarkStudios/cargo-deny) and [cargo-audit](https://github.com/rustsec/rustsec/tree/main/cargo-audit).
 
@@ -124,24 +128,35 @@ cargo deny check licenses advisories
 cargo audit
 ```
 
-### Test Coverage
+### 5. Test Coverage
 
 Requires [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov).
 
 ```bash
-cargo llvm-cov --workspace --exclude luminos-app --lcov --output-path lcov.info
+RUSTFLAGS="--deny warnings" cargo llvm-cov --workspace --exclude luminos-app --lcov --output-path lcov.info
 ```
 
-### Full Local QA (all checks in sequence)
+### 6. Platform Tests (X11/Xvfb)
+
+Runs `luminos-platform` tests that require a live X11 display. Requires Xvfb, picom, and X11 dev libraries. CI runs these under `xvfb-run` with a virtual 1920x1080 screen and picom as compositor.
 
 ```bash
-cargo fmt --all -- --check \
-  && cargo clippy --workspace --all-targets --all-features \
-       -- -D warnings -W clippy::unwrap_used -W clippy::expect_used \
-       -W clippy::pedantic -A clippy::module_name_repetitions \
-  && cargo nextest run --workspace --exclude luminos-app \
-  && cargo deny check licenses advisories \
-  && cargo audit
+xvfb-run -s "-screen 0 1920x1080x24" bash -c \
+  "picom --backend xrender --daemon && \
+   RUSTFLAGS='--deny warnings' cargo nextest run --profile ci \
+   -p luminos-platform --features ci_platform_tests"
+```
+
+### 7. GPU Tests (Mesa llvmpipe)
+
+Runs `luminos-gpu` tests that require a GPU context. Uses Mesa llvmpipe software renderer. Requires Xvfb, picom, Mesa drivers, and the same X11 dev libraries as platform tests.
+
+```bash
+MESA_GL_VERSION_OVERRIDE="4.5" LIBGL_ALWAYS_SOFTWARE="1" \
+  xvfb-run -s "-screen 0 1920x1080x24" bash -c \
+  "picom --backend xrender --daemon && \
+   RUSTFLAGS='--deny warnings' cargo nextest run --profile ci \
+   -p luminos-gpu --features ci_platform_tests"
 ```
 
 ## Current Project Phase

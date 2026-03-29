@@ -337,7 +337,7 @@ mod platform_integration {
     use luminos_platform::linux_x11::X11WindowManager;
     use luminos_platform::traits::WindowManager;
 
-    /// Creates an X11WindowManager with an overlay on the first monitor.
+    /// Creates an `X11WindowManager` with an overlay on the first monitor.
     fn create_overlay_on_first_monitor() -> X11WindowManager {
         let mut wm = X11WindowManager::new();
         let monitors = xcap::Monitor::all().expect("should enumerate monitors");
@@ -440,7 +440,7 @@ mod platform_integration {
         );
     }
 
-    /// After a successful render, handle_capture_failure + render with
+    /// After a successful render, `handle_capture_failure` + render with
     /// stale texture should work without error.
     ///
     /// Traces to: AC-3.1, AC-3.2
