@@ -94,6 +94,14 @@ These commands mirror the GitHub Actions CI pipeline (`.github/workflows/ci.yml`
 
 The CI pipeline has 6 active jobs. All test/security/coverage jobs depend on lint passing first.
 
+### QA Agent Minimum Checks
+
+**QA agents on implementation teams MUST run at least checks 1-4 below** before approving any implementation work. QA agents MUST NOT edit source files — only validate. If checks fail, report the failure to the implementor for fixing.
+
+- **For changes to `luminos-platform`:** Also run check 6 (Platform Tests) if an X11 display is available.
+- **For changes to `luminos-gpu`:** Also run check 7 (GPU Tests) if Mesa llvmpipe is available.
+- **For all changes:** Verify that every acceptance criterion from the story's STORY.md has at least one passing test covering it. Produce an AC coverage matrix in the QA report.
+
 ### 1. Formatting
 
 ```bash
@@ -138,7 +146,7 @@ RUSTFLAGS="--deny warnings" cargo llvm-cov --workspace --exclude luminos-app --l
 
 ### 6. Platform Tests (X11/Xvfb)
 
-Runs `luminos-platform` tests that require a live X11 display. Requires Xvfb, picom, and X11 dev libraries. CI runs these under `xvfb-run` with a virtual 1920x1080 screen and picom as compositor.
+Runs `luminos-platform` tests that require a live X11 display. Requires Xvfb, picom, xdotool, and X11 dev libraries. CI runs these under `xvfb-run` with a virtual 1920x1080 screen and picom as compositor.
 
 ```bash
 xvfb-run -s "-screen 0 1920x1080x24" bash -c \
@@ -146,6 +154,11 @@ xvfb-run -s "-screen 0 1920x1080x24" bash -c \
    RUSTFLAGS='--deny warnings' cargo nextest run --profile ci \
    -p luminos-platform --features ci_platform_tests"
 ```
+
+**Important notes for platform tests:**
+- `xdotool` is required for input monitoring integration tests (mouse move, key press simulation). Tests gracefully skip if `xdotool` is not installed, but CI MUST have it.
+- Tests that set `DISPLAY` to an invalid value use `:54321` (not `:99`). The `xvfb-run` default display is `:99`, so using it as an "invalid" display causes false passes.
+- Integration tests are gated behind `#[cfg(all(test, target_os = "linux", feature = "ci_platform_tests"))]` — they only compile and run when the `ci_platform_tests` feature is enabled.
 
 ### 7. GPU Tests (Mesa llvmpipe)
 
