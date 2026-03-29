@@ -356,8 +356,12 @@ mod platform_integration {
 
     /// Creates a full GPU pipeline (instance, surface, device, queue)
     /// from an X11 overlay window.
+    ///
+    /// The `X11WindowManager` is leaked via `Box::leak` to satisfy the
+    /// `'static` lifetime requirement of `wgpu::Surface<'static>`. This
+    /// is acceptable in tests since each test process is short-lived.
     async fn create_gpu_pipeline() -> (
-        X11WindowManager,
+        &'static X11WindowManager,
         wgpu::Instance,
         wgpu::Surface<'static>,
         wgpu::Adapter,
@@ -367,7 +371,8 @@ mod platform_integration {
         u32,
         u32,
     ) {
-        let wm = create_overlay_on_first_monitor();
+        let wm: &'static X11WindowManager =
+            Box::leak(Box::new(create_overlay_on_first_monitor()));
         let instance = create_wgpu_instance();
 
         let surface = instance
