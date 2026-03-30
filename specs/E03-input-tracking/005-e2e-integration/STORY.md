@@ -1,7 +1,7 @@
 # Story E03/005: End-to-End Pipeline Integration
 
 **Epic:** [HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** DONE (2026-03-29)
 **Depends On:** 003 (Cursor-Follow Viewport Tracking), 004 (Global Keyboard Shortcuts)
 
 ---

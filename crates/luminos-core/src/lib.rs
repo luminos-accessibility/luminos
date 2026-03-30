@@ -8,6 +8,7 @@ pub mod config;
 pub mod error;
 pub mod event;
 pub mod hotkeys;
+pub mod pipeline;
 pub mod state;
 pub mod state_manager;
 pub mod tracking;
@@ -16,6 +17,7 @@ pub use config::schema::AppSettings;
 pub use error::LuminosError;
 pub use event::LuminosEvent;
 pub use hotkeys::HotkeyMatcher;
+pub use pipeline::{EventNotifier, InputProcessingTask};
 pub use state::{
     AppState, ColorFilterType, MagnificationMode, ScreenPoint, TrackingMode, TtsStatus,
 };

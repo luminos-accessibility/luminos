@@ -16,7 +16,7 @@
 
 Luminos is a GPLv3-licensed, cross-platform screen magnification and text-to-speech accessibility suite for low-vision users. It combines GPU-accelerated magnification with neural TTS in a single application that works the same way on Linux, macOS, Windows, and OpenBSD.
 
-> **Project Status:** Luminos is in **Phase 0: Foundation**. Epics E01 (Project Scaffolding, Platform Traits & CI/CD) and E02 (X11 Screen Capture & GPU Magnification) are complete -- the Cargo workspace has 6 crates with trait definitions, mock implementations, error hierarchy, core data types, X11 screen capture backend, GPU rendering pipeline (texture management, magnification shaders, frame pacing), and 275 tests, backed by a GitHub Actions CI pipeline with dedicated platform (X11/Xvfb) and GPU (Mesa llvmpipe) test jobs. Next up: Epic E03 (Focus Tracking + Input Monitoring) and E04 (Control Panel Foundation).
+> **Project Status:** Luminos is in **Phase 0: Foundation**. Epics E01 (Project Scaffolding, Platform Traits & CI/CD), E02 (X11 Screen Capture & GPU Magnification), and E03 (Input Tracking & Interactive Magnification) are complete -- the Cargo workspace has 6 crates with trait definitions, X11 screen capture, GPU rendering pipeline, global input monitoring via XInput2, cursor-follow viewport tracking (dead zone, edge panning, smooth interpolation), keyboard shortcuts (zoom in/out/toggle/reset), ArcSwap lock-free state management, and an end-to-end interactive pipeline, with 418 tests backed by a GitHub Actions CI pipeline with dedicated platform (X11/Xvfb) and GPU (Mesa llvmpipe) test jobs. Next up: Epic E04 (Control Panel Foundation).
 
 ---
 
@@ -69,9 +69,9 @@ Each phase is decomposed into self-contained engineering epics (2-6 weeks each).
 | Epic | Name | Duration | Deliverable |
 |------|------|----------|-------------|
 | | **Phase 0: Foundation (Months 1-3)** | | |
-| E1 | Project Scaffolding, Platform Traits & CI/CD | 3 weeks | **COMPLETE** -- 5 crates, 6 traits, 6 mocks, error hierarchy, CI pipeline, 114 tests |
-| E2 | X11 Screen Capture & GPU Magnification | 4 weeks | Magnified screen content at 60fps on Linux X11 |
-| E3 | Input Tracking & Interactive Magnification | 3 weeks | Cursor-following magnifier with keyboard shortcuts |
+| E1 | Project Scaffolding, Platform Traits & CI/CD | 3 weeks | **COMPLETE** -- 6 crates, 6 traits, 6 mocks, error hierarchy, CI pipeline, 114 tests |
+| E2 | X11 Screen Capture & GPU Magnification | 4 weeks | **COMPLETE** -- X11 capture, GPU texture upload, magnification shaders, frame pacing, 275 tests |
+| E3 | Input Tracking & Interactive Magnification | 3 weeks | **COMPLETE** -- XInput2 input monitoring, viewport tracking, keyboard shortcuts, interactive pipeline, 418 tests |
 | E4 | Tauri Control Panel & Settings Persistence | 3 weeks | Settings UI, IPC, config persistence, system tray |
 | | **Phase 1: Core Magnification (Months 4-6)** | | |
 | E5 | Lens & Docked Magnification Modes | 3 weeks | Three distinct magnification modes |
@@ -155,7 +155,7 @@ See [Tech Stack Evaluation](specs/TECH_STACK_EVALUATION.md) for the full validat
 
 | Platform | Status | Notes |
 |----------|--------|-------|
-| Linux X11 | In Progress (Phase 0) | Foundation (E01) and X11 capture + GPU rendering (E02) complete |
+| Linux X11 | In Progress (Phase 0) | Foundation (E01), X11 capture + GPU rendering (E02), and interactive magnification (E03) complete |
 | Linux Wayland | Planned (Phase 1) | PipeWire + XDG Portal |
 | macOS (Tahoe+) | Planned (Phase 2) | Full feature port |
 | OpenBSD | Planned (Phase 3) | X11 via xenocara, incremental from Linux X11 |
@@ -190,9 +190,9 @@ luminos/
 │           ├── DESIGN.md       #     Technical design document
 │           └── SUBTASKS.md     #     TDD task breakdown + progress tracking
 ├── crates/                    # Rust workspace crates
-│   ├── luminos-core/          #   Error hierarchy, core data types, app settings
-│   ├── luminos-platform/      #   Platform traits, mock implementations
-│   ├── luminos-gpu/           #   GPU rendering (stub, populated in E02)
+│   ├── luminos-core/          #   App state, settings, tracking engine, hotkeys, pipeline
+│   ├── luminos-platform/      #   Platform traits, X11 input monitoring, mock implementations
+│   ├── luminos-gpu/           #   GPU rendering pipeline (textures, shaders, frame pacing)
 │   ├── luminos-tts/           #   TTS pipeline (stub, populated in E10)
 │   └── luminos-app/           #   Application entry point (stub)
 ├── docs/                      # Product documentation + user manuals (future)
@@ -230,7 +230,7 @@ Luminos follows [Semantic Versioning 2.0.0](https://semver.org/) with lockstep w
 
 Luminos is in active development (Phase 0: Foundation). Contributions are welcome in several areas:
 
-- **Code** -- The Rust codebase has 6 crates with a working X11 capture-to-GPU-render pipeline; next up are focus tracking (E03) and control panel (E04)
+- **Code** -- The Rust codebase has 6 crates with a working interactive X11 magnification pipeline (capture, render, input monitoring, viewport tracking, keyboard shortcuts); next up is control panel (E04)
 - **Research** -- Validate assumptions in the [product strategy](specs/PRODUCT_STRATEGY.md), especially around AT user needs
 - **Design** -- Help define implementation stories for upcoming epics using the [SDD methodology](specs/README.md)
 - **Accessibility expertise** -- Review our approach from the perspective of low-vision users and AT specialists

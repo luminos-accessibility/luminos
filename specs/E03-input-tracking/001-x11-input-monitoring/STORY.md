@@ -1,7 +1,7 @@
 # Story E03/001: X11 Global Input Monitoring (x11rb)
 
 **Epic:** [../HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** DONE (2026-03-29)
 **Depends On:** None
 
 ---

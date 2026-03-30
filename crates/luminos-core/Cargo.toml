@@ -13,6 +13,7 @@ test_utils = [
     "luminos-gpu/test_utils",
     "luminos-tts/test_utils",
 ]
+ci_platform_tests = ["luminos-platform/ci_platform_tests"]
 
 [dependencies]
 luminos-types = { workspace = true }
@@ -27,3 +28,5 @@ crossbeam-channel = { workspace = true }
 log = { workspace = true }
 thiserror = { workspace = true }
 arboard = { workspace = true }
+winit = { workspace = true }
+tokio = { workspace = true }
