@@ -8,3 +8,4 @@
 - [E03 Spec Decisions](project_e03_decisions.md) — x11rb over rdev, Ctrl+Alt+8 toggle (VT conflict fix), core→gpu dep, accessibility tool convention wording
 - [E03/001 Implementation Decisions](project_e03_001_decisions.md) — X11InputMonitor impl, 36+6 tests, 3 quality gates passed, LOW findings fixed
 - [E03/002 Implementation Decisions](project_e03_002_decisions.md) — StateManager, LuminosEvent, AppState mouse_position, 24 tests, 3 quality gates passed
+- [E03/003-004 Implementation Decisions](project_e03_003_004_decisions.md) — TrackingEngine, HotkeyMatcher, 58 new tests, pre-applied shared changes pattern, 3 quality gates passed

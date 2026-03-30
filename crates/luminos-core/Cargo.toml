@@ -10,7 +10,6 @@ default = []
 test_utils = [
     "luminos-types/test_utils",
     "luminos-platform/test_utils",
-    "dep:luminos-gpu",
     "luminos-gpu/test_utils",
     "luminos-tts/test_utils",
 ]
@@ -18,7 +17,7 @@ test_utils = [
 [dependencies]
 luminos-types = { workspace = true }
 luminos-platform = { workspace = true }
-luminos-gpu = { workspace = true, optional = true }
+luminos-gpu = { workspace = true }
 luminos-tts = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

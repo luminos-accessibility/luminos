@@ -9,7 +9,7 @@ use tokio::sync::mpsc;
 use super::types::ScreenPoint;
 
 /// Keyboard modifier state.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash)]
 #[allow(clippy::struct_excessive_bools)]
 pub struct Modifiers {
     /// Shift key is held.
