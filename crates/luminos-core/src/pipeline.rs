@@ -966,7 +966,7 @@ mod integration_tests {
                 // Last position: 100 + 49*30 = 1570, 100 + 49*10 = 590
                 (pos.x - 1570).abs() <= 10 && (pos.y - 590).abs() <= 10
             },
-            Duration::from_millis(1000),
+            Duration::from_secs(1),
             Duration::from_millis(10),
         );
 
