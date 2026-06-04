@@ -22,7 +22,7 @@ log = { workspace = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
-tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "=1.52.3", features = ["macros", "rt-multi-thread"] }
 
 [target.'cfg(target_os = "linux")'.dev-dependencies]
 xcap = { workspace = true }

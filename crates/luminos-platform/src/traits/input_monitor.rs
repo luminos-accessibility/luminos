@@ -212,13 +212,17 @@ pub enum InputError {
 ///
 /// # Platform Considerations
 ///
-/// | Platform | Primary | Fallback |
-/// |----------|---------|----------|
-/// | Linux X11 | rdev | XInput2 / XRecord extension |
-/// | Linux Wayland | rdev (evdev) | libinput (requires permissions) |
-/// | macOS | rdev | CGEvent tap (requires Accessibility permission) |
-/// | OpenBSD | rdev | XInput2 / XRecord |
-/// | Windows | rdev | Raw Input / Low-level hooks |
+/// The unmaintained `rdev` crate was evaluated and rejected in favor of
+/// native per-platform backends (see Epic E03). The table below lists the
+/// backend each platform uses (or will use).
+///
+/// | Platform | Backend |
+/// |----------|---------|
+/// | Linux X11 | x11rb XInput2 (implemented) |
+/// | Linux Wayland | libinput / evdev (requires permissions) |
+/// | macOS | CGEvent tap (requires Accessibility permission) |
+/// | OpenBSD | x11rb XInput2 |
+/// | Windows | Raw Input / low-level hooks |
 pub trait InputMonitor: Send + Sync {
     /// Begins monitoring input events and returns a receiver.
     ///

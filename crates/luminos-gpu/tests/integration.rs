@@ -26,9 +26,12 @@ use luminos_types::{CaptureFrame, PixelFormat};
 /// Uses GL + Vulkan backends for compatibility with Mesa llvmpipe in CI.
 /// Returns `None` if no compatible adapter is available.
 async fn generate_test_gpu_device() -> Option<(wgpu::Device, wgpu::Queue)> {
-    let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
         backends: wgpu::Backends::GL | wgpu::Backends::VULKAN,
-        ..Default::default()
+        flags: wgpu::InstanceFlags::default(),
+        memory_budget_thresholds: wgpu::MemoryBudgetThresholds::default(),
+        backend_options: wgpu::BackendOptions::default(),
+        display: None,
     });
 
     let adapter = instance

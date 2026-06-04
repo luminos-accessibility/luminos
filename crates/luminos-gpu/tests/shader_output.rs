@@ -29,9 +29,12 @@ struct GpuTestHarness {
 impl GpuTestHarness {
     /// Creates a headless GPU test harness. Returns `None` if no adapter available.
     async fn new() -> Option<Self> {
-        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::GL | wgpu::Backends::VULKAN,
-            ..Default::default()
+            flags: wgpu::InstanceFlags::default(),
+            memory_budget_thresholds: wgpu::MemoryBudgetThresholds::default(),
+            backend_options: wgpu::BackendOptions::default(),
+            display: None,
         });
 
         let adapter = instance

@@ -107,10 +107,15 @@ async fn integration_overlay_window_with_gpu_surface() {
     // proves the format is valid; log it for debugging.
     log::info!("configured surface format: {format:?}");
 
-    // AC-2.3: get_current_texture returns a valid surface texture
-    let surface_texture = surface
-        .get_current_texture()
-        .expect("get_current_texture should succeed on configured surface");
+    // AC-2.3: get_current_texture returns a valid surface texture. wgpu 29
+    // returns the `CurrentSurfaceTexture` enum instead of a `Result`.
+    let surface_texture = match surface.get_current_texture() {
+        wgpu::CurrentSurfaceTexture::Success(texture)
+        | wgpu::CurrentSurfaceTexture::Suboptimal(texture) => texture,
+        status => {
+            panic!("get_current_texture should succeed on configured surface, got {status:?}")
+        }
+    };
 
     // Verify texture dimensions match the configured surface
     assert!(

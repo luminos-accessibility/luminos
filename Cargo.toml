@@ -16,24 +16,32 @@ license = "GPL-3.0-only"
 repository = "https://github.com/luminos-accessibility/luminos"
 homepage = "https://luminos.dev"
 authors = ["Luminos Contributors"]
-rust-version = "1.85"
+# MSRV tracks the stable toolchain the project actually builds and tests on:
+# rust-toolchain.toml pins `channel = "stable"` and CI uses dtolnay/rust-toolchain@stable
+# (currently 1.92). The highest MSRV among the pinned direct dependencies is
+# image 0.25.10 at 1.88, so 1.92 comfortably satisfies the whole graph.
+rust-version = "1.92"
 
+# All external dependencies are pinned to EXACT versions (=x.y.z) as a
+# supply-chain hardening measure: every version was the newest release that was
+# (a) at least two weeks old and (b) free of any open RUSTSEC advisory or yank
+# at the time of pinning (2026-06-03). Do not loosen these to caret ranges.
 [workspace.dependencies]
 # Serialization
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-toml = "0.8"
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.149"
+toml = "=1.1.2"
 
 # Concurrency and state
-arc-swap = "1"
-crossbeam-channel = "0.5"
+arc-swap = "=1.9.1"
+crossbeam-channel = "=0.5.15"
 
 # Logging
-log = "0.4"
-env_logger = "0.11"
+log = "=0.4.29"
+env_logger = "=0.11.10"
 
 # Error handling
-thiserror = "2"
+thiserror = "=2.0.18"
 
 # Platform abstraction (internal crates)
 luminos-types = { path = "crates/luminos-types" }
@@ -43,41 +51,42 @@ luminos-gpu = { path = "crates/luminos-gpu" }
 luminos-tts = { path = "crates/luminos-tts" }
 
 # GPU rendering
-bytemuck = { version = "1", features = ["derive"] }
-wgpu = "28.0"
-winit = "0.30"
+bytemuck = { version = "=1.25.0", features = ["derive"] }
+wgpu = "=29.0.3"
+winit = "=0.30.13"
 
 # Screen capture
-xcap = "0.9"
-image = "0.25"
+xcap = "=0.9.4"
+image = "=0.25.10"
 
 # TTS
-sherpa-rs = "0.6"
-cpal = "0.17"
+sherpa-rs = "=0.6.8"
+cpal = "=0.17.3"
 
 # Clipboard
-arboard = "3"
+arboard = "=3.6.1"
 
 # Application framework
-tauri = { version = "2", features = ["tray-icon"] }
-tauri-build = "2"
-tauri-specta = { version = "2.0.0-rc.21", features = ["derive", "typescript"] }
-specta-typescript = "0.0.9"
+# tauri 2.11.2 patches the Origin Confusion advisory (CVE-2026-42184, fixed in
+# 2.11.1). tauri-build is independently versioned and co-released as 2.6.2.
+tauri = { version = "=2.11.2", features = ["tray-icon"] }
+tauri-build = "=2.6.2"
+# tauri-specta / specta-typescript have no stable release; the newest eligible
+# prerelease is pinned. rc.25 requires specta-typescript ^0.0.12.
+tauri-specta = { version = "=2.0.0-rc.25", features = ["derive", "typescript"] }
+specta-typescript = "=0.0.12"
 
 # X11 protocol (Linux + OpenBSD)
-x11rb = { version = "0.13", features = ["randr", "shm", "xinput"] }
+x11rb = { version = "=0.13.2", features = ["randr", "shm", "xinput"] }
 
 # Linux accessibility
-atspi = "0.22"
-
-# Input monitoring
-rdev = "0.5"
+atspi = "=0.30.0"
 
 # Async runtime (sync channel only for platform traits)
-tokio = { version = "1", features = ["sync"] }
+tokio = { version = "=1.52.3", features = ["sync"] }
 
 # Window handle interop
-raw-window-handle = "0.6"
+raw-window-handle = "=0.6.2"
 
 # Build profiles
 [profile.dev]

@@ -130,12 +130,19 @@ impl Renderer {
         // Upload capture frame to GPU
         self.source_texture_manager.upload(&self.queue, frame);
 
-        // Acquire swap chain surface texture
-        let output = surface
-            .get_current_texture()
-            .map_err(|e| RenderError::SurfaceTexture {
-                message: format!("{e}"),
-            })?;
+        // Acquire swap chain surface texture. wgpu 29 replaced the
+        // `Result<SurfaceTexture, SurfaceError>` return with the
+        // `CurrentSurfaceTexture` enum; treat `Suboptimal` as usable and map
+        // every non-texture status to a render error.
+        let output = match surface.get_current_texture() {
+            wgpu::CurrentSurfaceTexture::Success(texture)
+            | wgpu::CurrentSurfaceTexture::Suboptimal(texture) => texture,
+            status => {
+                return Err(RenderError::SurfaceTexture {
+                    message: format!("{status:?}"),
+                });
+            }
+        };
         let output_view = output
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());

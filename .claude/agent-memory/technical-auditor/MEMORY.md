@@ -207,6 +207,13 @@ Key gaps: DESIGN.md lifecycle oversimplified, missing TypeScript TDD exception, 
 - "ZoomText conventions" attribution is imprecise -- ZoomText uses Caps Lock, not Ctrl+Alt
 - Dependency direction issues when core crate imports from GPU crate for trivial math functions
 
+### Supply-Chain Pin Audit (2026-06-03) -- see [supply-chain-pins.md](supply-chain-pins.md)
+- Verdict PASS: all 25 exact `=x.y.z` workspace pins eligible/correct vs crates.io + OSV.dev
+- DISCREPANCY: Cargo.toml lines 19-20 claim wgpu 29 + ashpd 0.13 need MSRV 1.92; crates.io rust_version says wgpu=1.87, ashpd=1.87, image=1.88. 1.92 is team toolchain, not these crates.
+- rdev removed as dep but still named as future backend in input_monitor.rs doc table (lines 217-221)
+- crates.io API gotcha: `newest_version` field unreliable (ashpd showed 0.9.3); use max_stable_version/versions list
+- Verified clears: crossbeam 0.5.15>RUSTSEC-2025-0024, tauri 2.11.2>CVE-2026-42184, tokio 1.52.3>RUSTSEC-2025-0023, arc-swap 1.9.1>RUSTSEC-2020-0091
+
 ### E03 Spec Artifacts Audit (2026-03-29, FINAL)
 - Verdict: APPROVED WITH FINDINGS (0 BLOCKING, 3 ADVISORY, 4 INFO, 6 pointers)
 - See [e03-audit.md](e03-audit.md) for full details

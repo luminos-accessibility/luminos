@@ -28,9 +28,15 @@ pub fn create_wgpu_instance() -> wgpu::Instance {
         wgpu::Backends::all()
     };
 
-    wgpu::Instance::new(&wgpu::InstanceDescriptor {
+    // wgpu 29 dropped `Default` on `InstanceDescriptor` (the `display` field
+    // holds a `Box<dyn ...>`) and `Instance::new` now takes the descriptor by
+    // value, so every field is supplied explicitly.
+    wgpu::Instance::new(wgpu::InstanceDescriptor {
         backends,
-        ..Default::default()
+        flags: wgpu::InstanceFlags::default(),
+        memory_budget_thresholds: wgpu::MemoryBudgetThresholds::default(),
+        backend_options: wgpu::BackendOptions::default(),
+        display: None,
     })
 }
 

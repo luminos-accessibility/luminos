@@ -48,16 +48,12 @@ ignore = [
     { id = "RUSTSEC-2024-0420", reason = "transitive via tauri->tao->gtk" },
     # proc-macro-error unmaintained — transitive via tauri->tao
     { id = "RUSTSEC-2024-0370", reason = "transitive via tauri->tao->proc-macro-error" },
-    # fxhash unmaintained — transitive via tauri->selectors
-    { id = "RUSTSEC-2025-0057", reason = "transitive via tauri->selectors->fxhash" },
     # unic-* crates unmaintained — transitive via tauri
     { id = "RUSTSEC-2025-0075", reason = "transitive via tauri->unic-ucd-ident" },
     { id = "RUSTSEC-2025-0080", reason = "transitive via tauri->unic-char-property" },
     { id = "RUSTSEC-2025-0081", reason = "transitive via tauri->unic-char-range" },
     { id = "RUSTSEC-2025-0098", reason = "transitive via tauri->unic-common" },
     { id = "RUSTSEC-2025-0100", reason = "transitive via tauri->unic-ucd-version" },
-    # Vulnerability: stack exhaustion in time crate — transitive via tauri->tauri-codegen->time
-    { id = "RUSTSEC-2026-0009", reason = "transitive via tauri->tauri-codegen->time, awaiting time crate upgrade to >=0.3.47 via tauri update" },
     # Unsound glib VariantStrIter — transitive via tauri->gtk
     { id = "RUSTSEC-2024-0429", reason = "unsound glib VariantStrIter, transitive via tauri->gtk, awaiting GTK4 migration" },
 ]

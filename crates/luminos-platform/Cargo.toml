@@ -25,11 +25,10 @@ x11rb = { workspace = true }
 xcap = { workspace = true }
 image = { workspace = true }
 atspi = { workspace = true }
-rdev = { workspace = true }
 winit = { workspace = true }
 
 [target.'cfg(target_os = "linux")'.dependencies.ashpd]
-version = "0.10"
+version = "=0.13.11"
 optional = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
@@ -44,5 +43,5 @@ xcap = { workspace = true }
 
 [dev-dependencies]
 luminos-types = { workspace = true, features = ["test_utils"] }
-tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "=1.52.3", features = ["macros", "rt-multi-thread"] }
 serde_json = { workspace = true }
