@@ -110,11 +110,8 @@ fn find_display_bounds(display_id: &str) -> Result<ScreenRect, WindowError> {
     })?;
 
     for monitor in &monitors {
-        let name_matches = monitor.name().map(|n| n == display_id).unwrap_or(false);
-        let id_matches = monitor
-            .id()
-            .map(|id| id.to_string() == display_id)
-            .unwrap_or(false);
+        let name_matches = monitor.name().is_ok_and(|n| n == display_id);
+        let id_matches = monitor.id().is_ok_and(|id| id.to_string() == display_id);
 
         if name_matches || id_matches {
             let x = monitor.x().unwrap_or(0);
