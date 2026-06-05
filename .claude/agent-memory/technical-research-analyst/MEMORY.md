@@ -88,6 +88,15 @@
 - CI: Xvfb + lavapipe (mesa-vulkan-drivers) for headless Vulkan testing
 - Authoritative sources: x.org composite extension spec, xcap GitHub source, winit/wgpu docs
 
+## RISK-001 Dual Event Loop (winit + Tauri 2) (researched 2026-06-04)
+- See `risk001-dual-event-loop-research.md` for full findings + citations
+- VERDICT: cannot run a separate winit EventLoop in a Tauri process (macOS NSApplication principal-class hard block, winit #3772). Use ONE tao/Tauri loop.
+- Recommendation: `Builder::build()?.run(|app,e|...)`, drive wgpu from `RunEvent::MainEventsCleared`, overlay = separate Tauri/tao window, wgpu Surface from Tauri Window rwh (HasWindowHandle since tauri 2.0.0-beta.13). DROP winit for overlay; wgpu unchanged.
+- Versions align on rwh 0.6: tao 0.24+ (rwh_06), winit 0.30.13, wgpu 29.0.3, raw-window-handle 0.6.2. (NOTE project pins wgpu =29.0.3, not 28.)
+- tao uses GTK3 on Linux (winit uses direct X11) — override_redirect/self-capture (RISK-002) must be re-validated under tao/GTK; flag for E04 PoC.
+- Existing code already abstracted coupling: `EventNotifier` trait (over EventLoopProxy), `WindowManager` trait. Migration contained; wgpu surface code unaffected.
+- #9220 flicker is the SHARED-window failure mode (wgpu+webview one window); two-window design avoids it.
+
 ## Research Methodology Notes
 - Third-party "guide" sites often contain AI-generated content with fabricated CLI flags. Always cross-reference with official docs.rs, GitHub README, or crates.io pages.
 - For Cargo profile settings, the official Cargo Book is the single source of truth.

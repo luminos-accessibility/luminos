@@ -2,12 +2,13 @@
 
 ## Project: Luminos
 - GPLv3 cross-platform screen magnification + TTS accessibility suite
-- Pre-development phase: strategy docs written, no code yet
+- Tech strategy COMPLETE; E1-E3 DONE (418 tests); E04 (Tauri control panel) being spec'd 2026-06
 
 ## Architecture Decisions (Confirmed)
-- Dual-window: winit+wgpu overlay (render) + Tauri 2.0 webview (control panel)
+- Dual-window: wgpu overlay (render) + Tauri 2.x webview (control panel)
+- **E04 RISK-001 decision (CORRECTS doc-01/05/roadmap): SINGLE tao/Tauri event loop, NO separate winit EventLoop.** macOS NSApplication allows one principal-class loop → a 2nd winit EventLoop panics (winit #3772). Overlay = a 2nd Tauri/tao window; wgpu Surface<'static> built from an OWNED WebviewWindow clone (NOT borrowed &W). Render inside App::run's RunEvent::MainEventsCleared. See [e04-tauri-control-panel.md](./e04-tauri-control-panel.md).
 - 6 platform traits: ScreenCapture, FocusTracker, TtsEngine, WindowManager, InputMonitor, AudioOutput
-- 5 workspace crates: luminos-core, luminos-gpu, luminos-tts, luminos-platform, luminos-app
+- 6 workspace crates: luminos-types, luminos-core, luminos-gpu, luminos-tts, luminos-platform, luminos-app
 - Runtime state: `ArcSwap<AppState>` for lock-free render thread reads (doc-05 definitive)
 - Platform order: Linux X11 → Wayland → macOS → OpenBSD → Windows
 
@@ -16,7 +17,7 @@
 - `AppSettings` = IPC-facing settings schema (Zod + serde)
 - `CaptureFrame` = captured pixels (canonical def in doc-02: data: Arc<[u8]>, width, height, stride, format)
 - `FrameTimings` = internal perf tracker (doc-03); `FrameTimingSummary` = IPC response (doc-05)
-- `LuminosHandle` = Tauri managed state containing ArcSwap, ConfigManager, EventLoopProxy, TtsSender
+- `LuminosHandle` = Tauri managed state. E04 real shape: app_state Arc<ArcSwap<AppState>>, config Arc<Mutex<Option<ConfigManager>>>, notifier AppNotifier (NOT EventLoopProxy), app AppHandle. TtsSender deferred to Phase 2. (doc-05's EventLoopProxy/flat-zoom_level snippets are illustrative; real code: zoom at AppState.settings.magnification.zoom_level via StateManager methods; LuminosEvent only StateChanged/RequestExit.)
 
 ## Issues Fixed (2026-03-16 review)
 - Doc-01: q8 model size corrected 165→92MB, memory total recalculated
