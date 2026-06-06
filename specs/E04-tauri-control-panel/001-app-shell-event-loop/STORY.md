@@ -1,7 +1,7 @@
 # Story E04/001: App Shell, Single Event Loop & wgpu Overlay Surface
 
 **Epic:** [../HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED (approved-as-authoritative per E04 execution, 2026-06-04)
 **Depends On:** None (hard-dep E01 DONE; reuses E02 `luminos-gpu`, E03 `luminos-core` state — both DONE)
 
 ---
@@ -77,5 +77,5 @@ As a developer building later stories, I want the running app to expose the real
 
 - [x] Should the overlay be a `WebviewWindow` (empty page) or a plain native window? — **Resolved:** Use a Tauri window that yields a valid rwh-0.6 handle for the wgpu surface; an attached-but-empty webview is acceptable. Do NOT composite wgpu *under* a visible webview in the same window (tauri #9220 flicker). Finalize the exact builder in DESIGN.
 - [x] How is the redraw cadence driven on tao GTK3? — **Resolved (corrected):** Tauri's `App::run` exposes no `ControlFlow`/`Poll`/`RedrawRequested` and `WebviewWindow` has no `request_redraw()`. Render inside the `run` callback on `RunEvent::MainEventsCleared` gated by a shared dirty flag; the spike (AC-2.3) picks between rendering directly on `MainEventsCleared` vs a ~60 Hz timer thread that flips the flag (tao #635 means `MainEventsCleared` cadence on GTK3 is not guaranteed).
-- [x] `LuminosHandle.config` references `ConfigManager`, which story 004 builds — how does 001 compile? — **Resolved:** story 001 lands a **minimal empty `ConfigManager` stub** in `luminos-core::config` (struct + `Default`, no I/O) and types the field `Arc<Mutex<Option<ConfigManager>>>` initialized to `None`; story 004 fills in the real I/O and the app sets `Some(ConfigManager::load()?)` at startup.
+- [x] `LuminosHandle.config` references `ConfigManager`, which story 004 builds — how does 001 compile? — **Resolved (superseded at implementation time):** story 004 SHIPPED before 001 was executed, so NO stub was created. Story 001 uses the **real** `luminos_core::seed_initial_state() -> Result<(AppState, ConfigManager), ConfigError>` startup seam: on `Ok` it stores `Some(manager)` in `LuminosHandle.config` (typed `Arc<Mutex<Option<ConfigManager>>>`); on `Err` (e.g. `NoConfigDir`) it `log::warn!`s and falls back to `AppState::default()` + `None`. `AppError` gained `From<ConfigError>`. (The original "minimal empty stub" plan is obsolete — see SUBTASKS Deviations.)
 - [x] Does the spike block the rest of the epic? — **Resolved:** Yes by design; story 001 is the critical-path foundation. If the two-window in-process model fails the spike, escalate to the raw wry+tao fallback (HIGH_LEVEL_PLAN AD-1 / research option d) before proceeding.

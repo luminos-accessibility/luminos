@@ -1,7 +1,7 @@
 # Story E04/003: Live Full-Screen Magnification Integration
 
 **Epic:** [../HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED (approved-as-authoritative per E04 execution, 2026-06-05)
 **Depends On:** 002 (controllable, self-capture-safe overlay), 001 (loop + `OverlayGpu` surface)
 
 ---
@@ -72,5 +72,5 @@ As a user, I want keyboard shortcuts to control zoom, and as a developer I want 
 ## Open Questions
 
 - [x] Does the `Renderer` own the surface or take it per-call? — **Resolved:** `Renderer::new` owns `device`/`queue`; `render_frame` takes `&wgpu::Surface` per call. Story 003 refactors story-001 `OverlayGpu` to own the surface and host a `Renderer`, calling `render_frame(&self.surface, &frame, is_bgra)` each redraw. The exact device/queue/surface ownership split (and whether `wgpu::Device` can be cloned for `surface.configure`) is confirmed during implementation. *(Integration detail, not a spec blocker.)*
-- [x] Where does `is_bgra` come from? — **Resolved:** from `CaptureFrame.format` (`PixelFormat::Bgra8` → true). xcap on X11 typically yields BGRA; confirm at runtime from the frame, not assumed.
+- [x] Where does `is_bgra` come from? — **Resolved:** from `CaptureFrame.format` (`PixelFormat::Bgra8` → `true`, `PixelFormat::Rgba8` → `false`), never assumed. **As shipped, the X11 `XcbCapture` backend yields RGBA** (`PixelFormat::Rgba8` → `is_bgra = false`); the flag is derived from `frame.format` at runtime, so the loop stays correct regardless of the backend's channel order.
 - [x] How is the X11 `InputMonitor` obtained? — **Resolved:** `X11InputMonitor::new()?.subscribe_input_events(capacity)` (E3) yields the `mpsc::Receiver<InputEvent>` passed to `InputProcessingTask::spawn`.

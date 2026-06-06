@@ -75,6 +75,12 @@ tauri-build = "=2.6.2"
 # prerelease is pinned. rc.25 requires specta-typescript ^0.0.12.
 tauri-specta = { version = "=2.0.0-rc.25", features = ["derive", "typescript"] }
 specta-typescript = "=0.0.12"
+# `specta` derive on the IPC-reachable engine types (story 005, DC-5). Lockstep
+# with tauri-specta rc.25 (which forces specta = rc.25); previously resolved only
+# transitively. Added as a NORMAL (non-optional, non-feature-gated) dep to the
+# engine crates so `#[derive(specta::Type)]` compiles even without the app's
+# `tauri` feature (`cargo build --workspace --exclude luminos-app` must pass).
+specta = { version = "=2.0.0-rc.25", features = ["derive"] }
 
 # X11 protocol (Linux + OpenBSD)
 x11rb = { version = "=0.13.2", features = ["randr", "shm", "xinput"] }
@@ -87,6 +93,22 @@ tokio = { version = "=1.52.3", features = ["sync"] }
 
 # Window handle interop
 raw-window-handle = "=0.6.2"
+
+# Sync bridge for the async wgpu device init on the single-threaded event loop
+# (no tokio runtime runs on the tao/Tauri loop thread). pollster 0.4.0 is the
+# highest release published on or before 2026-05-21, advisory-free and not yanked.
+pollster = "=0.4.0"
+
+# POSIX signal handling for graceful SIGTERM/SIGINT shutdown of the event loop
+# (Linux/Unix only). Already resolved transitively at this exact version; pinned
+# explicitly. Published 2026-04-23, advisory-free, not yanked.
+libc = "=0.2.186"
+
+# Platform config directory resolution (XDG on Linux/OpenBSD)
+directories = "=6.0.0"
+
+# Test-only: temporary directories/files for filesystem unit tests
+tempfile = "=3.27.0"
 
 # Build profiles
 [profile.dev]

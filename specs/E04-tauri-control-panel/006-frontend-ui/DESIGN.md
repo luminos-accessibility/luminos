@@ -2,7 +2,7 @@
 
 **Story:** [STORY.md](./STORY.md)
 **Epic:** [../HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED (approved-as-authoritative per E04 execution, 2026-06-04)
 **Author:** principal-architect
 **Risk Refs:** RISK-020 (webview surface — React auto-escaping + no external content), RISK-023 (self-accessibility / WCAG 2.1 AA)
 

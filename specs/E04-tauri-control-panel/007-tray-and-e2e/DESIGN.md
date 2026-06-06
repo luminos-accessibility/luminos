@@ -2,11 +2,25 @@
 
 **Story:** [STORY.md](./STORY.md)
 **Epic:** [../HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED (approved-as-authoritative per E04 execution, 2026-06-05)
 **Author:** principal-architect
 **Risk Refs:** RISK-028 (Tauri build/runtime constraints), RISK-020 (webview surface — E2E exercises it)
 
 ---
+
+## Corrections Applied (IMPLEMENTATION_NOTES §E — source-verified, supersede the stale parts below)
+
+This DESIGN was authored before the code seam was source-verified. The following corrections (from `IMPLEMENTATION_NOTES.md` §E) were applied during implementation and are AUTHORITATIVE over the original prose/snippets that follow:
+
+1. **Tray init lives in `app.rs`'s `.setup` + the Builder `.on_window_event`** — NOT `main.rs` (a thin shim). `init_tray(app) -> Result<Option<TrayIcon<Wry>>, AppError>` (returns `Ok(None)` on graceful degrade); the toggle fn is `toggle_control_panel`, not `toggle_main_window`.
+2. **Window labels are `control-panel` / `overlay`** (not "main"). Minimize-to-tray hides ONLY `control-panel`.
+3. **Driver = the Rust `tauri-driver` v2.0.6** (`cargo install tauri-driver --version 2.0.6 --locked`), NOT the `@crabnebula/tauri-driver` npm package (stale).
+4. **Slider selector = role/name** (`aria/Zoom level`) — the `aria-labelledby="zoom-label"` in the snippet below is wrong; the real value is a dynamic React `useId()`.
+5. **No new debug state probe** — the E2E asserts engine state via the existing `get_current_settings` read command (the AD-4 write-through is proven).
+6. **D4 via `getFrameTimings()` IPC** — `FrameTimingDisplay` is dev-only and stripped from production builds. P99 is 0 headless (DC-13) → assert PRESENCE, not non-zero.
+7. **E2E project at repo-root `e2e/`**; bindings path `../../ui`.
+8. **Tray needs NO capability change** — `default.json` (`core:default`+`core:event:default`) unchanged; native Rust window/tray calls are not webview-capability-gated.
+9. **`tauri-driver` `tauri:options` (v2.0.6) supports only `application`/`args`** — there is NO `env` field (source-verified). The headless-WebKit env is injected into the `tauri-driver` process env, propagating down `tauri-driver → WebKitWebDriver → app`.
 
 ## Overview
 

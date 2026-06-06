@@ -53,10 +53,13 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all -- --check
 
+      # `luminos-app` is linted in the `test-app` job instead: its
+      # `--all-targets` clippy needs a built `ui/dist` (for `generate_context!`)
+      # and the heavy webview/GPU graph, which that job already provisions.
       - name: Run Clippy
         run: >
           cargo clippy
-          --workspace --all-targets --all-features
+          --workspace --exclude luminos-app --all-targets --all-features
           -- -D warnings
           -W clippy::unwrap_used
           -W clippy::expect_used
@@ -297,6 +300,196 @@ jobs:
           --profile ci
           -p luminos-gpu
           --features ci_platform_tests"
+
+  test-app:
+    name: App Shell Tests (Tauri + Xvfb)
+    runs-on: ubuntu-latest
+    needs: [lint]
+    env:
+      MESA_GL_VERSION_OVERRIDE: "4.5"
+      LIBGL_ALWAYS_SOFTWARE: "1"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      # webkit2gtk-4.1 + libsoup-3.0 are required to build `luminos-app`
+      # (Tauri webview backend). Xvfb/picom/x11-utils(xprop)/xdotool drive and
+      # inspect the spawned app; the subprocess harness launches its OWN Xvfb
+      # per test (no xvfb-run wrapper needed) and sets GDK_BACKEND=x11 +
+      # WEBKIT_DISABLE_{COMPOSITING_MODE,DMABUF_RENDERER} per child.
+      - name: Install system dependencies
+        run: >
+          sudo apt-get update && sudo apt-get install -y
+          libwebkit2gtk-4.1-dev
+          libsoup-3.0-dev
+          libjavascriptcoregtk-4.1-dev
+          xvfb
+          picom
+          x11-utils
+          xdotool
+          mesa-utils
+          mesa-vulkan-drivers
+          libegl-dev
+          libgl1-mesa-dri
+          libgbm-dev
+          libpipewire-0.3-dev
+          libasound2-dev
+          libx11-dev
+          libxi-dev
+          libxtst-dev
+
+      - name: Cache Cargo registry and build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: app-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            app-${{ runner.os }}-cargo-
+
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@nextest
+
+      # Build the frontend dist so the overlay.html + index.html exist for the
+      # Tauri context (frontendDist = ../../ui/dist).
+      - name: Set up Node and build frontend
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Build UI dist
+        run: |
+          corepack enable
+          pnpm --dir ui install --frozen-lockfile
+          pnpm --dir ui build
+
+      # Clippy for luminos-app (excluded from the workspace lint job, which
+      # lacks ui/dist). Lints lib + integration tests with the strict gate.
+      - name: Run Clippy (luminos-app)
+        run: >
+          cargo clippy
+          -p luminos-app --features "tauri ci_platform_tests" --all-targets
+          -- -D warnings
+          -W clippy::unwrap_used
+          -W clippy::expect_used
+          -W clippy::pedantic
+          -A clippy::module_name_repetitions
+
+      # Bindings-up-to-date check (story E04/005, D7): regenerate
+      # ui/src/ipc/bindings.ts from the Rust IPC surface via the app's
+      # `--export-bindings` seam (no Xvfb/webview needed — it exports and exits),
+      # then fail if the committed file drifted. Keeps the TypeScript bindings in
+      # lock-step with the `#[tauri::command]`/`#[tauri_specta::Event]` defs.
+      - name: Check tauri-specta bindings are up to date
+        run: |
+          cargo run -p luminos-app --features "tauri" -- --export-bindings
+          git diff --exit-code ui/src/ipc/bindings.ts
+
+      # Lib unit tests (incl. the offscreen Mesa-llvmpipe clear test) and the
+      # subprocess integration tests. Run serially (the GTK/webkit app is heavy)
+      # and on a single thread so each test's dedicated Xvfb does not contend.
+      - name: Run app shell tests
+        run: >
+          cargo nextest run
+          --profile ci
+          -p luminos-app
+          --features "tauri ci_platform_tests"
+          --test-threads 1
+
+  test-e2e:
+    name: E2E Tests (tauri-driver + WebKitWebDriver)
+    runs-on: ubuntu-latest
+    needs: [lint]
+    env:
+      MESA_GL_VERSION_OVERRIDE: "4.5"
+      LIBGL_ALWAYS_SOFTWARE: "1"
+      # Headless-WebKit env (DC-10): GTK window realization + software GL under
+      # Xvfb. Exported at the job level so it propagates down the
+      # xvfb-run -> pnpm -> wdio -> tauri-driver -> WebKitWebDriver -> app tree.
+      GDK_BACKEND: "x11"
+      WEBKIT_DISABLE_COMPOSITING_MODE: "1"
+      WEBKIT_DISABLE_DMABUF_RENDERER: "1"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      # webkit2gtk-4.1 + libsoup-3.0 build `luminos-app`; webkit2gtk-driver ships
+      # the WebKitWebDriver binary tauri-driver proxies; libayatana-appindicator3
+      # provides the StatusNotifierItem tray host (D6); xvfb + picom provide the
+      # headless display + compositor.
+      - name: Install system dependencies
+        run: >
+          sudo apt-get update && sudo apt-get install -y
+          libwebkit2gtk-4.1-dev
+          libsoup-3.0-dev
+          libjavascriptcoregtk-4.1-dev
+          webkit2gtk-driver
+          libayatana-appindicator3-dev
+          xvfb
+          picom
+          mesa-utils
+          mesa-vulkan-drivers
+          libegl-dev
+          libgl1-mesa-dri
+          libgbm-dev
+          libpipewire-0.3-dev
+          libasound2-dev
+          libx11-dev
+          libxi-dev
+          libxtst-dev
+
+      - name: Cache Cargo registry and build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: e2e-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            e2e-${{ runner.os }}-cargo-
+
+      # tauri-driver is the Rust WebDriver proxy (NOT an npm package). Pin EXACT
+      # (PINNED_VERSIONS.md §3); the 2.x line targets Tauri 2.
+      - name: Install tauri-driver
+        run: cargo install tauri-driver --version 2.0.6 --locked
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      # Build the frontend dist (the control panel React UI + overlay.html the
+      # Tauri context serves) and the debug app binary the wdio `application`
+      # path points at (target/debug/luminos-app).
+      - name: Build UI dist
+        run: |
+          corepack enable
+          pnpm --dir ui install --frozen-lockfile
+          pnpm --dir ui build
+
+      - name: Build luminos-app (debug)
+        run: cargo build -p luminos-app --features tauri
+
+      - name: Install E2E dependencies
+        run: |
+          corepack enable
+          pnpm --dir e2e install --frozen-lockfile
+
+      # Run the WebdriverIO suite under Xvfb + picom. picom provides the
+      # compositor the transparent overlay needs; tauri-driver (spawned by the
+      # wdio beforeSession hook) launches WebKitWebDriver, which launches the app.
+      - name: Run E2E IPC suite
+        run: >
+          xvfb-run -s "-screen 0 1920x1080x24" bash -c
+          "picom --backend xrender --daemon && pnpm --dir e2e test"
 
   # --- Placeholder jobs (activated in E2+) ---
 

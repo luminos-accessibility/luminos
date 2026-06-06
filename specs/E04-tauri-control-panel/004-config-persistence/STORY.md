@@ -1,7 +1,7 @@
 # Story E04/004: ConfigManager & Settings Persistence
 
 **Epic:** [../HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED <!-- approved-as-authoritative per E04 execution, 2026-06-04 -->
 **Depends On:** 001 (the `ConfigManager` stub + `LuminosHandle.config` slot)
 
 ---

@@ -22,6 +22,24 @@
 - Yocto Project reproducibility report (Feb 2025): Rust 1.82, patches for 1.83-1.84 in review
 - Best approach: Docker with pinned toolchain + CARGO_INCREMENTAL=0 + --remap-path-prefix
 
+## E04 Tauri Version Pins (verified 2026-06-04)
+- See `e04-tauri-version-pins.md` for full verified pin set + advisory results
+- tauri=2.11.2/tauri-build=2.6.2; tauri-specta/specta/specta-typescript all lock to rc.25/0.0.12 (exact chain)
+- tauri-specta 2.x STILL RC (no stable 2.0.0). specta-typescript 0.0.12 pins specta =2.0.0-rc.25 exactly
+- tauri 2.11.2 requires tray-icon ^0.23 → 0.23.1 transitively; DO NOT pin tray-icon 0.24 directly
+- cargo-audit: ZERO vulns; 18 warnings all transitive GTK3/webkit2gtk (glib unsound RUSTSEC-2024-0429, GTK unmaintained) — unavoidable in Tauri 2 Linux
+- raw-window-handle =0.6.2 unifies wgpu 29.0.3 (^0.6.2) + winit 0.30.13 + tauri 2.11.2 (^0.6)
+- directories & dirs both 6.0.0 (same author soc); directories better for app config dirs
+
+## E04 frontend npm Pins (verified 2026-06-04, cutoff <=2026-05-21)
+- See `e04-npm-pins-2026-06.md` for full pinned set + decisive constraints
+- Vite 6.0.0–6.4.1 VULNERABLE (GHSA-p9ff-h696-f583, GHSA-4w7w-66w2-5vf9); fixed in vite 6.4.2 — min safe Vite 6
+- @vitejs/plugin-react 6.x requires vite ^8 (hard peer); use plugin-react 5.2.0 to stay on Vite 6
+- eslint-plugin-jsx-a11y 6.10.2 caps peer at ESLint ^9 (no v10 support) → forces ESLint 9.x for clean tree
+- vitest 4.x supports vite ^6||^7||^8; @vitest/coverage-v8 peer pins EXACTLY to vitest version
+- typescript-eslint peer typescript <6.1.0 → TS 6.0.3 supported; jest-axe 10.0.0 over stale vitest-axe (2022)
+- Cutoff trap: validate publish date with CODE — zustand 5.0.14 & typescript-eslint 8.60.0 were too young
+
 ## Tauri 2.0 Bundler (verified 2026-03-17)
 - See `tauri-bundler-research.md` for full findings
 - Native targets enum: deb, rpm, appimage, nsis, msi, app, dmg (from schema 2.10.3)

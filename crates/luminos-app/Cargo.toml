@@ -5,14 +5,31 @@ edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 
+# `tauri` is on by default: E04 makes `luminos-app` a real Tauri application.
+# The webview backend needs system libraries (webkit2gtk-4.1, libsoup-3.0,
+# javascriptcoregtk-4.1); environments lacking them keep using the existing
+# `--exclude luminos-app` convention (see CLAUDE.md CI section) and build the
+# rest of the workspace without this crate.
 [features]
-default = []
-tauri = ["dep:tauri", "dep:tauri-specta", "dep:specta-typescript", "dep:tauri-build"]
+default = ["tauri"]
+tauri = [
+    "dep:tauri",
+    "dep:tauri-specta",
+    "dep:specta",
+    "dep:specta-typescript",
+    "dep:tauri-build",
+    "dep:wgpu",
+    "dep:raw-window-handle",
+    "dep:pollster",
+    "dep:x11rb",
+    "dep:libc",
+]
 integration_tests = ["luminos-core/test_utils"]
 ci_platform_tests = ["luminos-platform/ci_platform_tests"]
 profiling = ["luminos-gpu/profiling"]
 
 [dependencies]
+luminos-types = { workspace = true }
 luminos-core = { workspace = true }
 luminos-platform = { workspace = true }
 luminos-gpu = { workspace = true }
@@ -22,15 +39,44 @@ env_logger = { workspace = true }
 arc-swap = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+thiserror = { workspace = true }
 
 # Tauri dependencies — gated behind the `tauri` feature flag because they
 # require system libraries (webkit2gtk-4.1, libsoup-3.0, javascriptcoregtk-4.1)
-# that may not be installed on all dev machines. Enable with:
-#   cargo build -p luminos-app --features tauri
-# Tauri initialization is deferred to E4 (Control Panel Foundation).
+# that may not be installed on all dev machines. Build the rest of the
+# workspace with `--exclude luminos-app` where those libs are missing.
 tauri = { workspace = true, optional = true }
 tauri-specta = { workspace = true, optional = true }
 specta-typescript = { workspace = true, optional = true }
+# `#[specta::specta]` on the commands, `#[derive(specta::Type)]` on the events,
+# and `collect_commands!`/`collect_events!` all need `specta` directly in scope.
+# Gated with the rest of the `tauri` feature (IPC is only built with the app).
+specta = { workspace = true, optional = true }
+
+# GPU overlay surface (E04/001). Gated with the rest of the `tauri` feature so
+# that the clear-frame render path is only compiled when the app is built.
+wgpu = { workspace = true, optional = true }
+raw-window-handle = { workspace = true, optional = true }
+# Blocks the async `create_gpu_device` future on the loop thread (no tokio
+# runtime runs there). See specs/E04-tauri-control-panel/PINNED_VERSIONS.md §1c.
+pollster = { workspace = true, optional = true }
+
+# X11 compositor detection (`_NET_WM_CM_S0` selection owner) and POSIX signal
+# handling for graceful shutdown. Linux-only; pinned workspace deps.
+[target.'cfg(target_os = "linux")'.dependencies]
+x11rb = { workspace = true, optional = true }
+libc = { workspace = true, optional = true }
+
+# Test-only: temp-dir ConfigManager fixtures for the IPC command unit tests
+# (E04/005 persistence commands).
+[dev-dependencies]
+tempfile = { workspace = true }
+
+# X11 tree/attribute probing for the subprocess integration-test harness.
+# Unconditional (non-optional) so `tests/` can use it on Linux regardless of
+# crate features.
+[target.'cfg(target_os = "linux")'.dev-dependencies]
+x11rb = { workspace = true }
 
 [build-dependencies]
 tauri-build = { workspace = true, optional = true }

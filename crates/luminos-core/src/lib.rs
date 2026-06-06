@@ -14,6 +14,7 @@ pub mod state_manager;
 pub mod tracking;
 
 pub use config::schema::AppSettings;
+pub use config::{ConfigError, ConfigManager, seed_initial_state};
 pub use error::LuminosError;
 pub use event::LuminosEvent;
 pub use hotkeys::HotkeyMatcher;

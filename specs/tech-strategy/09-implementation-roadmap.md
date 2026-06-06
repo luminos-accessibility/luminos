@@ -352,6 +352,8 @@ Delivered in 5 stories (53 subtasks): Cargo workspace & build profiles, 6 platfo
 
 ### 4.4 Epic 4 -- Tauri Control Panel & Settings Persistence
 
+> **STATUS: DONE (2026-06-05).** Shipped as a **single `tauri::App::run` event loop** hosting both the control-panel webview and a transparent click-through wgpu overlay (NO separate winit `EventLoop`, NO `EventLoopProxy` -- **RISK-001 retired**). Loop wake is via **`AppNotifier`** (a dirty-flag `EventNotifier`). 7 stories; the overlay `WindowManager` is x11rb-over-the-tao-window (no winit/tauri dep in `luminos-platform`); 7-command + 2-event `tauri-specta` IPC with a frozen `bindings.ts` + CI diff gate; `config.toml` persistence; system tray + minimize-to-tray with graceful no-SNI degrade; a `test-e2e` CI job (8th active job). See `specs/E04-tauri-control-panel/HIGH_LEVEL_PLAN.md`. The "winit overlay + `EventLoopProxy`" wording in the original scope below is **superseded** by this single-loop two-window reality.
+
 **Summary:** Build the Tauri 2.0 control panel shell: a webview window with React UI that communicates with the Rust engine via typed IPC. Implement the Phase 0 IPC commands, a minimal settings UI (zoom slider, mode selector, frame timing readout), system tray integration, and settings persistence to `config.toml`. After this epic, users have a graphical interface for controlling their magnifier and their preferences survive application restarts.
 
 **Scope:**
@@ -361,7 +363,7 @@ Delivered in 5 stories (53 subtasks): Cargo workspace & build profiles, 6 platfo
 *Included:*
 - Tauri 2.0 application setup with dual-window architecture (webview + native overlay) ([01 -- System Architecture](./01-system-architecture.md) Section 3.3, [05 -- Control Panel](./05-control-panel.md) Section 1)
 - `tauri-specta` v2 IPC type generation: `Builder`, `collect_commands!`, TypeScript bindings export ([05 -- Control Panel](./05-control-panel.md) Section 2.2)
-- `LuminosHandle` managed state: `ArcSwap<AppState>`, `ConfigManager`, `EventLoopProxy`, `TtsSender` (placeholder) ([05 -- Control Panel](./05-control-panel.md) Section 4.1)
+- `LuminosHandle` managed state: `ArcSwap<AppState>`, `ConfigManager` (`Option`), `AppNotifier` (dirty-flag `EventNotifier` -- **not** `EventLoopProxy`); no `TtsSender` in Phase 0 ([05 -- Control Panel](./05-control-panel.md) Section 4.1) *(as-shipped E04)*
 - Phase 0 IPC commands: `get_current_settings`, `set_zoom_level`, `set_magnification_mode`, `toggle_magnification`, `get_frame_timings` ([05 -- Control Panel](./05-control-panel.md) Section 2.3)
 - TypeScript/React project scaffolding: Vite, Zod schemas, Zustand stores ([05 -- Control Panel](./05-control-panel.md) Sections 3 and 5)
 - React shell: `App`, `HydrationGate`, `Shell` with sidebar navigation, `MagnificationPage` with zoom slider and mode selector ([05 -- Control Panel](./05-control-panel.md) Section 6)
@@ -397,20 +399,20 @@ Delivered in 5 stories (53 subtasks): Cargo workspace & build profiles, 6 platfo
 
 **User-Perceivable Value:** A user opens the Luminos control panel, adjusts their zoom level with a slider, and sees the magnification change instantly. They close and reopen the app, and their settings are preserved. They can minimize to the system tray to keep Luminos running unobtrusively.
 
-**Key Risks:**
-- Tauri 2.0 dual-window setup (webview + native winit window in the same process) may have coordination issues. Mitigation: the architecture is validated in the tech stack evaluation; this is the first real integration test.
-- `tauri-specta` v2 may not support all Rust types used in IPC. Mitigation: manual TypeScript types as fallback, validated in integration tests ([05 -- Control Panel](./05-control-panel.md) Section 2.2).
+**Key Risks:** *(both resolved in E04 -- recorded for history)*
+- ~~Tauri 2.0 dual-window setup (webview + native winit window in the same process) may have coordination issues.~~ **Resolved:** shipped as two **tao/Tauri** windows under one `App::run` loop (no winit window, no second loop); RISK-001 retired.
+- ~~`tauri-specta` v2 may not support all Rust types used in IPC.~~ **Resolved:** all IPC-reachable types derive `specta::Type`; bindings generate cleanly and are CI-diff-gated ([05 -- Control Panel](./05-control-panel.md) Section 2.2).
 
 **Estimated Duration:** 3 weeks (1.5 sprints)
 
-**Success Criteria:**
-- [ ] Control panel opens, hydrates from engine state, and renders without errors
-- [ ] Zoom slider round-trips through IPC: UI → Rust → `ArcSwap` → render thread → next frame
-- [ ] Settings file written to `~/.config/luminos/config.toml` on save
-- [ ] Settings file read and applied on application startup
-- [ ] TypeScript bindings match Rust command signatures (CI generation check)
-- [ ] All frontend components pass `axe-core` with zero violations
-- [ ] `tauri-driver` IPC integration tests pass in CI
+**Success Criteria:** *(verified at E04 close-out, 2026-06-05 -- see `specs/E04-tauri-control-panel/HIGH_LEVEL_PLAN.md` for per-criterion test refs)*
+- [x] Control panel opens, hydrates from engine state, and renders without errors
+- [x] Zoom slider round-trips through IPC: UI → Rust → `ArcSwap` → render thread → next frame
+- [x] Settings file written to `~/.config/luminos/config.toml` on save
+- [x] Settings file read and applied on application startup
+- [x] TypeScript bindings match Rust command signatures (CI generation check)
+- [x] All frontend components pass `axe-core` with zero violations
+- [~] `tauri-driver` IPC integration tests: **authored + wired into the `test-e2e` CI job + `tsc`-typechecked locally; first green CI run pending.** The suite cannot run on dev boxes (no `WebKitWebDriver`/`tauri-driver`), so the live driver assertions are verified only when CI runs the job.
 
 **Primary Docs:** [05 -- Control Panel](./05-control-panel.md) Sections 1-6, [01 -- System Architecture](./01-system-architecture.md) Sections 3.3, 4.6-4.7, 5.4, 6.5, 9.4, [08 -- Build and Distribution](./08-build-and-distribution.md) Section 5
 

@@ -556,7 +556,9 @@ export type ProfileDocument = z.infer<typeof ProfileDocumentSchema>;
 
 ### 4.1 Rust Side: `luminos-app/src/tauri_commands.rs`
 
-All `#[tauri::command]` functions live in a single file. The file has one responsibility: translate Tauri IPC calls into operations on the shared `LuminosHandle` (which owns `Arc<ArcSwap<AppState>>`, `Arc<parking_lot::Mutex<ConfigManager>>`, the `EventLoopProxy`, and the `TtsSender`).
+> **E04 correction (2026-06-05) -- this subsection's `LuminosHandle` snippet predates the shipped code.** As shipped, `LuminosHandle` holds `app_state: Arc<ArcSwap<AppState>>`, `config: Arc<std::sync::Mutex<Option<ConfigManager>>>` (`std::sync`, not `parking_lot` -- not a workspace dep; `Option` because config is `None` when no config dir exists), `notifier: AppNotifier` (the tao-backed `EventNotifier` dirty flag -- **not** an `EventLoopProxy`), and `app: tauri::AppHandle`. There is **no `tts_tx` / `TtsSender`** in Phase 0 (TTS is Phase 2 / Epic 11). State writes go through `StateManager` methods on **nested** `AppState` (`settings.magnification.zoom_level`, etc.), **not** an inline `AppState { zoom_level }` `rcu`. The Phase-0 IPC surface is exactly **7 commands** (`get_current_settings`, `set_zoom_level`, `set_magnification_mode`, `toggle_magnification`, `get_frame_timings`, `save_settings`, `reset_settings`) + **2 events** (`zoom_changed`, `mode_changed`); bindings are generated to `../../ui/src/ipc/bindings.ts`. See `specs/E04-tauri-control-panel/HIGH_LEVEL_PLAN.md` DC-11/DC-14 and [10 -- Risk Register](./10-risk-register.md) RISK-001 (Retired).
+
+All `#[tauri::command]` functions live in a single file. The file has one responsibility: translate Tauri IPC calls into operations on the shared `LuminosHandle` (which owns `Arc<ArcSwap<AppState>>`, `Arc<std::sync::Mutex<Option<ConfigManager>>>`, the `AppNotifier`, and `tauri::AppHandle` -- no `EventLoopProxy`, no `TtsSender` in Phase 0).
 
 ```
 luminos-app/src/
@@ -578,19 +580,31 @@ The Rust event structs (e.g., `SettingsChangedEvent`) live in `luminos-app/src/e
 **State access pattern:** Commands receive a `tauri::State<'_, LuminosHandle>` parameter containing all shared resources. This is registered at application startup via `tauri::Builder::manage()`.
 
 ```rust
-/// Shared handle passed to every Tauri command.
+// ORIGINAL DESIGN (illustrative) — superseded by the E04-shipped struct below.
+// pub(crate) struct LuminosHandle {
+//     pub app_state: Arc<ArcSwap<AppState>>,
+//     pub config: Arc<parking_lot::Mutex<ConfigManager>>,
+//     pub tts_tx: TtsSender,                                    // NOT in Phase 0
+//     pub event_proxy: winit::event_loop::EventLoopProxy<LuminosEvent>, // NOT shipped
+//     pub app: tauri::AppHandle,
+// }
+
+/// Shared handle passed to every Tauri command (E04-shipped shape).
 /// Registered via `tauri::Builder::manage(luminos_handle)` at startup.
 pub(crate) struct LuminosHandle {
     /// Live application state. Render thread reads this lock-free every frame.
+    /// Nested: zoom at `settings.magnification.zoom_level`, etc.
     pub app_state: Arc<ArcSwap<AppState>>,
-    /// Configuration manager for persistence (settings, profiles).
-    pub config: Arc<parking_lot::Mutex<ConfigManager>>,
-    /// Channel for sending speech requests to the TTS Coordinator.
-    pub tts_tx: TtsSender,
-    /// Sends custom events to the winit event loop on the main thread.
-    pub event_proxy: winit::event_loop::EventLoopProxy<LuminosEvent>,
+    /// Configuration manager for persistence; `None` when no config dir exists.
+    /// `std::sync::Mutex` (not parking_lot — not a workspace dep); access is brief, off the render path.
+    pub config: Arc<std::sync::Mutex<Option<ConfigManager>>>,
+    /// tao-backed `EventNotifier` holding the shared `Arc<AtomicBool>` render-dirty flag.
+    /// `notify_state_changed()` sets the flag (no winit, no `request_redraw`, no `EventLoopProxy`).
+    pub notifier: AppNotifier,
     /// Tauri app handle for emitting events back to the webview.
     pub app: tauri::AppHandle,
+    // No `tts_tx` in Phase 0 — TTS is Phase 2 (Epic 11).
+    // (Linux-gated runtime fields — `window_manager`, `frame_timings`, `tray` — added by stories 002/003/007.)
 }
 ```
 

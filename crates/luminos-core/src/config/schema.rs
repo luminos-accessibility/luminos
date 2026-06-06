@@ -19,7 +19,7 @@ use crate::state::{ColorFilterType, MagnificationMode, TrackingMode};
 pub use luminos_types::{DockEdge, GpuPreference, InterpolationMode, LensShape, PresentMode};
 
 /// Kokoro ONNX model quantization variant.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 pub enum ModelVariant {
     /// 4-bit quantized model.
     Q4,
@@ -32,7 +32,7 @@ pub enum ModelVariant {
 }
 
 /// Hotkey action identifiers.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 pub enum HotkeyAction {
     /// Increase zoom level.
     ZoomIn,
@@ -55,7 +55,7 @@ pub enum HotkeyAction {
 }
 
 /// A keyboard shortcut binding.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 pub struct KeyBinding {
     /// Key name (e.g., "Equal", "Minus", "F1").
     pub key: String,
@@ -64,7 +64,7 @@ pub struct KeyBinding {
 }
 
 /// Modifier key names for keybindings.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 pub enum ModifierKey {
     /// Control key.
     Ctrl,
@@ -83,7 +83,7 @@ pub enum ModifierKey {
 // ---------------------------------------------------------------------------
 
 /// Magnification-related settings.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 pub struct MagnificationSettings {
     /// Zoom level multiplier (1.5 to 20.0).
     pub zoom_level: f32,
@@ -134,7 +134,7 @@ impl Default for MagnificationSettings {
 }
 
 /// Color filter configuration.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 pub struct ColorFilterConfig {
     /// Active filter type.
     pub filter_type: ColorFilterType,
@@ -159,7 +159,7 @@ impl Default for ColorFilterConfig {
 }
 
 /// Cursor enhancement configuration.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 pub struct CursorConfig {
     /// Whether the cursor is enlarged in the magnified view.
     pub enlarged_cursor: bool,
@@ -195,7 +195,7 @@ impl Default for CursorConfig {
 }
 
 /// Speech / TTS configuration.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 pub struct SpeechSettings {
     /// Whether TTS is enabled.
     pub enabled: bool,
@@ -231,7 +231,7 @@ impl Default for SpeechSettings {
 /// serialized to `config.toml` for persistence and to JSON for IPC.
 /// The TypeScript `AppSettings` Zod schema (doc-05 Section 3.2)
 /// mirrors this struct field-for-field.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 pub struct AppSettings {
     /// Magnification display settings.
     pub magnification: MagnificationSettings,
@@ -439,5 +439,53 @@ mod tests {
         let toml_str = toml::to_string(&settings).unwrap();
         let back: AppSettings = toml::from_str(&toml_str).unwrap();
         assert_eq!(settings, back);
+    }
+
+    // E04/005 T002: specta::Type bounds + snake_case wire contract.
+
+    #[test]
+    fn appsettings_implements_specta_type() {
+        // DC-5: `AppSettings` (and its sub-structs) must derive `specta::Type`
+        // so it can be a `#[specta::specta]` command arg/return type.
+        fn assert_specta_type<T: specta::Type>() {}
+        assert_specta_type::<AppSettings>();
+        assert_specta_type::<MagnificationSettings>();
+        assert_specta_type::<ColorFilterConfig>();
+        assert_specta_type::<CursorConfig>();
+        assert_specta_type::<SpeechSettings>();
+        assert_specta_type::<KeyBinding>();
+        assert_specta_type::<ModelVariant>();
+        assert_specta_type::<HotkeyAction>();
+        assert_specta_type::<ModifierKey>();
+    }
+
+    #[test]
+    fn appsettings_wire_format_stays_snake_case() {
+        // Contract (HLP Integration Points + story 006 Zod schemas): AppSettings
+        // carries NO `#[serde(rename_all)]` — JSON keys are snake_case and enum
+        // values are bare PascalCase. specta mirrors serde, so adding the
+        // `specta::Type` derive MUST NOT change the wire shape.
+        let json = serde_json::to_value(AppSettings::default()).unwrap();
+        let obj = json.as_object().unwrap();
+        assert!(obj.contains_key("magnification"));
+        assert!(
+            obj.contains_key("color_filter"),
+            "snake_case key 'color_filter'"
+        );
+        assert!(
+            obj.contains_key("start_on_login"),
+            "snake_case key 'start_on_login'"
+        );
+        let mag = obj["magnification"].as_object().unwrap();
+        assert!(
+            mag.contains_key("zoom_level"),
+            "snake_case key 'zoom_level'"
+        );
+        assert!(
+            mag.contains_key("tracking_mode"),
+            "snake_case key 'tracking_mode'"
+        );
+        // Enum value is a bare PascalCase string.
+        assert_eq!(mag["mode"], serde_json::json!("FullScreen"));
     }
 }

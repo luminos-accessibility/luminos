@@ -50,11 +50,18 @@ pub fn select_texture_format(
         })
 }
 
-/// Configures the wgpu surface for the overlay window.
+/// Configures the wgpu surface for the overlay window and returns the exact
+/// [`wgpu::SurfaceConfiguration`] that was built and applied.
 ///
 /// Selects an sRGB-compatible texture format for gamma-correct rendering.
 /// Uses `PreMultiplied` alpha for transparent overlay compositing, with
 /// fallback to `PostMultiplied` or `Opaque` if unavailable.
+///
+/// Returning the applied configuration makes it the single source of truth:
+/// callers store it for `resize`/`Lost`/`Outdated` recovery (re-applying the
+/// same struct with updated dimensions) rather than hand-rebuilding a copy that
+/// could drift from what was actually configured. Callers that only need the
+/// texture format read [`wgpu::SurfaceConfiguration::format`].
 ///
 /// # Arguments
 ///
@@ -76,27 +83,26 @@ pub fn configure_surface(
     width: u32,
     height: u32,
     present_mode: wgpu::PresentMode,
-) -> Result<wgpu::TextureFormat, RenderError> {
+) -> Result<wgpu::SurfaceConfiguration, RenderError> {
     let caps = surface.get_capabilities(adapter);
 
     let format = select_texture_format(&caps.formats)?;
     let alpha_mode = select_alpha_mode(&caps.alpha_modes);
 
-    surface.configure(
-        device,
-        &wgpu::SurfaceConfiguration {
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format,
-            width: width.max(1),
-            height: height.max(1),
-            present_mode,
-            alpha_mode,
-            view_formats: vec![],
-            desired_maximum_frame_latency: 2,
-        },
-    );
+    let config = wgpu::SurfaceConfiguration {
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        format,
+        width: width.max(1),
+        height: height.max(1),
+        present_mode,
+        alpha_mode,
+        view_formats: vec![],
+        desired_maximum_frame_latency: 2,
+    };
 
-    Ok(format)
+    surface.configure(device, &config);
+
+    Ok(config)
 }
 
 #[cfg(test)]

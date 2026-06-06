@@ -1,104 +1,200 @@
-//! Integration tests: overlay mode configuration on X11.
+//! Integration tests: overlay mode + control on X11 via the x11rb backend.
 //!
-//! Tests the `OverlayMode::FullScreen` behavior on a real X11 display
-//! server (Xvfb in CI). Verifies that the overlay window covers the
-//! entire display when `FullScreen` mode is set.
+//! Tests `X11WindowManager` against a real X11 display server (Xvfb in CI). The
+//! manager binds to an externally-created window by its XID and drives geometry,
+//! visibility, stacking, and `FullScreen` mode through raw X11 requests. Each
+//! test creates its OWN throwaway x11rb window (the manager never creates one)
+//! and asserts via `GetGeometry`/`GetWindowAttributes`/`GetProperty`.
 //!
-//! Requires Xvfb on Linux. Gated behind `ci_platform_tests` feature.
+//! Requires Xvfb on Linux. Gated behind the `ci_platform_tests` feature.
 
 #![cfg(all(test, target_os = "linux", feature = "ci_platform_tests"))]
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use luminos_platform::linux_x11::X11WindowManager;
-use luminos_platform::traits::{OverlayMode, WindowManager};
+use luminos_platform::traits::{OverlayMode, ScreenRect, WindowManager};
+use x11rb::connection::Connection;
+use x11rb::protocol::xproto::{AtomEnum, ConnectionExt, CreateWindowAux, MapState, WindowClass};
+use x11rb::rust_connection::RustConnection;
+use x11rb::wrapper::ConnectionExt as _;
 
-/// Helper: creates an `X11WindowManager` with an overlay on the first
-/// available monitor and returns both the manager and the monitor bounds.
-fn create_overlay_with_bounds() -> (X11WindowManager, u32, u32) {
-    let mut wm = X11WindowManager::new();
-    let monitors = xcap::Monitor::all().expect("should enumerate monitors");
-    assert!(
-        !monitors.is_empty(),
-        "Xvfb should provide at least one monitor"
-    );
-    let first = &monitors[0];
-    let display_id = first
-        .name()
-        .unwrap_or_else(|_| first.id().unwrap().to_string());
-    let width = first.width().unwrap_or(1920);
-    let height = first.height().unwrap_or(1080);
-    wm.create_overlay(&display_id)
-        .expect("create_overlay should succeed on Xvfb");
-    (wm, width, height)
+/// Creates a throwaway, unmapped top-level X11 window. The returned connection
+/// owns the X resource, so it must be kept alive for the window to survive.
+fn create_test_window() -> (RustConnection, u32) {
+    let (conn, screen_num) = x11rb::connect(None).expect("connect to test X server");
+    let screen = &conn.setup().roots[screen_num];
+    let xid = conn.generate_id().expect("generate window id");
+    let aux = CreateWindowAux::new().background_pixel(screen.white_pixel);
+    conn.create_window(
+        screen.root_depth,
+        xid,
+        screen.root,
+        0,
+        0,
+        400,
+        300,
+        0,
+        WindowClass::INPUT_OUTPUT,
+        screen.root_visual,
+        &aux,
+    )
+    .expect("create test window")
+    .check()
+    .expect("create_window checked");
+    conn.flush().expect("flush after create");
+    (conn, xid)
 }
 
-/// Verify that setting `FullScreen` mode succeeds after overlay creation
-/// and the window covers the display.
-///
-/// Traces to: AC-3.1
-#[test]
-fn integration_overlay_mode_fullscreen() {
-    let (mut wm, _width, _height) = create_overlay_with_bounds();
-
-    // set_overlay_mode(FullScreen) should succeed
-    let result = wm.set_overlay_mode(OverlayMode::FullScreen);
-    assert!(
-        result.is_ok(),
-        "set_overlay_mode(FullScreen) should succeed, got: {result:?}"
-    );
-
-    // On Xvfb, we cannot directly query the window geometry from outside
-    // the process. The implementation sets window bounds to the full
-    // display, which is verified by the lack of error. The actual
-    // geometry is verified by the set_overlay_bounds call inside
-    // set_overlay_mode, which uses the stored display_bounds.
+/// Binds a manager to a fresh throwaway window with the given display bounds.
+fn bind_manager(bounds: ScreenRect) -> (RustConnection, u32, X11WindowManager) {
+    let (conn, xid) = create_test_window();
+    let wm = X11WindowManager::new(xid, bounds).expect("manager should bind to the XID");
+    (conn, xid, wm)
 }
 
-/// Verify that Docked mode is rejected (deferred to E05).
+fn test_bounds() -> ScreenRect {
+    ScreenRect {
+        x: 0,
+        y: 0,
+        width: 1280,
+        height: 720,
+    }
+}
+
+/// Verify that `FullScreen` mode sizes the bound window to the display bounds.
 ///
-/// Traces to: negative test for AC-3.1 scope boundary
+/// Traces to: AC-1.2
 #[test]
-fn integration_overlay_mode_docked_rejected() {
-    let (mut wm, _, _) = create_overlay_with_bounds();
+fn integration_overlay_mode_fullscreen_sizes_to_display() {
+    let bounds = test_bounds();
+    let (conn, xid, mut wm) = bind_manager(bounds);
+
+    wm.set_overlay_mode(OverlayMode::FullScreen)
+        .expect("set_overlay_mode(FullScreen) should succeed");
+    conn.sync().expect("sync");
+
+    let geo = conn.get_geometry(xid).unwrap().reply().unwrap();
+    assert_eq!(
+        u32::from(geo.width),
+        bounds.width,
+        "fullscreen width applied"
+    );
+    assert_eq!(
+        u32::from(geo.height),
+        bounds.height,
+        "fullscreen height applied"
+    );
+}
+
+/// Verify that Docked mode is deferred (Ok + warn) and does not resize.
+///
+/// Traces to: AC-1.2 (Lens/Docked deferral)
+#[test]
+fn integration_overlay_mode_docked_deferred() {
+    let (conn, xid, mut wm) = bind_manager(test_bounds());
 
     let result = wm.set_overlay_mode(OverlayMode::Docked {
         edge: luminos_types::DockEdge::Bottom,
         size_px: 540,
     });
-    assert!(result.is_err(), "Docked mode should be rejected in E02");
+    assert!(result.is_ok(), "Docked mode is deferred to E05, returns Ok");
+    conn.sync().expect("sync");
+
+    // The window must be unchanged (still 400x300 from create_test_window).
+    let geo = conn.get_geometry(xid).unwrap().reply().unwrap();
+    assert_eq!(geo.width, 400, "deferred Docked must not resize");
+    assert_eq!(geo.height, 300, "deferred Docked must not resize");
 }
 
-/// Verify that Lens mode is rejected (deferred to E05).
+/// Verify that Lens mode is deferred (Ok + warn) and does not resize.
 ///
-/// Traces to: negative test for AC-3.1 scope boundary
+/// Traces to: AC-1.2 (Lens/Docked deferral)
 #[test]
-fn integration_overlay_mode_lens_rejected() {
-    let (mut wm, _, _) = create_overlay_with_bounds();
+fn integration_overlay_mode_lens_deferred() {
+    let (conn, xid, mut wm) = bind_manager(test_bounds());
 
     let result = wm.set_overlay_mode(OverlayMode::Lens {
         width: 400,
         height: 300,
         shape: luminos_types::LensShape::Ellipse,
     });
-    assert!(result.is_err(), "Lens mode should be rejected in E02");
+    assert!(result.is_ok(), "Lens mode is deferred to E05, returns Ok");
+    conn.sync().expect("sync");
+
+    let geo = conn.get_geometry(xid).unwrap().reply().unwrap();
+    assert_eq!(geo.width, 400, "deferred Lens must not resize");
+    assert_eq!(geo.height, 300, "deferred Lens must not resize");
 }
 
-/// Verify that `set_visible` works after `FullScreen` mode is set.
+/// Verify that `set_visible` maps and unmaps the bound window after `FullScreen`.
 ///
-/// Traces to: AC-1.2, AC-3.1
+/// Traces to: AC-1.1
 #[test]
 fn integration_overlay_mode_fullscreen_then_visible() {
-    let (mut wm, _, _) = create_overlay_with_bounds();
-
+    let (conn, xid, mut wm) = bind_manager(test_bounds());
     wm.set_overlay_mode(OverlayMode::FullScreen)
         .expect("FullScreen mode should succeed");
 
+    wm.set_visible(true).expect("set_visible(true)");
+    conn.sync().expect("sync");
+    let attrs = conn.get_window_attributes(xid).unwrap().reply().unwrap();
+    assert_eq!(attrs.map_state, MapState::VIEWABLE, "window mapped");
+
+    wm.set_visible(false).expect("set_visible(false)");
+    conn.sync().expect("sync");
+    let attrs = conn.get_window_attributes(xid).unwrap().reply().unwrap();
+    assert_eq!(attrs.map_state, MapState::UNMAPPED, "window unmapped");
+}
+
+/// Verify that geometry + always-on-top + visibility all apply together
+/// (AC-1.1 end-to-end through the trait against one bound window).
+///
+/// Traces to: AC-1.1
+#[test]
+fn integration_overlay_geometry_stacking_visibility() {
+    let (conn, xid, wm) = bind_manager(test_bounds());
+
+    let rect = ScreenRect {
+        x: 5,
+        y: 7,
+        width: 800,
+        height: 600,
+    };
+    wm.set_overlay_bounds(rect).expect("set_overlay_bounds");
+    wm.set_always_on_top(true).expect("set_always_on_top(true)");
+    wm.set_visible(true).expect("set_visible(true)");
+    conn.sync().expect("sync");
+
+    let geo = conn.get_geometry(xid).unwrap().reply().unwrap();
+    assert_eq!(u32::from(geo.width), rect.width);
+    assert_eq!(u32::from(geo.height), rect.height);
+    assert_eq!(i32::from(geo.x), rect.x);
+    assert_eq!(i32::from(geo.y), rect.y);
+
+    let attrs = conn.get_window_attributes(xid).unwrap().reply().unwrap();
+    assert_eq!(attrs.map_state, MapState::VIEWABLE);
+
+    // _NET_WM_STATE_ABOVE membership (property set even under WM-less Xvfb).
+    let wm_state = conn
+        .intern_atom(false, b"_NET_WM_STATE")
+        .unwrap()
+        .reply()
+        .unwrap()
+        .atom;
+    let wm_state_above = conn
+        .intern_atom(false, b"_NET_WM_STATE_ABOVE")
+        .unwrap()
+        .reply()
+        .unwrap()
+        .atom;
+    let prop = conn
+        .get_property(false, xid, wm_state, AtomEnum::ATOM, 0, 16)
+        .unwrap()
+        .reply()
+        .unwrap();
+    let members: Vec<u32> = prop.value32().map(Iterator::collect).unwrap_or_default();
     assert!(
-        wm.set_visible(true).is_ok(),
-        "set_visible(true) should succeed after FullScreen"
-    );
-    assert!(
-        wm.set_visible(false).is_ok(),
-        "set_visible(false) should succeed after FullScreen"
+        members.contains(&wm_state_above),
+        "_NET_WM_STATE_ABOVE should be set"
     );
 }

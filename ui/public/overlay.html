@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Luminos Overlay</title>
+    <style>
+      /*
+       * The overlay window hosts a wgpu surface, not DOM content. The webview
+       * is attached only to yield a valid raw-window-handle for the surface
+       * (the magnified frame is drawn by the GPU, NOT composited under a
+       * visible webview — see tauri #9220). Keep the page fully transparent
+       * and non-interactive so it never paints over the GPU output.
+       */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        overflow: hidden;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body></body>
+</html>

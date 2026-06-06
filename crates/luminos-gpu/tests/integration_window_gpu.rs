@@ -1,9 +1,17 @@
 //! Integration tests: full window-to-GPU pipeline on X11.
 //!
-//! These tests wire together `X11WindowManager` (luminos-platform) with
-//! wgpu device and surface initialization (luminos-gpu) to verify the
-//! end-to-end pipeline from overlay window creation through GPU surface
-//! configuration and texture acquisition.
+//! These tests wire a real X11 window to wgpu device and surface initialization
+//! (luminos-gpu) to verify the end-to-end pipeline from a window handle through
+//! GPU surface configuration and texture acquisition.
+//!
+//! Story E04/002 note: `X11WindowManager` no longer owns a window (it controls
+//! the tao/Tauri overlay window by XID and sources no surface — `raw_window_handle()`
+//! is `None`). The surface-from-overlay-window coverage now lives in
+//! `luminos-app/tests/overlay_surface.rs` (story 001's `surface_created`). These
+//! GPU-pipeline tests therefore create their OWN window: a throwaway winit
+//! window for the surface (winit in a *test* is fine — FR-1 only forbids a
+//! second event loop in the shipping path reachable from `main`), and a
+//! throwaway x11rb window for the `overlay_window_id()` binding check.
 //!
 //! Requires Xvfb + Mesa (llvmpipe/lavapipe) on Linux. Gated behind
 //! `ci_platform_tests` feature.
@@ -14,59 +22,39 @@
 use luminos_gpu::device::{create_gpu_device, create_wgpu_instance};
 use luminos_gpu::surface::configure_surface;
 use luminos_platform::linux_x11::X11WindowManager;
-use luminos_platform::traits::WindowManager;
+use luminos_platform::traits::ScreenRect;
+use winit::event_loop::EventLoop;
+use winit::platform::x11::EventLoopBuilderExtX11;
+use winit::window::Window;
 
-/// Helper: creates an `X11WindowManager` with an overlay on the first
-/// available monitor (Xvfb provides at least one).
-fn create_overlay_on_first_monitor() -> X11WindowManager {
-    let mut wm = X11WindowManager::new();
-    let monitors = xcap::Monitor::all().expect("should enumerate monitors");
-    assert!(
-        !monitors.is_empty(),
-        "Xvfb should provide at least one monitor"
-    );
-    let first = &monitors[0];
-    let display_id = first
-        .name()
-        .unwrap_or_else(|_| first.id().unwrap().to_string());
-    wm.create_overlay(&display_id)
-        .expect("create_overlay should succeed on Xvfb");
-    wm
+/// Creates a throwaway winit window (owning its own ephemeral event loop) to
+/// stand in as a real X11 surface target for the GPU pipeline tests. The event
+/// loop is dropped after creation; the X11 window survives because the X
+/// connection is reference-counted.
+#[allow(deprecated)]
+fn create_test_window() -> Window {
+    let event_loop = EventLoop::builder()
+        .with_any_thread(true)
+        .build()
+        .expect("build test event loop");
+    event_loop
+        .create_window(Window::default_attributes().with_visible(false))
+        .expect("create test winit window")
 }
 
-/// End-to-end pipeline: overlay window -> raw handles -> wgpu instance ->
-/// surface -> adapter + device + queue -> configure surface -> acquire texture.
+/// End-to-end pipeline: window -> raw handles -> wgpu instance -> surface ->
+/// adapter + device + queue -> configure surface -> acquire texture.
 ///
-/// Traces to: AC-1.1, AC-2.1, AC-2.2, AC-2.3, AC-5.1, AC-5.2
+/// Traces to: AC-2.1, AC-2.2, AC-2.3, AC-5.1, AC-5.2
 #[tokio::test]
 async fn integration_overlay_window_with_gpu_surface() {
-    let wm = create_overlay_on_first_monitor();
+    let window = create_test_window();
 
-    // AC-5.1: raw_window_handle returns Some after create_overlay
-    let window_handle = wm
-        .raw_window_handle()
-        .expect("raw_window_handle should be Some after create_overlay");
-
-    // AC-5.2: raw_display_handle returns Some after create_overlay
-    let display_handle = wm
-        .raw_display_handle()
-        .expect("raw_display_handle should be Some after create_overlay");
-
-    // Verify handles are valid (can obtain raw handles without error)
-    let _raw_wh = window_handle
-        .window_handle()
-        .expect("window handle should be valid");
-    let _raw_dh = display_handle
-        .display_handle()
-        .expect("display handle should be valid");
-
-    // Create wgpu instance
     let instance = create_wgpu_instance();
 
-    // Create surface from raw handles. The surface requires references that
-    // outlive it, which is satisfied because wm owns the window.
+    // Create surface from the owned window handle.
     let surface = instance
-        .create_surface(wm.window().expect("window should exist"))
+        .create_surface(&window)
         .expect("wgpu surface creation should succeed on X11");
 
     // AC-2.1: create_gpu_device returns adapter, device, queue
@@ -74,7 +62,6 @@ async fn integration_overlay_window_with_gpu_surface() {
         .await
         .expect("create_gpu_device should succeed on Mesa llvmpipe/lavapipe");
 
-    // Verify adapter info is populated
     let info = adapter.get_info();
     assert!(
         !info.name.is_empty(),
@@ -100,15 +87,11 @@ async fn integration_overlay_window_with_gpu_surface() {
         height,
         wgpu::PresentMode::Fifo,
     )
-    .expect("configure_surface should succeed");
-
-    // Verify we got a valid format. On Mesa llvmpipe, sRGB should be
-    // available. The successful return from configure_surface already
-    // proves the format is valid; log it for debugging.
+    .expect("configure_surface should succeed")
+    .format;
     log::info!("configured surface format: {format:?}");
 
-    // AC-2.3: get_current_texture returns a valid surface texture. wgpu 29
-    // returns the `CurrentSurfaceTexture` enum instead of a `Result`.
+    // AC-2.3: get_current_texture returns a valid surface texture.
     let surface_texture = match surface.get_current_texture() {
         wgpu::CurrentSurfaceTexture::Success(texture)
         | wgpu::CurrentSurfaceTexture::Suboptimal(texture) => texture,
@@ -117,7 +100,6 @@ async fn integration_overlay_window_with_gpu_surface() {
         }
     };
 
-    // Verify texture dimensions match the configured surface
     assert!(
         surface_texture.texture.width() > 0,
         "texture width should be non-zero"
@@ -127,45 +109,73 @@ async fn integration_overlay_window_with_gpu_surface() {
         "texture height should be non-zero"
     );
 
-    // Present the texture to complete the pipeline
     surface_texture.present();
 }
 
-/// Verify that `overlay_window_id()` returns a non-zero X11 window ID after
-/// overlay creation, suitable for self-capture exclusion (RISK-002).
+/// Verify that `overlay_window_id()` echoes the bound X11 window ID, suitable
+/// for self-capture exclusion (RISK-002). Story E04/002: the manager binds to an
+/// externally-created window by its XID via `new(xid, bounds)`.
 ///
 /// Traces to: AC-6.1
 #[test]
 fn integration_overlay_window_id_for_self_capture_exclusion() {
-    let wm = create_overlay_on_first_monitor();
+    use x11rb::connection::Connection as _;
+    use x11rb::protocol::xproto::{ConnectionExt as _, CreateWindowAux, WindowClass};
+
+    let (conn, screen_num) = x11rb::connect(None).expect("connect to X server");
+    let screen = &conn.setup().roots[screen_num];
+    let xid = conn.generate_id().expect("generate window id");
+    conn.create_window(
+        screen.root_depth,
+        xid,
+        screen.root,
+        0,
+        0,
+        400,
+        300,
+        0,
+        WindowClass::INPUT_OUTPUT,
+        screen.root_visual,
+        &CreateWindowAux::new().background_pixel(screen.white_pixel),
+    )
+    .expect("create test window")
+    .check()
+    .expect("create_window checked");
+    conn.flush().expect("flush");
+
+    let bounds = ScreenRect {
+        x: 0,
+        y: 0,
+        width: 1920,
+        height: 1080,
+    };
+    let wm = X11WindowManager::new(xid, bounds).expect("bind manager to XID");
     let window_id = wm
         .overlay_window_id()
-        .expect("overlay_window_id should return Some after create_overlay");
-    assert!(
-        window_id > 0,
-        "X11 window ID should be non-zero, got {window_id}"
+        .expect("overlay_window_id should be Some when bound");
+    assert_eq!(
+        window_id,
+        u64::from(xid),
+        "overlay_window_id should echo the bound XID"
     );
+    assert!(window_id > 0, "X11 window ID should be non-zero");
 }
 
 /// Verify that wgpu device creation with `LowPower` preference succeeds.
-/// This is a targeted test for AC-2.1's `LowPower` adapter requirement.
 ///
 /// Traces to: AC-2.1
 #[tokio::test]
 async fn integration_gpu_device_low_power_preference() {
-    let wm = create_overlay_on_first_monitor();
+    let window = create_test_window();
     let instance = create_wgpu_instance();
     let surface = instance
-        .create_surface(wm.window().expect("window should exist"))
+        .create_surface(&window)
         .expect("surface creation should succeed");
 
     let (adapter, _device, _queue) = create_gpu_device(&instance, &surface)
         .await
         .expect("create_gpu_device should succeed");
 
-    // On CI with Mesa, the adapter should be available. The LowPower
-    // preference is verified by the function signature; here we just
-    // confirm the adapter was obtained successfully.
     let info = adapter.get_info();
     assert!(
         !info.name.is_empty(),

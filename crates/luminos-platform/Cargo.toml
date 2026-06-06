@@ -25,7 +25,6 @@ x11rb = { workspace = true }
 xcap = { workspace = true }
 image = { workspace = true }
 atspi = { workspace = true }
-winit = { workspace = true }
 
 [target.'cfg(target_os = "linux")'.dependencies.ashpd]
 version = "=0.13.11"

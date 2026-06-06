@@ -3,7 +3,10 @@
 ## Project: Luminos
 
 ### Architecture Overview
-- **Dual-window design:** Magnification overlay (winit + wgpu) + Control Panel (Tauri 2.0 + React)
+- **Dual-window design:** Magnification overlay (tao/Tauri window + wgpu surface — NOT winit; RISK-001 retired E04/001) + Control Panel (Tauri 2.0 + React). Single tao event loop drives both.
+- **E04/003 live magnification seam:** [e04_003_live_magnification.md](e04_003_live_magnification.md) — frame path, input pipeline shutdown gotcha, story-005 seam, DC-10 headless GPU reality, xcap Wayland leak.
+- **E04/005 tauri-specta IPC bindings:** [tauri_specta_ipc.md](tauri_specta_ipc.md) — rc.25 `event_name` mandatory, generated-bindings swap gotchas (no `Result` export, `f32`→`number|null`, CWD-relative export, prettier), specta dep wiring (DC-5), `--export-bindings` CI seam.
+- **E04/007 tray + tauri-driver E2E (epic E04 DONE 2026-06-05):** [e04_007_tray_and_e2e.md](e04_007_tray_and_e2e.md) — tray API + graceful degrade (DBus heuristic + Ok-on-error), minimize-to-tray via `Builder.on_window_event`, WM_DELETE x11rb test, tauri-driver 2.0.6 (NO `env` in `tauri:options`), WDIO9 config gotchas, CI-only E2E, honest HW/manual blind spots.
 - **Six platform traits:** `ScreenCapture`, `FocusTracker`, `TtsEngine`, `WindowManager`, `InputMonitor`, `AudioOutput`
 - **Cargo workspace:** `luminos-core`, `luminos-platform`, `luminos-gpu`, `luminos-tts`, `luminos-app`
 - **Platform order:** Linux X11 -> Wayland -> macOS -> OpenBSD -> Windows
@@ -55,6 +58,9 @@
 
 ### wgpu v28 API (verified 2026-03-28)
 - [wgpu v28 API changes](wgpu_v28_api_changes.md) - Instance::new takes &ref, request_adapter returns Result not Option, request_device has no trace_path
+
+### Tauri single-event-loop + wgpu overlay (E04/001, verified tauri 2.11.2)
+- [Tauri event loop](tauri_event_loop.md) - run_on_main_thread is fire-and-forget from worker threads (no deadlock); 60Hz timer-marshaled heartbeat for tao GTK3 cadence; Surface<'static> from owned WebviewWindow; sigaction-only signal handling
 
 ### Common Pitfalls (from audits)
 - WGSL `smoothstep(edge0, edge1, x)` REQUIRES edge0 < edge1 (validation error otherwise)

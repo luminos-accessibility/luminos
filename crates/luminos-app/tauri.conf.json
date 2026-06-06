@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Luminos",
+  "version": "0.1.0",
+  "identifier": "dev.luminos.app",
+  "build": {
+    "beforeDevCommand": "pnpm --dir ../../ui dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm --dir ../../ui build",
+    "frontendDist": "../../ui/dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "control-panel",
+        "title": "Luminos Control Panel",
+        "width": 900,
+        "height": 640,
+        "resizable": true,
+        "visible": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'",
+      "capabilities": ["default"]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": ["icons/icon.png"],
+    "license": "GPL-3.0-only",
+    "category": "Utility",
+    "shortDescription": "Accessible screen magnifier and text-to-speech suite",
+    "longDescription": "Luminos is a GPLv3 cross-platform screen magnification and text-to-speech accessibility suite for low-vision users."
+  }
+}

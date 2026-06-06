@@ -1,7 +1,7 @@
 # Story E04/007: System Tray & tauri-driver CI E2E
 
 **Epic:** [../HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED (approved-as-authoritative per E04 execution, 2026-06-05)
 **Depends On:** 003 (live engine to assert against), 005 (IPC commands), 006 (UI)
 
 ---

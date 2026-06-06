@@ -1,7 +1,7 @@
 # Story E04/005: IPC Command Layer & tauri-specta Bindings
 
 **Epic:** [../HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED (approved-as-authoritative per E04 execution, 2026-06-05)
 **Depends On:** 001 (`LuminosHandle`, `AppNotifier`), 004 (`ConfigManager` for save/reset). Soft: 003 (live timings for `get_frame_timings`).
 
 ---

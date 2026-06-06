@@ -40,6 +40,8 @@ coverage/
 # -----------------------------------------------------------------------------
 src-tauri/target/
 src-tauri/gen/
+# Tauri build-generated schemas (luminos-app is the Tauri crate in this workspace)
+crates/luminos-app/gen/
 # Tauri bundle outputs (installers, DMGs, AppImages, etc.)
 src-tauri/target/release/bundle/
 *.AppImage
@@ -119,6 +121,12 @@ $RECYCLE.BIN/
 # Linux
 .directory
 *~
+
+# -----------------------------------------------------------------------------
+# Claude Code / agent harness
+# -----------------------------------------------------------------------------
+# Harness-managed git worktrees live here
+.claude/worktrees/
 
 # -----------------------------------------------------------------------------
 # Miscellaneous

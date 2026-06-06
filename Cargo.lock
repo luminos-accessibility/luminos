@@ -1420,6 +1420,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "directories"
+version = "6.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "16f5094c54661b38d03bd7e50df373292118db60b585c08a411c6d840017fe7d"
+dependencies = [
+ "dirs-sys 0.5.0",
+]
+
+[[package]]
 name = "dirs"
 version = "5.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3302,17 +3311,26 @@ version = "0.1.0"
 dependencies = [
  "arc-swap",
  "env_logger",
+ "libc",
  "log",
  "luminos-core",
  "luminos-gpu",
  "luminos-platform",
  "luminos-tts",
+ "luminos-types",
+ "pollster",
+ "raw-window-handle",
  "serde",
  "serde_json",
+ "specta",
  "specta-typescript",
  "tauri",
  "tauri-build",
  "tauri-specta",
+ "tempfile",
+ "thiserror 2.0.18",
+ "wgpu",
+ "x11rb",
 ]
 
 [[package]]
@@ -3322,6 +3340,7 @@ dependencies = [
  "arboard",
  "arc-swap",
  "crossbeam-channel",
+ "directories",
  "log",
  "luminos-gpu",
  "luminos-platform",
@@ -3329,6 +3348,8 @@ dependencies = [
  "luminos-types",
  "serde",
  "serde_json",
+ "specta",
+ "tempfile",
  "thiserror 2.0.18",
  "tokio",
  "toml 1.1.2+spec-1.1.0",
@@ -3343,10 +3364,14 @@ dependencies = [
  "log",
  "luminos-platform",
  "luminos-types",
+ "serde",
+ "serde_json",
+ "specta",
  "thiserror 2.0.18",
  "tokio",
  "wgpu",
  "winit",
+ "x11rb",
  "xcap",
 ]
 
@@ -3364,7 +3389,6 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.18",
  "tokio",
- "winit",
  "x11rb",
  "xcap",
 ]
@@ -3386,6 +3410,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "specta",
 ]
 
 [[package]]
@@ -4547,6 +4572,12 @@ dependencies = [
  "rustix 1.1.4",
  "windows-sys 0.61.2",
 ]
+
+[[package]]
+name = "pollster"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f3a9f18d041e6d0e102a0a46750538147e5e8992d3b4873aaafee2520b00ce3"
 
 [[package]]
 name = "portable-atomic"

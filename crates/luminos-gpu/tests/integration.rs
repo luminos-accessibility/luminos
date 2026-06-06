@@ -337,34 +337,36 @@ mod platform_integration {
 
     use luminos_gpu::device::{create_gpu_device, create_wgpu_instance};
     use luminos_gpu::surface::configure_surface;
-    use luminos_platform::linux_x11::X11WindowManager;
-    use luminos_platform::traits::WindowManager;
+    use winit::event_loop::EventLoop;
+    use winit::platform::x11::EventLoopBuilderExtX11;
+    use winit::window::Window;
 
-    /// Creates an `X11WindowManager` with an overlay on the first monitor.
-    fn create_overlay_on_first_monitor() -> X11WindowManager {
-        let mut wm = X11WindowManager::new();
-        let monitors = xcap::Monitor::all().expect("should enumerate monitors");
-        assert!(
-            !monitors.is_empty(),
-            "Xvfb should provide at least one monitor"
-        );
-        let first = &monitors[0];
-        let display_id = first
-            .name()
-            .unwrap_or_else(|_| first.id().unwrap().to_string());
-        wm.create_overlay(&display_id)
-            .expect("create_overlay should succeed on Xvfb");
-        wm
+    /// Creates a throwaway winit window to stand in as a real X11 surface target.
+    ///
+    /// Story E04/002: `X11WindowManager` no longer owns a window (it controls
+    /// the tao/Tauri overlay window by XID and `raw_window_handle()` is `None`);
+    /// the surface-from-overlay-window coverage moved to `luminos-app`. These
+    /// GPU-pipeline tests create their own window. winit in a *test* is fine —
+    /// FR-1 only forbids a second event loop in the shipping path.
+    #[allow(deprecated)]
+    fn create_test_window() -> Window {
+        let event_loop = EventLoop::builder()
+            .with_any_thread(true)
+            .build()
+            .expect("build test event loop");
+        event_loop
+            .create_window(Window::default_attributes().with_visible(false))
+            .expect("create test winit window")
     }
 
-    /// Creates a full GPU pipeline (instance, surface, device, queue)
-    /// from an X11 overlay window.
+    /// Creates a full GPU pipeline (instance, surface, device, queue) from a
+    /// throwaway X11 window.
     ///
-    /// The `X11WindowManager` is leaked via `Box::leak` to satisfy the
-    /// `'static` lifetime requirement of `wgpu::Surface<'static>`. This
-    /// is acceptable in tests since each test process is short-lived.
+    /// The `Window` is leaked via `Box::leak` to satisfy the `'static` lifetime
+    /// requirement of `wgpu::Surface<'static>`. This is acceptable in tests
+    /// since each test process is short-lived.
     async fn create_gpu_pipeline() -> (
-        &'static X11WindowManager,
+        &'static Window,
         wgpu::Instance,
         wgpu::Surface<'static>,
         wgpu::Adapter,
@@ -374,11 +376,11 @@ mod platform_integration {
         u32,
         u32,
     ) {
-        let wm: &'static X11WindowManager = Box::leak(Box::new(create_overlay_on_first_monitor()));
+        let window: &'static Window = Box::leak(Box::new(create_test_window()));
         let instance = create_wgpu_instance();
 
         let surface = instance
-            .create_surface(wm.window().expect("window should exist"))
+            .create_surface(window)
             .expect("surface creation should succeed");
 
         let (adapter, device, queue) = create_gpu_device(&instance, &surface)
@@ -397,10 +399,11 @@ mod platform_integration {
             height,
             wgpu::PresentMode::Fifo,
         )
-        .expect("configure_surface should succeed");
+        .expect("configure_surface should succeed")
+        .format;
 
         (
-            wm, instance, surface, adapter, device, queue, format, width, height,
+            window, instance, surface, adapter, device, queue, format, width, height,
         )
     }
 

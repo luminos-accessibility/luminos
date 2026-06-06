@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 
 /// The edge of the screen where a docked overlay attaches.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 pub enum DockEdge {
     /// Top edge of the screen.
     Top,
@@ -19,7 +19,7 @@ pub enum DockEdge {
 }
 
 /// The shape of a lens-mode overlay.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 pub enum LensShape {
     /// Rectangular lens boundary.
     Rectangle,

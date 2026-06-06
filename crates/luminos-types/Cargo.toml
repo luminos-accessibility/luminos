@@ -11,6 +11,9 @@ test_utils = []
 
 [dependencies]
 serde = { workspace = true }
+# `specta::Type` derive on the IPC-reachable enums (story 005, DC-5). Non-optional,
+# non-feature-gated so engine crates compile without the app's `tauri` feature.
+specta = { workspace = true }
 
 [dev-dependencies]
 serde_json = { workspace = true }

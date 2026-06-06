@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Screen magnification display mode.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 pub enum MagnificationMode {
     /// Entire screen is magnified; overlay covers full display.
     FullScreen,
@@ -17,7 +17,7 @@ pub enum MagnificationMode {
 }
 
 /// Which element the magnification viewport tracks.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 pub enum TrackingMode {
     /// Viewport follows the mouse cursor.
     Cursor,
@@ -28,7 +28,7 @@ pub enum TrackingMode {
 }
 
 /// Color filter applied to the magnified view.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 pub enum ColorFilterType {
     /// No color filter (passthrough).
     None,
@@ -127,5 +127,16 @@ mod tests {
             let back: TtsStatus = serde_json::from_str(&json).unwrap();
             assert_eq!(&back, variant, "deserialization of {variant:?}");
         }
+    }
+
+    // E04/005 T002: the IPC-reachable enums must derive `specta::Type` (DC-5).
+    // TtsStatus is intentionally NOT covered — it is not part of `AppSettings`.
+
+    #[test]
+    fn state_enums_implement_specta_type() {
+        fn assert_specta_type<T: specta::Type>() {}
+        assert_specta_type::<MagnificationMode>();
+        assert_specta_type::<TrackingMode>();
+        assert_specta_type::<ColorFilterType>();
     }
 }

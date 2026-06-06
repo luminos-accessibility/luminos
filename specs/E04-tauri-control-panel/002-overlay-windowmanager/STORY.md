@@ -1,7 +1,7 @@
 # Story E04/002: Overlay WindowManager (winit→tao) & Self-Capture
 
 **Epic:** [../HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED (approved-as-authoritative per E04 execution, 2026-06-05)
 **Depends On:** 001 (the running app + the Tauri overlay window it opens)
 
 ---

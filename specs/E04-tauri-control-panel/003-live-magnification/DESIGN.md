@@ -2,7 +2,7 @@
 
 **Story:** [STORY.md](./STORY.md)
 **Epic:** [../HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED (approved-as-authoritative per E04 execution, 2026-06-05)
 **Author:** principal-architect
 **Risk Refs:** RISK-002 (self-capture — consumes story 002's exclusion), RISK-004 (capture/render pipeline stalls), RISK-016 (wgpu backend compat)
 

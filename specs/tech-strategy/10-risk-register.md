@@ -1,7 +1,7 @@
 # 10 -- Risk Register
 
-**Status:** DRAFT v1.0
-**Date:** 2026-03-18
+**Status:** LIVING v1.1
+**Date:** 2026-03-18 (last updated 2026-06-05, Epic E04 close-out)
 **Owner:** Technical Strategy
 **Review Cadence:** Phase gates + quarterly review
 **Source Assessments:** Architecture, Security/Privacy/Licensing, Build/Distribution, Performance/Implementation, Product/Schedule/Resource
@@ -84,12 +84,12 @@ See [Section 11: Governance and Maintenance](#11-governance-and-maintenance) for
 
 ## 3. Master Risk Summary
 
-The following table lists all 38 consolidated risks, sorted by score (descending), then by phase (earliest first). Each risk consolidates one or more findings from the five specialist assessments (Architecture, Security, Build, Performance, Product).
+The following table lists all 40 consolidated risks, sorted by score (descending), then by phase (earliest first). Each risk consolidates one or more findings from the five specialist assessments (Architecture, Security, Build, Performance, Product). RISK-039/RISK-040 were added at the Epic E04 close-out (2026-06-05) from implementation findings; they are appended at the table tail rather than re-sorted, to preserve stable IDs.
 
 | ID | Title | Category | L | I | Score | Phase | Status |
 |----|-------|----------|---|---|-------|-------|--------|
-| RISK-001 | Dual event loop coexistence (winit + Tauri) | Architecture | 2 | 4 | **8** | P0 | Open |
-| RISK-002 | Self-capture infinite feedback loop | Architecture | 3 | 3 | **9** | P0 | Open |
+| RISK-001 | Dual event loop coexistence (winit + Tauri) | Architecture | 2 | 4 | **8** | P0 | Closed (Retired) |
+| RISK-002 | Self-capture infinite feedback loop | Architecture | 3 | 3 | **9** | P0 | Mitigating |
 | RISK-003 | Platform trait surface area inadequacy | Architecture | 3 | 2 | **6** | P1 | Open |
 | RISK-004 | Render thread starvation under load | Architecture | 2 | 3 | **6** | P0 | Open |
 | RISK-005 | TTS pipeline concurrency hazards | Architecture | 2 | 2 | **4** | P2 | Open |
@@ -126,8 +126,10 @@ The following table lists all 38 consolidated risks, sorted by score (descending
 | RISK-036 | Bus factor of one (founder key-person dependency) | Project | 2 | 4 | **8** | P0+ | Open |
 | RISK-037 | Adoption barriers and contributor recruitment | Project | 3 | 2 | **6** | P1+ | Open |
 | RISK-038 | i18n technical debt from Phase 4 deferral | Project | 3 | 2 | **6** | P0-P4 | Open |
+| RISK-039 | Per-frame `x11rb::connect` in XcbCapture self-capture exclusion | Performance | 3 | 2 | **6** | P1 | Open |
+| RISK-040 | Uninterruptible X11 input-monitor shutdown (detached threads) | Architecture | 2 | 2 | **4** | P1 | Open |
 
-**Score distribution:** 1 Escalate (10-16): RISK-011; 12 Mitigate (7-9); 23 Monitor (4-6); 2 Accept (1-3).
+**Score distribution:** 1 Escalate (10-16): RISK-011; 12 Mitigate (7-9); 24 Monitor (4-6); 2 Accept (1-3). (RISK-001 retired/closed in Phase 0 -- excluded from the active distribution.)
 
 ---
 
@@ -141,11 +143,13 @@ The following table lists all 38 consolidated risks, sorted by score (descending
 | **Likelihood** | Medium (2) |
 | **Impact** | Critical (4) |
 | **Score** | **8 -- Mitigate** |
-| **Phase** | Phase 0 (must validate in E2/E4) |
-| **Status** | Open |
+| **Phase** | Phase 0 (validated in E4/001) |
+| **Status** | Closed (Retired -- mitigated) |
 | **Sources** | ARCH-001, BUILD-024 |
 
-**Description:** Luminos runs both a winit event loop (main thread, magnification overlay) and Tauri's internal webview event loop within a single OS process [doc-01 Section 6.5]. On macOS, Cocoa requires the main thread for NSApplication event processing, which both winit and Tauri's WKWebView need. There is no documented, production-validated pattern for running winit and Tauri 2.0 side-by-side -- screenpipe (the closest precedent, cited in TECH_STACK_EVALUATION.md Section 4.1) does not use winit for a second window. Additionally, both `tauri` and `winit` pull platform-specific windowing libraries that may conflict in the dependency tree (e.g., different versions of `raw-window-handle`, `nix`, or `wayland-client`).
+> **RETIRED 2026-06-05 (E04 story 001).** The risk as originally framed -- two coexisting event loops (a separate winit `EventLoop` + Tauri's internal loop) -- **does not apply to the shipped architecture.** E04 runs a **single** tao/Tauri event loop (`tauri::App::run`) that hosts BOTH the control-panel webview AND the transparent click-through overlay as a second tao window. There is no winit `EventLoop` and no `EventLoopProxy`; the magnification overlay is **not** a winit-owned window. The wgpu surface is built from an owned (`'static`) clone of the overlay `WebviewWindow`; loop wake is via `AppNotifier` (a dirty-flag `EventNotifier`), not `EventLoopProxy`. This single-loop two-window model was validated end-to-end under Xvfb+picom (steady ~60 Hz redraw cadence marshaled via `run_on_main_thread`, transparency, click-through, clean SIGTERM exit); the raw-wry+tao contingency was never needed. The macOS one-main-loop constraint that motivated this risk is satisfied by construction. The description below is retained for historical context only.
+
+**Description (historical -- superseded by the single-loop design above):** Luminos runs both a winit event loop (main thread, magnification overlay) and Tauri's internal webview event loop within a single OS process [doc-01 Section 6.5]. On macOS, Cocoa requires the main thread for NSApplication event processing, which both winit and Tauri's WKWebView need. There is no documented, production-validated pattern for running winit and Tauri 2.0 side-by-side -- screenpipe (the closest precedent, cited in TECH_STACK_EVALUATION.md Section 4.1) does not use winit for a second window. Additionally, both `tauri` and `winit` pull platform-specific windowing libraries that may conflict in the dependency tree (e.g., different versions of `raw-window-handle`, `nix`, or `wayland-client`).
 
 **Mitigation:**
 1. Build a minimal proof-of-concept in E1/E2 that creates both a Tauri webview and a winit+wgpu overlay in the same process on Linux X11, macOS, and Windows.
@@ -155,6 +159,9 @@ The following table lists all 38 consolidated risks, sorted by score (descending
 **Contingency:** Separate the control panel into its own process. The magnification overlay process communicates with the control panel process via Unix domain sockets (Linux/macOS) or named pipes (Windows). This sacrifices shared `ArcSwap<AppState>` reads but preserves core magnification performance.
 
 **Detection:** E2 integration testing. Measure frame time P99 with and without the Tauri webview window open. If the overlay fails to render at 60fps or the webview becomes unresponsive, this risk is materializing.
+
+**Updates:**
+- [2026-06-05] Status changed from Open to Closed (Retired -- mitigated). E04 story 001 shipped a single-`tauri::App::run` loop hosting both webview + overlay windows (no winit `EventLoop`, no `EventLoopProxy`); validated end-to-end under Xvfb+picom (cadence, transparency, click-through, clean exit). The dual-loop coexistence the risk described never exists in the shipped design. Residual risk: Low (macOS one-loop constraint satisfied by construction; cross-platform validation of the same single-loop model is carried into the macOS/Windows epics).
 
 ---
 
@@ -166,8 +173,8 @@ The following table lists all 38 consolidated risks, sorted by score (descending
 | **Likelihood** | High (3) |
 | **Impact** | High (3) |
 | **Score** | **9 -- Mitigate** |
-| **Phase** | Phase 0 (must solve in E2) |
-| **Status** | Open |
+| **Phase** | Phase 0 (mitigated in E2/E4), Phase 1 (flicker-free follow-up) |
+| **Status** | Mitigating |
 | **Sources** | ARCH-009 |
 
 **Description:** In full-screen magnification mode, the overlay covers the entire display [doc-03 Section 7.1]. If `ScreenCapture::capture_frame()` captures the overlay window itself, the result is an infinite feedback loop: the magnified view captures itself, producing exponentially zoomed recursive images that make the screen unusable. Per-platform exclusion mechanisms are documented (X11 composite pixmap, PipeWire node ID, `SCContentFilter`, DXGI auto-exclusion), but implementation gaps remain: (a) X11 "temporarily unmap/remap" creates visible flicker at 60fps, (b) X11 composite pixmap requires the composite extension and may not work on tiling WMs without compositing, (c) the `ScreenCapture` trait has no parameter for window exclusion [doc-03 Section 7.1].
@@ -180,6 +187,9 @@ The following table lists all 38 consolidated risks, sorted by score (descending
 **Contingency:** Software-based detection: render a small watermark at a known position with a known color. If captured frames contain the watermark, skip the frame and re-render the previous one.
 
 **Detection:** Integration test on Xvfb in CI and real X11 desktops during manual testing.
+
+**Updates:**
+- [2026-06-05] Status changed from Open to Mitigating. The shipped `XcbCapture` implements `ScreenCapture::set_excluded_windows(&[u64])` (X11 unmap/remap around each capture). E04 stories 002/003 wire the overlay XID into it (`handle.overlay_window_id()` → `set_excluded_windows(&[xid])` once at `Ready`); the self-capture feedback loop is prevented. **Residual (carried to Phase 1):** the unmap/remap mitigation produces **visible per-frame flicker** under tao/GTK3 (documented expected cost per E04 NFR-2); a flicker-free strategy (composite-pixmap / input-shape exclusion / root-region capture) is a Phase-1 follow-up. Note the related per-frame `x11rb::connect` cost (RISK-039), which the same code path triggers. Residual risk: Medium until the flicker-free path lands.
 
 ---
 
@@ -1212,6 +1222,60 @@ A compromise of any of these (account takeover, malicious release) would introdu
 
 ---
 
+## 10b. Epic E04 Close-Out Additions (2026-06-05)
+
+The following risks were surfaced by E04 implementation findings and added at the epic close-out. Both are **Phase-1, non-blocking** follow-ups recorded against the live magnification loop shipped in E04.
+
+### RISK-039: Per-Frame `x11rb::connect` in XcbCapture Self-Capture Exclusion
+
+| Field | Value |
+|-------|-------|
+| **Category** | Performance |
+| **Likelihood** | High (3) |
+| **Impact** | Medium (2) |
+| **Score** | **6 -- Monitor** |
+| **Phase** | Phase 1 (cleanup; exposed in E04) |
+| **Status** | Open |
+| **Sources** | E04/002 DC-12, E04/003 DC-13 (SUBTASKS B002) |
+
+**Description:** The shipped `XcbCapture` self-capture exclusion (`unmap_excluded_windows` / `remap_excluded_windows`, `crates/luminos-platform/.../capture.rs:171,203`) opens a **fresh `x11rb::connect(None)` PER CAPTURED FRAME** using the ambient `$DISPLAY`, where the E04 `X11WindowManager` by contrast holds ONE persistent `RustConnection`. In the 60 fps render loop this means an X11 handshake every frame on the capture hot path -- a per-frame latency cost against the 8 ms capture budget [doc-06 Section 2.3] -- and a correctness hazard if `$DISPLAY` does not match the overlay's display. This compounds RISK-004 (render thread starvation) and is the per-frame-connect smell flagged in the E04 HIGH_LEVEL_PLAN (DC-12).
+
+**Mitigation:**
+1. Cache a single `RustConnection` in `XcbCapture` (open once, reuse across frames), or reuse the `X11WindowManager`'s persistent connection for exclusion.
+2. Bind the exclusion connection to the SAME display as the captured screen, not ambient `$DISPLAY`.
+3. Measure the per-frame connect cost via `FrameTimings` per-stage breakdown before/after the fix.
+
+**Contingency:** The `LUMINOS_NO_EXCLUDE=1` escape hatch already exists to skip exclusion entirely (accepting self-capture risk) where the per-frame connect is shown to dominate; this is a debug-only fallback, not a ship configuration.
+
+**Detection:** `FrameTimings` capture-stage timing on the live loop (real GPU). Compare P99 with exclusion on vs. `LUMINOS_NO_EXCLUDE=1`. Regression alarm if the delta exceeds ~1-2 ms/frame.
+
+---
+
+### RISK-040: Uninterruptible X11 Input-Monitor Shutdown (Detached Threads)
+
+| Field | Value |
+|-------|-------|
+| **Category** | Architecture |
+| **Likelihood** | Medium (2) |
+| **Impact** | Medium (2) |
+| **Score** | **4 -- Monitor** |
+| **Phase** | Phase 1 (cleanup; exposed in E04) |
+| **Status** | Open |
+| **Sources** | E04/003 (shutdown detach), E03 X11InputMonitor |
+
+**Description:** The X11 XInput2 input monitor blocks on `wait_for_event()`, which is **uninterruptible** -- there is no stop-flag the blocking call can observe, so the input thread cannot be cleanly joined on shutdown. The shipped workaround **detaches** the input thread and relies on **process reaping** (the OS tears the thread down on exit) rather than a cooperative join. This is correct for whole-process exit but is fragile if the loop is ever restarted in-process (e.g. a future settings-driven monitor restart, test harness re-entry, or a hot-reload path): a leaked, still-blocked thread would persist. It also means the `ExitRequested|Exit` teardown cannot guarantee the input thread has stopped before GPU/X resources drop.
+
+**Mitigation:**
+1. Replace the blocking `wait_for_event()` with a `poll_for_event()` + stop-flag loop (or `select()`/`poll(2)` on the X11 connection fd with a self-pipe wake), so the monitor checks an `Arc<AtomicBool>` stop flag between polls and exits cooperatively.
+2. Once interruptible, join the input thread in the `ExitRequested|Exit` teardown instead of detaching it.
+3. Keep the process-reap path as a backstop for hard kills (SIGKILL).
+
+**Contingency:** Retain the detach + process-reap model for Phase 0/1 whole-process shutdown (it is sound for that case); only block in-process monitor restart until the interruptible path lands.
+
+**Detection:** Subprocess shutdown tests asserting clean exit (already green via process reap). Add a thread-leak assertion if/when an in-process restart path is introduced.
+
+---
+
 ## 11. Governance and Maintenance
 
 ### 11.1 Review Cadence
@@ -1285,8 +1349,8 @@ The following table shows risk concentration by phase, highlighting where the hi
 
 | Phase | Escalate (10-16) | Mitigate (7-9) | Monitor (4-6) | Accept (1-3) | Total |
 |-------|-----------------|----------------|---------------|--------------|-------|
-| **Phase 0** | -- | RISK-001 (8), RISK-002 (9), RISK-007 (9), RISK-024 (9), RISK-025 (8) | RISK-004 (6), RISK-006 (6), RISK-008 (6), RISK-010 (6), RISK-017 (6), RISK-022 (6), RISK-023 (6), RISK-027 (6), RISK-016 (4) | RISK-020 (3) | 15 |
-| **Phase 1** | RISK-011 (12) | RISK-012 (9), RISK-030 (9) | RISK-003 (6), RISK-026 (6), RISK-028 (6), RISK-029 (6), RISK-037 (6), RISK-038 (6) | -- | 9 |
+| **Phase 0** | -- | RISK-001 (8, *retired*), RISK-002 (9), RISK-007 (9), RISK-024 (9), RISK-025 (8) | RISK-004 (6), RISK-006 (6), RISK-008 (6), RISK-010 (6), RISK-017 (6), RISK-022 (6), RISK-023 (6), RISK-027 (6), RISK-016 (4) | RISK-020 (3) | 15 |
+| **Phase 1** | RISK-011 (12) | RISK-012 (9), RISK-030 (9) | RISK-003 (6), RISK-026 (6), RISK-028 (6), RISK-029 (6), RISK-037 (6), RISK-038 (6), RISK-039 (6), RISK-040 (4) | -- | 11 |
 | **Phase 2** | -- | -- | RISK-005 (4), RISK-009 (6), RISK-018 (6), RISK-014 (4), RISK-019 (4), RISK-032 (4) | RISK-021 (3) | 7 |
 | **Phase 3** | -- | -- | RISK-013 (6) | -- | 1 |
 | **Phase 4** | -- | RISK-015 (8) | -- | -- | 1 |
@@ -1334,3 +1398,4 @@ If Phase 0 takes >150% of estimate, the entire downstream timeline must be repla
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2026-03-18 | Initial risk register (38 risks consolidated from 5 specialist assessments) |
+| 1.1 | 2026-06-05 | Epic E04 close-out: RISK-001 retired (single tao loop shipped, no winit `EventLoop`); RISK-002 → Mitigating (self-capture exclusion via `set_excluded_windows` shipped, per-frame flicker is a Phase-1 follow-up); added RISK-039 (per-frame `x11rb::connect` in XcbCapture) and RISK-040 (uninterruptible X11 input-monitor shutdown), both Phase-1 non-blocking. Total risks: 40. |

@@ -11,7 +11,7 @@
 
 This technical strategy translates the Luminos product vision into a comprehensive, actionable engineering plan. It defines the system architecture, technology choices, implementation patterns, and delivery roadmap that will guide all development from Phase 0 through Phase 4.
 
-**All 10 documents are complete.** The project is ready to begin Phase 0 implementation by creating implementation stories (STORY.md/DESIGN.md/SUBTASKS.md) for epics E1-E4.
+**All 10 documents are complete.** Phase 0 (Foundation) is now COMPLETE -- epics E01-E04 have all shipped (E04 closed 2026-06-05), delivering the first running Luminos application. The project is now beginning Phase 1 (Core Magnification, Months 4-6, epics E5-E9), starting with epic E05. Implementation stories (STORY.md/DESIGN.md/SUBTASKS.md) for E05 are the next work.
 
 This document set is the **canonical technical reference** for the project. All implementation stories (STORY.md/DESIGN.md/SUBTASKS.md) must conform to the architecture and patterns defined here. Deviations require documented rationale and strategy-level review.
 
@@ -93,7 +93,7 @@ TECH_STACK_EVALUATION.md     -- Technology validation and selection       [COMPL
 tech-strategy/ (this)        -- HOW to build it: architecture, patterns  [COMPLETE v1.3]
     |                            roadmap, risk management (10 documents)
     v
-specs/ENN-epic/HIGH_LEVEL_PLAN.md  -- Epic decomposition & shared memory     [NEXT: Phase 0 epics]
+specs/ENN-epic/HIGH_LEVEL_PLAN.md  -- Epic decomposition & shared memory     [NEXT: Phase 1 epics E5-E9]
 specs/ENN-epic/NNN-story/STORY.md  -- Individual feature specifications
 specs/ENN-epic/NNN-story/DESIGN.md -- Feature-level technical design
 specs/ENN-epic/NNN-story/SUBTASKS.md -- TDD execution plan

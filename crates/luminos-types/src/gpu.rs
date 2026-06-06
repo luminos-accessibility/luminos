@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 
 /// `VSync` / frame presentation strategy.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 pub enum PresentMode {
     /// VSync-locked (Fifo), smooth, no tearing.
     Quality,
@@ -17,7 +17,7 @@ pub enum PresentMode {
 }
 
 /// GPU device preference.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 pub enum GpuPreference {
     /// Integrated GPU (lower power, default).
     LowPower,
@@ -26,7 +26,7 @@ pub enum GpuPreference {
 }
 
 /// Scaling interpolation algorithm.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 pub enum InterpolationMode {
     /// Bilinear filtering (Phase 0 default).
     Bilinear,

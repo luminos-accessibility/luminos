@@ -2,7 +2,7 @@
 
 **Story:** [STORY.md](./STORY.md)
 **Epic:** [../HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED <!-- approved-as-authoritative per E04 execution, 2026-06-04 -->
 **Author:** principal-architect
 **Risk Refs:** RISK-017 (sensitive data in logs — config has no secrets, but keep paths/values appropriately logged), none persistence-specific in the register
 

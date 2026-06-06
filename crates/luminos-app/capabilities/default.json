@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Phase-0 IPC capability (E04/005). Grants the control-panel and overlay webviews only `core:default` (built-in command access) and `core:event:default` (so the panel may listen for the engine-emitted `zoom_changed`/`mode_changed` events, FR-6). No `fs`/`http`/`shell` (RISK-020 least-privilege). `shell:allow-open` is deferred until a real shell-open need lands — granting it now would require registering `tauri-plugin-shell` purely for an unused permission (see story 005 SUBTASKS Deviations). Native Rust window/tray operations are NOT webview-capability-gated and need nothing here.",
+  "windows": ["control-panel", "overlay"],
+  "permissions": ["core:default", "core:event:default"]
+}

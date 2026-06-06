@@ -154,6 +154,8 @@ The control panel provides the settings UI: zoom level, magnification mode, colo
 
 Tauri does NOT manage the magnification overlay window. That is created and managed by `winit` directly.
 
+> **E04 correction (2026-06-05):** As shipped in Epic E04, the overlay is **not** a winit window. It is a **second tao/Tauri window** (transparent, undecorated, always-on-top, click-through) opened in `setup` under the **single** `tauri::App::run` event loop, and the wgpu surface is built from an owned (`'static`) clone of that `WebviewWindow`. There is no separate winit `EventLoop` and no `EventLoopProxy` anywhere in the running app (RISK-001 retired). The "winit-managed overlay" wording in §3.2, §6.2-6.5, and the dependency tables below is the original design and is **superseded** by this single-loop two-window model. See [10 -- Risk Register](./10-risk-register.md) RISK-001 (Retired) and `specs/E04-tauri-control-panel/HIGH_LEVEL_PLAN.md` (AD-1/AD-2, DC-9..DC-11).
+
 ### 3.4 How the Two Windows Connect
 
 Both windows are created within a single OS process. They share a Rust core engine that owns all application state. The magnification overlay and control panel are two views into the same engine state.
@@ -661,6 +663,8 @@ Threads communicate through bounded channels and shared atomic/lock-protected st
 
 ### 6.5 Event Loop Integration
 
+> **E04 correction (2026-06-05) -- supersedes this subsection's winit/`EventLoopProxy` model.** The shipped app runs a **single `tauri::App::run` event loop** (tao-backed; GTK3 on Linux) on the main thread. There is **no separate winit `EventLoop`** and **no `EventLoopProxy`**. Tauri's `run` callback exposes **no `ControlFlow`/`Poll`** and **no `RedrawRequested`**, and a `WebviewWindow` has **no `request_redraw()`**. Loop wake is therefore done via **`AppNotifier`** -- a tao-backed `EventNotifier` impl holding a shared `Arc<AtomicBool>` "render-dirty" flag; `notify_state_changed()` simply sets the flag (no main-thread marshaling, no `request_redraw`). Redraw cadence is a ~60 Hz heartbeat marshaled onto the main thread via `AppHandle::run_on_main_thread`, with the GPU present happening opportunistically inside the resulting `RunEvent::MainEventsCleared` gated on the dirty flag (tao [#635](https://github.com/tauri-apps/tao/issues/635) means a bare `MainEventsCleared` is not a reliable ~60 Hz source). IPC/hotkey/input threads all wake the loop through the `EventNotifier` seam -- they never touch winit. The `winit`-based `event_loop.run` / `RedrawRequested` / `EventLoopProxy::send_event` code below is the **original design only**; see [05 -- Control Panel](./05-control-panel.md) §4.1, [10 -- Risk Register](./10-risk-register.md) RISK-001 (Retired), and `specs/E04-tauri-control-panel/HIGH_LEVEL_PLAN.md` AD-1/AD-2 + DC-9/DC-11 for the shipped seam.
+
 The `winit` event loop is the application's primary event loop, running on the main thread. It processes window events (resize, close, focus) and dispatches custom events. The render thread is driven by `winit`'s `RedrawRequested` event or by a timer at the target frame rate.
 
 ```rust
@@ -687,6 +691,8 @@ event_loop.run(move |event, target| {
 ```
 
 **Tauri integration:** Tauri 2.0 manages its own webview event loop internally. The Tauri application and winit overlay coexist in the same process. Coordination between the two event loops uses `winit::event_loop::EventLoopProxy` to send custom events from the Tauri IPC thread to the winit event loop. This pattern is documented and supported by both Tauri and winit.
+
+> **E04 correction (2026-06-05):** There is no "two event loops to coordinate" -- there is **one** tao/Tauri loop. IPC commands and hotkey/input threads write state through `StateManager` RCU methods on the shared `Arc<ArcSwap<AppState>>` and then call `EventNotifier::notify_state_changed()` (the `AppNotifier` dirty flag) to request the next-frame redraw; `EventLoopProxy::send_event` is not used. Note also that `AppState` is **nested**, not flat: zoom lives at `settings.magnification.zoom_level`, mode at `settings.magnification.mode`, and the active toggle at the top level -- writes go through `StateManager::update_zoom_level()` / `set_magnification_mode()` / `toggle_magnification()`, never an inline `AppState { zoom_level }` `rcu`. The render thread still reads `ArcSwap<AppState>` lock-free every frame, exactly as the shared-state table in §6.4 describes.
 
 ---
 

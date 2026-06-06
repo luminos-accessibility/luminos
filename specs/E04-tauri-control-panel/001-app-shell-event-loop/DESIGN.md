@@ -2,7 +2,7 @@
 
 **Story:** [STORY.md](./STORY.md)
 **Epic:** [../HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED (approved-as-authoritative per E04 execution, 2026-06-04)
 **Author:** principal-architect
 **Risk Refs:** RISK-001 (dual event loop coexistence — this story retires it), RISK-002 (self-capture — characterized here, mitigated in 002), RISK-016 (wgpu backend compat), RISK-030 (wgpu/winit/Tauri upgrade cascade)
 

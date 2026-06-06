@@ -2,7 +2,7 @@
 
 **Story:** [STORY.md](./STORY.md)
 **Epic:** [../HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED (approved-as-authoritative per E04 execution, 2026-06-05; IMPLEMENTATION_NOTES.md supersedes stale parts)
 **Author:** principal-architect
 **Risk Refs:** RISK-020 (webview attack surface — accepted, mitigated by minimal capability + server-side validation), RISK-022 (license — no new copyleft deps)
 

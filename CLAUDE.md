@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Luminos** is a GPLv3-licensed, cross-platform (Linux/macOS/OpenBSD/Windows) screen magnification + text-to-speech accessibility suite targeting low-vision users. The project has completed its **technical strategy phase**, **Epic E01 (Project Scaffolding, Platform Traits & CI/CD)**, **Epic E02 (X11 Screen Capture & GPU Magnification)**, and **Epic E03 (Input Tracking & Interactive Magnification)**. The repository contains the complete product strategy, technology evaluation, and technical strategy documents (10 documents covering architecture through risk management), plus the Rust codebase: 6 crates (`luminos-types`, `luminos-core`, `luminos-platform`, `luminos-gpu`, `luminos-tts`, `luminos-app`) with trait definitions, mock implementations, error hierarchy, core data types, X11 screen capture backend, GPU rendering pipeline (texture management, magnification shaders, frame pacing), X11 input monitoring (XInput2 mouse/keyboard capture), lock-free state management (ArcSwap), viewport tracking engine (dead zone, edge panning, smooth interpolation), global keyboard shortcuts (zoom in/out, toggle, reset), and input processing pipeline integration, totaling 418 tests, backed by a GitHub Actions CI pipeline with dedicated platform (X11/Xvfb) and GPU (Mesa llvmpipe) test jobs.
+**Luminos** is a GPLv3-licensed, cross-platform (Linux/macOS/OpenBSD/Windows) screen magnification + text-to-speech accessibility suite targeting low-vision users. The project has completed its **technical strategy phase** and **all of Phase 0 (Foundation)**: **Epic E01 (Project Scaffolding, Platform Traits & CI/CD)**, **Epic E02 (X11 Screen Capture & GPU Magnification)**, **Epic E03 (Input Tracking & Interactive Magnification)**, and **Epic E04 (Tauri Control Panel & Settings Persistence)** — the first running Luminos application. The repository contains the complete product strategy, technology evaluation, and technical strategy documents (10 documents covering architecture through risk management), plus the Rust codebase: 6 crates (`luminos-types`, `luminos-core`, `luminos-platform`, `luminos-gpu`, `luminos-tts`, `luminos-app`) with trait definitions, mock implementations, error hierarchy, core data types, X11 screen capture backend, GPU rendering pipeline (texture management, magnification shaders, frame pacing), X11 input monitoring (XInput2 mouse/keyboard capture), lock-free state management (ArcSwap), viewport tracking engine (dead zone, edge panning, smooth interpolation), global keyboard shortcuts (zoom in/out, toggle, reset), input processing pipeline integration, and a single-`tauri::App::run`-loop application shell (transparent click-through wgpu overlay + React control panel, x11rb overlay `WindowManager`, 7-command/2-event `tauri-specta` IPC, `config.toml` persistence, system tray), plus a `ui/` React project. Tests total ≈446 workspace + 67 `luminos-app` Rust + 70 UI Vitest, backed by a GitHub Actions CI pipeline (8 active jobs) with dedicated platform (X11/Xvfb), GPU (Mesa llvmpipe), Tauri app, and `tauri-driver` E2E test jobs.
 
 ## Repository Structure
 
@@ -57,7 +57,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Dual-window design:**
 
 1. **Control Panel** — Tauri 2.0 webview (TypeScript/React). Settings UI. Not performance-critical.
-2. **Magnification Overlay** — Native Rust window via winit + wgpu. GPU-accelerated, transparent, always-on-top. Bypasses webview entirely.
+2. **Magnification Overlay** — Transparent, click-through wgpu surface on the Tauri (tao) window, controlled via x11rb. GPU-accelerated, always-on-top. Bypasses the webview entirely.
 
 **Rendering pipeline:** screen capture → GPU texture → wgpu shader transform → anti-alias → composite → present
 
@@ -92,7 +92,7 @@ These commands mirror the GitHub Actions CI pipeline (`.github/workflows/ci.yml`
 
 **If the CI pipeline is modified, this section MUST be updated to match.** The source of truth is `.github/workflows/ci.yml`.
 
-The CI pipeline has 6 active jobs. All test/security/coverage jobs depend on lint passing first.
+The CI pipeline has 8 active jobs. All test/security/coverage jobs depend on lint passing first.
 
 ### QA Agent Minimum Checks
 
@@ -172,18 +172,57 @@ MESA_GL_VERSION_OVERRIDE="4.5" LIBGL_ALWAYS_SOFTWARE="1" \
    -p luminos-gpu --features ci_platform_tests"
 ```
 
+### 8. App Shell Tests (Tauri + Xvfb)
+
+Runs `luminos-app` lib unit tests (incl. the offscreen Mesa-llvmpipe clear test) and the subprocess integration tests that spawn the real Tauri binary. Requires webkit2gtk-4.1 + libsoup-3.0 (to build the app), Xvfb, picom, `x11-utils` (`xprop`), `xdotool`, and Mesa drivers, plus a built `ui/dist` (run `pnpm --dir ui build` first so `overlay.html`/`index.html` exist). The harness launches its OWN Xvfb + picom per test (no outer `xvfb-run`) and sets `GDK_BACKEND=x11` + `WEBKIT_DISABLE_COMPOSITING_MODE=1` + `WEBKIT_DISABLE_DMABUF_RENDERER=1` per spawned child (required for GTK window realization + software GL under a headless Xvfb). Run single-threaded so each test's dedicated display does not contend.
+
+```bash
+MESA_GL_VERSION_OVERRIDE="4.5" LIBGL_ALWAYS_SOFTWARE="1" \
+  cargo nextest run --profile ci \
+  -p luminos-app --features "tauri ci_platform_tests" --test-threads 1
+```
+
+The same job also runs the **tauri-specta bindings-up-to-date check** (story E04/005, D7): it regenerates `ui/src/ipc/bindings.ts` from the Rust IPC surface via the app's `--export-bindings` seam (which exports the bindings and exits — no Xvfb/webview needed) and fails if the committed file drifted. **If you change a `#[tauri::command]`/`#[tauri_specta::Event]` definition or any `specta::Type` it touches, regenerate and commit `ui/src/ipc/bindings.ts`.**
+
+```bash
+# Regenerate the committed bindings, then fail on drift (CI step):
+cargo run -p luminos-app --features "tauri" -- --export-bindings
+git diff --exit-code ui/src/ipc/bindings.ts
+```
+
+### 9. E2E Tests (tauri-driver + WebKitWebDriver)
+
+Runs the WebdriverIO IPC integration suite in `e2e/` (story E04/007, D2/D3/D4) against the **built** `luminos-app` binary, driving the real control-panel webview via the Rust `tauri-driver` proxy + `WebKitWebDriver`. The suite drives the UI (zoom slider, mode radios) and asserts the **real engine state** through a `get_current_settings` round-trip (not just the React store), verifying the IPC contract end-to-end. Requires `webkit2gtk-driver` (ships `WebKitWebDriver`), `libayatana-appindicator3-dev` (the tray SNI host), `xvfb`, `picom`, the app build deps, and the Rust `tauri-driver` binary (`cargo install tauri-driver --version 2.0.6 --locked`, pinned per PINNED_VERSIONS.md §3). The job builds `ui/dist` + the debug app (`cargo build -p luminos-app --features tauri`), then runs the suite under `xvfb-run` + picom with the headless-WebKit env (`GDK_BACKEND=x11`, `WEBKIT_DISABLE_COMPOSITING_MODE=1`, `WEBKIT_DISABLE_DMABUF_RENDERER=1`, `MESA_GL_VERSION_OVERRIDE=4.5`, `LIBGL_ALWAYS_SOFTWARE=1`).
+
+```bash
+# CI-only (needs WebKitWebDriver + tauri-driver, NOT typically on a dev box):
+cargo install tauri-driver --version 2.0.6 --locked
+pnpm --dir ui install --frozen-lockfile && pnpm --dir ui build
+cargo build -p luminos-app --features tauri
+pnpm --dir e2e install --frozen-lockfile
+MESA_GL_VERSION_OVERRIDE="4.5" LIBGL_ALWAYS_SOFTWARE="1" \
+  GDK_BACKEND="x11" WEBKIT_DISABLE_COMPOSITING_MODE="1" WEBKIT_DISABLE_DMABUF_RENDERER="1" \
+  xvfb-run -s "-screen 0 1920x1080x24" bash -c \
+  "picom --backend xrender --daemon && pnpm --dir e2e test"
+
+# Typecheck the E2E specs/config without running the driver (runnable anywhere):
+pnpm --dir e2e install --frozen-lockfile && pnpm --dir e2e exec tsc --noEmit
+```
+
+**Local-run note:** the full E2E run is **deferred to CI** — `WebKitWebDriver` and `xvfb-run` are commonly absent on dev boxes (and macOS has no WKWebView driver at all, NFR-2). Locally, run only the `tsc --noEmit` typecheck; the live driver assertions (D2/D3/D4) are verified in the `test-e2e` CI job.
+
 ## Current Project Phase
 
-**Technical strategy is COMPLETE.** The project is in **Phase 0: Foundation** (Months 1-3).
+**Technical strategy is COMPLETE.** **Phase 0 (Foundation) is COMPLETE** (Months 1-3; all four epics E01-E04 closed). The project is now entering **Phase 1: Core Magnification** (Months 4-6, epics E05-E09).
 
 Phase 0 epics (from `specs/tech-strategy/09-implementation-roadmap.md`):
 
 - **E1:** Project Scaffolding, Platform Traits & CI/CD -- **COMPLETE** (2026-03-28). 5 stories, 53 subtasks, 114 tests passing, clippy clean, fmt clean.
 - **E2:** X11 Screen Capture + GPU Rendering -- **COMPLETE** (2026-03-28). 5 stories, 14 subtasks in final story, 275 tests passing, clippy clean, fmt clean. New modules in `luminos-gpu`: `texture.rs` (`SourceTextureManager`), `viewport.rs` (`compute_source_region`, `smooth_viewport_position`), `shaders/` (bilinear + bicubic WGSL magnification shaders, `MagnifyUniforms`, `MagnifyPipeline`, `InterpolationMethod`), `frame_timings.rs` (`FrameTimings` ring buffer, `FrameTimingSummary`, performance threshold detection), `renderer.rs` (`Renderer` struct orchestrating capture-upload-render-present pipeline). CI additions: `test-platform` (X11/Xvfb) and `test-gpu` (Mesa llvmpipe) jobs.
 - **E3:** Input Tracking & Interactive Magnification -- **COMPLETE** (2026-03-29). 5 stories, ~70 subtasks, 418 tests passing, clippy clean, fmt clean. New modules: `luminos-platform::linux_x11::input` (`X11InputMonitor` with XInput2), `luminos-platform::linux_x11::keymap` (89-keysym mapping), `luminos-core::state_manager` (`StateManager` wrapping `ArcSwap<AppState>`), `luminos-core::event` (`LuminosEvent`), `luminos-core::tracking` (`TrackingEngine` with dead zone, edge panning, smooth interpolation), `luminos-core::hotkeys` (`HotkeyMatcher`, `dispatch_hotkey`), `luminos-core::pipeline` (`EventNotifier` trait, `InputProcessingTask`). Key decisions: x11rb over rdev for X11 input, EventNotifier trait for testability, ArcSwap for lock-free render thread state reads.
-- **E4:** Control Panel Foundation (Tauri IPC, React settings UI)
+- **E4:** Control Panel Foundation (Tauri IPC, React settings UI) -- **COMPLETE** (2026-06-05). 7 stories, ≈446 workspace + 67 `luminos-app` Rust + 70 UI Vitest tests passing, clippy clean, fmt clean. The first running Luminos application: a single tao/Tauri event loop (RISK-001 retired) hosting a transparent click-through wgpu overlay + a React control panel, live full-screen magnification, x11rb overlay `WindowManager` (no winit/tauri dep in `luminos-platform`), `ConfigManager` settings persistence, typed `tauri-specta` IPC (7 commands + 2 events, frozen `bindings.ts` + CI diff gate), a system tray (Show/Hide + Quit + minimize-to-tray, graceful no-SNI degrade), and a `tauri-driver` E2E CI job. New `luminos-app` crate (`app`/`handle`/`notifier`/`ipc`/`tauri_commands`/`events`/`overlay_gpu`/`overlay_bridge`/`capture_driver`/`tray`/`signal`/`compositor`); `luminos-core::config` (`ConfigManager`); `e2e/` WDIO project. CI additions: `test-app` (Tauri+Xvfb) and `test-e2e` (tauri-driver+WebKitWebDriver) jobs (8 active jobs total). Key decisions: single `tauri::App::run` loop over a second winit `EventLoop` (RISK-001); `AppNotifier` dirty-flag wake over `EventLoopProxy`; x11rb-over-tao-window overlay `WindowManager` (keeps `luminos-platform` tauri/winit-free). **Honest CI blind spots (DC-10/DC-13):** live magnify present + non-zero P99 + tray-icon-visible are HW/manual-only; the `test-e2e` job is authored/wired/typechecked with its first green CI run pending.
 
-**Current work:** Epics E01, E02, and E03 are complete. Next epic is E04 (Control Panel Foundation).
+**Current work:** Epics E01, E02, E03, and E04 are complete — **Phase 0 (Foundation) deliverables are done**. Next epic is E05 (per the roadmap).
 
 ## When Editing Strategy Documents
 

@@ -20,9 +20,18 @@ wgpu = { workspace = true }
 winit = { workspace = true }
 log = { workspace = true }
 thiserror = { workspace = true }
+# `FrameTimingSummary` gains serde + `specta::Type` for IPC (story 005, DC-5).
+# It had NEITHER before; both are added as normal deps.
+serde = { workspace = true }
+specta = { workspace = true }
 
 [dev-dependencies]
 tokio = { version = "=1.52.3", features = ["macros", "rt-multi-thread"] }
+# Used by the `FrameTimingSummary` camelCase serde round-trip test (E04/005 T002).
+serde_json = { workspace = true }
 
 [target.'cfg(target_os = "linux")'.dev-dependencies]
 xcap = { workspace = true }
+# Story E04/002: the overlay_window_id binding test creates a throwaway x11rb
+# window to bind the (now window-less) X11WindowManager by XID.
+x11rb = { workspace = true }

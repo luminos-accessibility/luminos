@@ -9,8 +9,9 @@
 use std::sync::Arc;
 
 use arc_swap::ArcSwap;
-use luminos_types::ScreenPoint;
+use luminos_types::{MagnificationMode, ScreenPoint};
 
+use crate::config::schema::AppSettings;
 use crate::state::AppState;
 
 /// Minimum allowed zoom level.
@@ -93,6 +94,40 @@ impl StateManager {
         self.state.rcu(|current| {
             let mut new_state = (**current).clone();
             new_state.settings.magnification.zoom_level = DEFAULT_ZOOM;
+            new_state
+        });
+    }
+
+    /// Sets the active magnification display mode via read-copy-update.
+    ///
+    /// Writes `settings.magnification.mode`, leaving all other settings and
+    /// transient runtime fields untouched. The render thread observes the new
+    /// mode on its next [`load()`](Self::load) call. Used by the story-005
+    /// `set_magnification_mode` IPC command.
+    pub fn set_magnification_mode(&self, mode: MagnificationMode) {
+        self.state.rcu(|current| {
+            let mut new_state = (**current).clone();
+            new_state.settings.magnification.mode = mode;
+            new_state
+        });
+    }
+
+    /// Replaces the entire [`AppSettings`] sub-struct via read-copy-update.
+    ///
+    /// Transient runtime fields (`is_active`, `mouse_position`, `viewport`,
+    /// `tts_status`, …) are preserved — only [`AppState::settings`] is swapped.
+    /// Used by the story-005 `reset_settings` IPC command to apply defaults
+    /// returned by `ConfigManager::reset` to the live state.
+    ///
+    /// The closure clones `settings` on each invocation because `rcu` may
+    /// re-run its update closure under contention. Takes `&AppSettings` (rather
+    /// than by value) so the caller — which also returns the owned defaults to
+    /// the webview — does not pay an extra clone at the call site (clippy
+    /// `needless_pass_by_value`; see SUBTASKS Deviations).
+    pub fn replace_settings(&self, settings: &AppSettings) {
+        self.state.rcu(|current| {
+            let mut new_state = (**current).clone();
+            new_state.settings = settings.clone();
             new_state
         });
     }
@@ -253,6 +288,81 @@ mod tests {
         assert!(
             guard.is_active,
             "is_active should be preserved after reset_zoom"
+        );
+    }
+
+    // E04/005 T001 tests -- set_magnification_mode, replace_settings
+
+    #[test]
+    fn state_manager_set_magnification_mode_writes_mode() {
+        use luminos_types::MagnificationMode;
+        let mgr = generate_test_state_manager();
+        assert_eq!(
+            mgr.load().settings.magnification.mode,
+            MagnificationMode::FullScreen,
+            "default mode is FullScreen"
+        );
+        mgr.set_magnification_mode(MagnificationMode::Lens);
+        assert_eq!(
+            mgr.load().settings.magnification.mode,
+            MagnificationMode::Lens,
+            "mode should be written through to AppState"
+        );
+    }
+
+    #[test]
+    fn state_manager_set_magnification_mode_preserves_other_fields() {
+        use luminos_types::MagnificationMode;
+        let mgr = generate_test_state_manager();
+        mgr.update_zoom_level(7.0);
+        mgr.toggle_magnification(); // is_active = true
+        mgr.set_magnification_mode(MagnificationMode::Docked);
+        let guard = mgr.load();
+        assert_eq!(guard.settings.magnification.mode, MagnificationMode::Docked);
+        assert!(
+            (guard.settings.magnification.zoom_level - 7.0).abs() < f32::EPSILON,
+            "zoom_level should be preserved across a mode write"
+        );
+        assert!(guard.is_active, "is_active should be preserved");
+    }
+
+    #[test]
+    fn state_manager_replace_settings_replaces_whole_settings() {
+        use crate::config::schema::AppSettings;
+        use luminos_types::MagnificationMode;
+        let mgr = generate_test_state_manager();
+
+        let mut replacement = AppSettings::default();
+        replacement.magnification.zoom_level = 9.0;
+        replacement.magnification.mode = MagnificationMode::Docked;
+        replacement.minimize_to_tray = false;
+
+        mgr.replace_settings(&replacement);
+        let guard = mgr.load();
+        assert_eq!(
+            guard.settings, replacement,
+            "replace_settings should overwrite the entire settings sub-struct"
+        );
+    }
+
+    #[test]
+    fn state_manager_replace_settings_preserves_runtime_fields() {
+        use crate::config::schema::AppSettings;
+        let mgr = generate_test_state_manager();
+        // Set a transient runtime field that lives OUTSIDE settings.
+        mgr.update_mouse_position(ScreenPoint { x: 123, y: 456 });
+        mgr.toggle_magnification(); // is_active = true (top-level, not in settings)
+
+        mgr.replace_settings(&AppSettings::default());
+        let guard = mgr.load();
+        assert_eq!(
+            guard.mouse_position,
+            ScreenPoint { x: 123, y: 456 },
+            "replace_settings must not clobber transient runtime fields"
+        );
+        assert!(
+            guard.is_active,
+            "is_active (top-level runtime field) must be preserved"
         );
     }
 

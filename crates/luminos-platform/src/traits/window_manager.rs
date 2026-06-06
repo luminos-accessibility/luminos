@@ -48,9 +48,12 @@ pub enum WindowError {
 
 /// Magnification overlay window management.
 ///
-/// This trait controls the winit-based magnification overlay window.
-/// The overlay is independent of the Tauri control panel -- it is a native
-/// window with wgpu rendering, transparent, borderless, and always-on-top.
+/// This trait controls the magnification overlay window. On Linux X11 the
+/// backend (`X11WindowManager`) drives an already-created overlay window (the
+/// tao/Tauri overlay window opened by `luminos-app`) by its X11 window id via
+/// raw `x11rb` protocol requests -- it uses no winit and creates no window.
+/// The overlay is transparent, borderless, and always-on-top, with wgpu
+/// rendering whose surface is sourced by `luminos-app` (not this trait).
 ///
 /// # Platform Implementations
 ///
@@ -62,11 +65,15 @@ pub enum WindowError {
 /// | OpenBSD | `X11WindowManager` | Shared with Linux X11 (EWMH) |
 /// | Windows | `Win32WindowManager` | `SHAppBarMessage` / AppBar API |
 pub trait WindowManager: Send + Sync {
-    /// Creates the magnification overlay window on the specified display.
+    /// Binds the manager to the target display and confirms the overlay window.
+    ///
+    /// On the X11 backend this does **not** create a window (the overlay window
+    /// is opened by `luminos-app`); it resolves the target display's bounds and
+    /// confirms the bound X11 window id.
     ///
     /// # Errors
     ///
-    /// Returns [`WindowError`] if the overlay window cannot be created on the specified display.
+    /// Returns [`WindowError`] if the specified display cannot be resolved.
     fn create_overlay(&mut self, display_id: &str) -> Result<(), WindowError>;
 
     /// Sets the overlay's position and size in screen coordinates.
@@ -97,11 +104,16 @@ pub trait WindowManager: Send + Sync {
     /// Returns [`WindowError`] if the visibility cannot be changed.
     fn set_visible(&self, visible: bool) -> Result<(), WindowError>;
 
-    /// Returns the raw window handle for wgpu surface creation.
-    /// Returns `None` if the overlay has not been created yet.
+    /// Returns the raw window handle for wgpu surface creation, or `None` when
+    /// the surface is sourced elsewhere.
+    ///
+    /// The X11 backend returns `None`: it controls an externally-owned window
+    /// and the wgpu surface is built by `luminos-app` from the owned Tauri
+    /// window, not through this trait (AD-3).
     fn raw_window_handle(&self) -> Option<&dyn raw_window_handle::HasWindowHandle>;
 
-    /// Returns the raw display handle for wgpu surface creation.
+    /// Returns the raw display handle for wgpu surface creation, or `None` when
+    /// the surface is sourced elsewhere (the X11 backend returns `None`).
     fn raw_display_handle(&self) -> Option<&dyn raw_window_handle::HasDisplayHandle>;
 }
 

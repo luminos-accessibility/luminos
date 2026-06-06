@@ -47,7 +47,15 @@ pub struct FrameTimings {
 /// Contains aggregate statistics suitable for transmission to the
 /// control panel via Tauri IPC (E04+). All time fields are in
 /// milliseconds.
-#[derive(Debug, Clone, PartialEq)]
+///
+/// # Wire format (DC-5)
+///
+/// This is the **one** IPC type renamed to `camelCase`: the JSON keys are
+/// `averageMs`, `p99Ms`, `minMs`, `maxMs`, `targetFps` (story 006's Zod schema
+/// and `tauri-specta` bindings depend on exactly these keys). All other IPC
+/// types (`AppSettings` + sub-structs) stay `snake_case`.
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
 pub struct FrameTimingSummary {
     /// Average frame time in milliseconds.
     pub average_ms: f64,
@@ -514,5 +522,65 @@ mod tests {
         }
         // Streak should be exactly 300
         assert_eq!(ft.warn_streak(), THRESHOLD_STREAK_LIMIT);
+    }
+
+    // ── E04/005 T002: FrameTimingSummary serde camelCase + specta::Type ──────
+
+    #[test]
+    fn frame_timing_summary_serde_camelcase() {
+        // DC-5: `FrameTimingSummary` is the ONE IPC type renamed to camelCase.
+        // The control-panel Zod schema (story 006) expects exactly these keys:
+        // `averageMs`, `p99Ms`, `minMs`, `maxMs`, `targetFps`.
+        let summary = FrameTimingSummary {
+            average_ms: 8.0,
+            p99_ms: 12.5,
+            min_ms: 6.0,
+            max_ms: 18.0,
+            target_fps: 60,
+        };
+        let json = serde_json::to_value(&summary).unwrap();
+        let obj = json.as_object().unwrap();
+        assert!(
+            obj.contains_key("averageMs"),
+            "expected camelCase 'averageMs'"
+        );
+        assert!(obj.contains_key("p99Ms"), "expected camelCase 'p99Ms'");
+        assert!(obj.contains_key("minMs"), "expected camelCase 'minMs'");
+        assert!(obj.contains_key("maxMs"), "expected camelCase 'maxMs'");
+        assert!(
+            obj.contains_key("targetFps"),
+            "expected camelCase 'targetFps'"
+        );
+        // And NOT the snake_case Rust field names.
+        assert!(
+            !obj.contains_key("average_ms"),
+            "snake_case must be renamed"
+        );
+        assert!(
+            !obj.contains_key("target_fps"),
+            "snake_case must be renamed"
+        );
+    }
+
+    #[test]
+    fn frame_timing_summary_serde_roundtrip() {
+        let summary = FrameTimingSummary {
+            average_ms: 8.0,
+            p99_ms: 12.5,
+            min_ms: 6.0,
+            max_ms: 18.0,
+            target_fps: 60,
+        };
+        let json = serde_json::to_string(&summary).unwrap();
+        let back: FrameTimingSummary = serde_json::from_str(&json).unwrap();
+        assert_eq!(summary, back, "camelCase JSON must round-trip");
+    }
+
+    #[test]
+    fn frame_timing_summary_implements_specta_type() {
+        // Compile-time bound check: the type must derive `specta::Type` so it
+        // can appear as a `#[specta::specta]` command return type (DC-5).
+        fn assert_specta_type<T: specta::Type>() {}
+        assert_specta_type::<FrameTimingSummary>();
     }
 }

@@ -1,7 +1,7 @@
 # Story E04/006: Frontend Control Panel UI
 
 **Epic:** [../HIGH_LEVEL_PLAN.md](../HIGH_LEVEL_PLAN.md)
-**Status:** DRAFT
+**Status:** APPROVED (approved-as-authoritative per E04 execution, 2026-06-04)
 **Depends On:** 005 (`ui/src/ipc/bindings.ts` + commands/events)
 
 ---
