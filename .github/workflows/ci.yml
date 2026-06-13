@@ -223,6 +223,7 @@ jobs:
           libgbm-dev
           libpipewire-0.3-dev
           libasound2-dev
+          libwayland-dev
           libx11-dev
           libxi-dev
           libxtst-dev
@@ -275,6 +276,7 @@ jobs:
           libgbm-dev
           libpipewire-0.3-dev
           libasound2-dev
+          libwayland-dev
           libx11-dev
           libxi-dev
           libxtst-dev
@@ -337,6 +339,7 @@ jobs:
           libgbm-dev
           libpipewire-0.3-dev
           libasound2-dev
+          libwayland-dev
           libx11-dev
           libxi-dev
           libxtst-dev
@@ -364,6 +367,7 @@ jobs:
       - name: Build UI dist
         run: |
           corepack enable
+          corepack prepare pnpm@10.33.4 --activate
           pnpm --dir ui install --frozen-lockfile
           pnpm --dir ui build
 
@@ -441,6 +445,7 @@ jobs:
           libgbm-dev
           libpipewire-0.3-dev
           libasound2-dev
+          libwayland-dev
           libx11-dev
           libxi-dev
           libxtst-dev
@@ -472,6 +477,7 @@ jobs:
       - name: Build UI dist
         run: |
           corepack enable
+          corepack prepare pnpm@10.33.4 --activate
           pnpm --dir ui install --frozen-lockfile
           pnpm --dir ui build
 
@@ -481,6 +487,7 @@ jobs:
       - name: Install E2E dependencies
         run: |
           corepack enable
+          corepack prepare pnpm@10.33.4 --activate
           pnpm --dir e2e install --frozen-lockfile
 
       # Run the WebdriverIO suite under Xvfb + picom. picom provides the
