@@ -179,8 +179,27 @@ Runs `luminos-app` lib unit tests (incl. the offscreen Mesa-llvmpipe clear test)
 ```bash
 MESA_GL_VERSION_OVERRIDE="4.5" LIBGL_ALWAYS_SOFTWARE="1" \
   cargo nextest run --profile ci \
-  -p luminos-app --features "tauri ci_platform_tests" --test-threads 1
+  -p luminos-app --features "tauri custom-protocol ci_platform_tests" --test-threads 1
 ```
+
+**`custom-protocol` is now a DEFAULT feature** (`default = ["tauri", "custom-protocol"]`) so a plain `cargo run -p luminos-app` serves the embedded `frontendDist` and the control panel works out of the box. Without it Tauri runs in dev mode and the control-panel webview loads `build.devUrl` (`http://localhost:1420`) instead of the embedded `frontendDist`, so a binary with no dev server shows "Could not connect to localhost: Connection refused" and IPC never initializes. Because it is a default, every build that doesn't pass `--no-default-features` already has it — the explicit `--features "tauri custom-protocol"` in the CI app/e2e jobs is now redundant-but-harmless and kept for clarity. **The ONLY build that must turn it OFF is the hot-reload dev workflow** (see below).
+
+### Running the App (manual testing)
+
+Build the frontend once, then run the binary — `custom-protocol` is a default feature so the embedded UI loads with no extra flags. On Linux the binary auto-pins the X11/XWayland backend at startup (`platform_env::force_x11_backend`), so it runs on both X11 and Wayland sessions (under XWayland on the latter, with a logged notice — native Wayland is Epic E08). Closing the control-panel window quits the app unless `minimize_to_tray` is enabled (then it hides to the tray).
+
+```bash
+pnpm --dir ui build                                      # produce ui/dist (embedded at compile time)
+cargo run -p luminos-app                                 # custom-protocol is default — control panel just works
+```
+
+For the hot-reload dev workflow instead, use the Tauri CLI with default features disabled so it serves the live Vite dev server (`build.devUrl`, `:1420`) rather than the stale embedded `frontendDist`:
+
+```bash
+cargo tauri dev --no-default-features --features tauri
+```
+
+This is the **only** mode that should rely on `build.devUrl`; everything else uses the embedded assets via the default `custom-protocol`.
 
 The same job also runs the **tauri-specta bindings-up-to-date check** (story E04/005, D7): it regenerates `ui/src/ipc/bindings.ts` from the Rust IPC surface via the app's `--export-bindings` seam (which exports the bindings and exits — no Xvfb/webview needed) and fails if the committed file drifted. **If you change a `#[tauri::command]`/`#[tauri_specta::Event]` definition or any `specta::Type` it touches, regenerate and commit `ui/src/ipc/bindings.ts`.**
 
@@ -192,13 +211,13 @@ git diff --exit-code ui/src/ipc/bindings.ts
 
 ### 9. E2E Tests (tauri-driver + WebKitWebDriver)
 
-Runs the WebdriverIO IPC integration suite in `e2e/` (story E04/007, D2/D3/D4) against the **built** `luminos-app` binary, driving the real control-panel webview via the Rust `tauri-driver` proxy + `WebKitWebDriver`. The suite drives the UI (zoom slider, mode radios) and asserts the **real engine state** through a `get_current_settings` round-trip (not just the React store), verifying the IPC contract end-to-end. Requires `webkit2gtk-driver` (ships `WebKitWebDriver`), `libayatana-appindicator3-dev` (the tray SNI host), `xvfb`, `picom`, the app build deps, and the Rust `tauri-driver` binary (`cargo install tauri-driver --version 2.0.6 --locked`, pinned per PINNED_VERSIONS.md §3). The job builds `ui/dist` + the debug app (`cargo build -p luminos-app --features tauri`), then runs the suite under `xvfb-run` + picom with the headless-WebKit env (`GDK_BACKEND=x11`, `WEBKIT_DISABLE_COMPOSITING_MODE=1`, `WEBKIT_DISABLE_DMABUF_RENDERER=1`, `MESA_GL_VERSION_OVERRIDE=4.5`, `LIBGL_ALWAYS_SOFTWARE=1`).
+Runs the WebdriverIO IPC integration suite in `e2e/` (story E04/007, D2/D3/D4) against the **built** `luminos-app` binary, driving the real control-panel webview via the Rust `tauri-driver` proxy + `WebKitWebDriver`. The suite drives the UI (zoom slider, mode radios) and asserts the **real engine state** through a `get_current_settings` round-trip (not just the React store), verifying the IPC contract end-to-end. Requires `webkit2gtk-driver` (ships `WebKitWebDriver`), `libayatana-appindicator3-dev` (the tray SNI host), `xvfb`, `picom`, the app build deps, and the Rust `tauri-driver` binary (`cargo install tauri-driver --version 2.0.6 --locked`, pinned per PINNED_VERSIONS.md §3). The job builds `ui/dist` + the debug app (`cargo build -p luminos-app --features "tauri custom-protocol"` — `custom-protocol` is mandatory so the webview serves the embedded `frontendDist` instead of the absent dev server), then runs the suite under `xvfb-run` + picom with the headless-WebKit env (`GDK_BACKEND=x11`, `WEBKIT_DISABLE_COMPOSITING_MODE=1`, `WEBKIT_DISABLE_DMABUF_RENDERER=1`, `MESA_GL_VERSION_OVERRIDE=4.5`, `LIBGL_ALWAYS_SOFTWARE=1`).
 
 ```bash
 # CI-only (needs WebKitWebDriver + tauri-driver, NOT typically on a dev box):
 cargo install tauri-driver --version 2.0.6 --locked
 pnpm --dir ui install --frozen-lockfile && pnpm --dir ui build
-cargo build -p luminos-app --features tauri
+cargo build -p luminos-app --features "tauri custom-protocol"
 pnpm --dir e2e install --frozen-lockfile
 MESA_GL_VERSION_OVERRIDE="4.5" LIBGL_ALWAYS_SOFTWARE="1" \
   GDK_BACKEND="x11" WEBKIT_DISABLE_COMPOSITING_MODE="1" WEBKIT_DISABLE_DMABUF_RENDERER="1" \
