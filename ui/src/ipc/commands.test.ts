@@ -70,7 +70,7 @@ describe('ipc/commands', () => {
 
   test('reset_settings_returns_parsed_defaults', async () => {
     const settings = await resetSettings();
-    expect(settings.minimize_to_tray).toBe(true);
+    expect(settings.minimize_to_tray).toBe(false);
   });
 
   test('command_rejects_with_ipc_command_error_on_engine_error', async () => {

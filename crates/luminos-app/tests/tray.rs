@@ -195,6 +195,89 @@ fn minimize_to_tray_hides_window_keeps_running() {
     );
 }
 
+/// Story 008 / AC-8: with `minimize_to_tray` DISABLED, a close request on the
+/// control-panel window must quit the WHOLE app — not just close that one window
+/// while the overlay (the second tao window) keeps the event loop alive. Asserts
+/// the process exits ON ITS OWN (no SIGTERM) after a `WM_DELETE_WINDOW`, and that
+/// it logged the "exiting app" decision and a clean shutdown.
+#[test]
+fn close_quits_app_when_minimize_to_tray_disabled() {
+    let Some(display) = TestDisplay::launch() else {
+        return;
+    };
+    let mut app =
+        match RunningApp::spawn(&display.display, &[("LUMINOS_FORCE_MINIMIZE_TO_TRAY", "0")]) {
+            Ok(app) => app,
+            Err(e) => {
+                eprintln!("SKIP: could not spawn app: {e}");
+                return;
+            }
+        };
+
+    // Wait for the control-panel window to map.
+    let mut panel_id = None;
+    for _ in 0..50 {
+        if let Some(w) = find_windows(&display.display, "Control Panel")
+            .into_iter()
+            .find(|w| w.mapped)
+        {
+            panel_id = Some(w.id);
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(100));
+    }
+    let Some(panel_id) = panel_id else {
+        eprintln!(
+            "SKIP: control-panel window never mapped under headless Xvfb; log:\n{}",
+            app.read_log()
+        );
+        let _ = app.terminate_and_wait(Duration::from_secs(10));
+        return;
+    };
+
+    // Under a WM-less Xvfb the app's GTK WM_PROTOCOLS handler may not be wired
+    // up the instant the window maps, so a single `WM_DELETE_WINDOW` can be lost
+    // before `CloseRequested` is hooked. Re-send until the close handler logs its
+    // (info-level, always-visible) quit decision — that marker is the
+    // deterministic proof the fix ran; exit code/timing under headless software
+    // GL teardown (DC-10) is noisy and is NOT the load-bearing assertion.
+    let mut decided = false;
+    for _ in 0..30 {
+        if !send_wm_delete(&display.display, panel_id) {
+            eprintln!("SKIP: could not send WM_DELETE_WINDOW; window-tree may be unstable");
+            let _ = app.terminate_and_wait(Duration::from_secs(10));
+            return;
+        }
+        if app.wait_for_log(
+            "minimize_to_tray=false; exiting app",
+            Duration::from_millis(400),
+        ) {
+            decided = true;
+            break;
+        }
+    }
+
+    // The app must then exit ON ITS OWN — NO signal is sent here. A generous
+    // timeout absorbs slow headless teardown without making the test flaky.
+    let exit = app.wait_for_exit(Duration::from_secs(15));
+    let log = app.read_log();
+
+    assert!(
+        decided,
+        "closing the control panel with minimize_to_tray=false must reach the quit decision \
+         ('exiting app'); log:\n{log}"
+    );
+    assert!(
+        exit.is_some(),
+        "the app must quit on its own after the control-panel close (no Ctrl+C needed); it was \
+         still running 15s after the quit decision; log:\n{log}"
+    );
+    assert!(
+        !log.contains("panicked"),
+        "close-quits must not panic; log:\n{log}"
+    );
+}
+
 /// Sends a `WM_DELETE_WINDOW` `ClientMessage` to `window` via the `WM_PROTOCOLS`
 /// mechanism, the standard way to request a graceful close with no running WM.
 /// Returns whether the message was dispatched.

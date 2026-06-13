@@ -25,6 +25,7 @@ pub mod notifier;
 pub mod overlay_bridge;
 #[cfg(feature = "tauri")]
 pub mod overlay_gpu;
+pub mod platform_env;
 #[cfg(feature = "tauri")]
 pub mod signal;
 #[cfg(feature = "tauri")]

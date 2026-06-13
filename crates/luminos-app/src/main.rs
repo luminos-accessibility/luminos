@@ -38,6 +38,13 @@ fn main() {
         }
     }
 
+    // Pin the X11/XWayland GTK + WebKit backend BEFORE any GTK initialization
+    // (which happens inside `app::run`). On a native Wayland session this avoids
+    // the `Gdk-Message: Error 71 (Protocol error)` abort, and under X11 it
+    // disables WebKit's DMABUF/compositing renderer so the control-panel webview
+    // boots and IPC works. See `platform_env` for the full rationale.
+    luminos_app::platform_env::force_x11_backend();
+
     if let Err(e) = luminos_app::app::run() {
         log::error!("fatal: '{e}'");
         std::process::exit(1);

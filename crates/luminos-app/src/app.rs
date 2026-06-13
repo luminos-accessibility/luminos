@@ -260,7 +260,13 @@ fn handle_close_to_tray(window: &tauri::Window, event: &WindowEvent) {
         .try_state::<LuminosHandle>()
         .is_some_and(|h| h.app_state.load().settings.minimize_to_tray);
     if !minimize {
-        log::info!("control-panel close: minimize_to_tray=false; closing normally");
+        // Closing the control panel must quit the whole app. The overlay is a
+        // second tao window that keeps the single event loop alive, so letting
+        // the control-panel window close on its own leaves a headless process
+        // running (the user has to Ctrl+C). Trigger a clean shutdown: `exit`
+        // fires `ExitRequested`/`Exit`, which runs the teardown in the run loop.
+        log::info!("control-panel close: minimize_to_tray=false; exiting app");
+        window.app_handle().exit(0);
         return;
     }
 
@@ -637,6 +643,17 @@ fn init_window_manager(app_handle: &tauri::AppHandle) {
         }
     };
 
+    // Make the overlay genuinely click-through. tao's
+    // `set_ignore_cursor_events` (setup_overlay_window) only shapes the overlay
+    // toplevel; the embedded WebKitWebView child window still grabs pointer
+    // events across the full-screen overlay and ate clicks on the control panel
+    // (e.g. its close button). Empty the X11 input region of the overlay AND its
+    // descendants now that the webview child is realized. Non-fatal: log on
+    // failure (the overlay still renders, just not click-through).
+    if let Err(e) = manager.set_input_passthrough(true) {
+        log::error!("overlay input passthrough (click-through) failed: '{e}'");
+    }
+
     let xid = manager.overlay_window_id();
     handle.set_window_manager(manager);
 
@@ -753,7 +770,7 @@ fn present_if_ready(
     // Compute the region first (advances tracking) so its origin is observable
     // even when the present itself fails under headless software GL (DC-10).
     let region = capture_driver.region_for_state(mouse, viewport, zoom);
-    log::info!(
+    log::debug!(
         "magnify_region zoom='{zoom}' mouse='{},{}' region='{}x{}@{},{}'",
         mouse.x,
         mouse.y,
@@ -768,9 +785,9 @@ fn present_if_ready(
             // `magnify_capture` proves capture→frame succeeded; the present may
             // still fail under headless Xvfb (EGL surfaceless, DC-10), in which
             // case `render` logs the error but the loop must not panic (FR-7).
-            log::info!("magnify_capture frame='{}x{}'", frame.width, frame.height);
+            log::debug!("magnify_capture frame='{}x{}'", frame.width, frame.height);
             match gpu.render(&frame) {
-                Ok(()) => log::info!("magnify_present zoom='{zoom}'"),
+                Ok(()) => log::debug!("magnify_present zoom='{zoom}'"),
                 Err(e) => log::warn!("magnify_present_skipped: '{e}'"),
             }
         }
@@ -877,7 +894,7 @@ fn present_clear(gpu: &mut OverlayGpu) {
         // No presentable adapter (Xvfb) surfaces here; it is expected headless.
         log::warn!("present_skipped: '{e}'");
     } else {
-        log::info!("inactive_clear");
+        log::debug!("inactive_clear");
     }
 }
 
@@ -937,7 +954,7 @@ fn spawn_cadence_timer(
                 let marshaled = app_handle.run_on_main_thread(move || {
                     tick_dirty.store(true, Ordering::Release);
                     let n = tick_count.fetch_add(1, Ordering::Relaxed) + 1;
-                    log::info!("redraw={n}");
+                    log::debug!("redraw={n}");
                 });
                 if marshaled.is_err() {
                     // `run_on_main_thread` only fails once the event loop has

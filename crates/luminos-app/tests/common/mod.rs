@@ -182,7 +182,11 @@ impl RunningApp {
         // propagate to the nextest runner's process group.
         cmd.process_group(0)
             .env("DISPLAY", display)
-            .env("RUST_LOG", "info")
+            // `luminos_app=debug` so the per-frame heartbeat/magnify markers
+            // (`redraw=N`, `magnify_present`, …) — emitted at DEBUG to keep a
+            // normal `cargo run` quiet — remain visible as subprocess-test log
+            // oracles; dependency crates stay at INFO to limit noise.
+            .env("RUST_LOG", "info,luminos_app=debug")
             // Force the GDK X11 backend: under a headless Xvfb, GDK's backend
             // auto-detection can fail to realize windows; pinning x11 fixes it.
             .env("GDK_BACKEND", "x11")
@@ -249,6 +253,22 @@ impl RunningApp {
         // Hung — force kill and report failure.
         let _ = self.child.kill();
         let _ = self.child.wait();
+        None
+    }
+
+    /// Waits for the child to exit ON ITS OWN (no signal sent), returning its
+    /// exit code, or `None` if it is still running when `timeout` elapses. Used
+    /// to assert a self-initiated shutdown (e.g. close-quits-app) rather than a
+    /// SIGTERM-driven one.
+    pub fn wait_for_exit(&mut self, timeout: Duration) -> Option<i32> {
+        let deadline = Instant::now() + timeout;
+        while Instant::now() < deadline {
+            match self.child.try_wait() {
+                Ok(Some(status)) => return status.code(),
+                Ok(None) => std::thread::sleep(Duration::from_millis(50)),
+                Err(_) => return None,
+            }
+        }
         None
     }
 }

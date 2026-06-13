@@ -11,7 +11,13 @@ rust-version.workspace = true
 # `--exclude luminos-app` convention (see CLAUDE.md CI section) and build the
 # rest of the workspace without this crate.
 [features]
-default = ["tauri"]
+# `custom-protocol` is on by default so a plain `cargo run -p luminos-app`
+# serves the embedded `frontendDist` and the control panel works out of the box
+# (without it Tauri falls back to `build.devUrl` -> "Could not connect to
+# localhost:1420"). The hot-reload dev workflow (`cargo tauri dev`) must instead
+# build with `--no-default-features --features tauri` so it serves the live Vite
+# dev server. See the `custom-protocol` feature note below and CLAUDE.md.
+default = ["tauri", "custom-protocol"]
 tauri = [
     "dep:tauri",
     "dep:tauri-specta",
@@ -27,6 +33,14 @@ tauri = [
 integration_tests = ["luminos-core/test_utils"]
 ci_platform_tests = ["luminos-platform/ci_platform_tests"]
 profiling = ["luminos-gpu/profiling"]
+# Serve the embedded `frontendDist` instead of the Vite dev server. Without this,
+# Tauri runs in "dev" mode and the control-panel window loads `build.devUrl`
+# (http://localhost:1420), so a standalone binary with no dev server shows
+# "Could not connect to localhost: Connection refused" and IPC never initializes.
+# `tauri build` enables this automatically; a bare `cargo build`/`cargo run` and
+# the CI app/e2e jobs MUST pass `--features custom-protocol`. (`tauri?/` so it
+# only toggles tauri's feature when the optional `tauri` dep is already enabled.)
+custom-protocol = ["tauri?/custom-protocol"]
 
 [dependencies]
 luminos-types = { workspace = true }

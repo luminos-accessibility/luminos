@@ -260,7 +260,11 @@ impl Default for AppSettings {
             speech: SpeechSettings::default(),
             keybindings: HashMap::new(),
             start_on_login: false,
-            minimize_to_tray: true,
+            // Default to a plain quit-on-close: closing the control panel quits
+            // the app (story 008). Background-running via the tray is opt-in —
+            // relying on a tray icon that may not be visible on every desktop
+            // (a known blind spot) is a poor default for a no-Ctrl+C exit.
+            minimize_to_tray: false,
             show_panel_on_start: true,
         }
     }

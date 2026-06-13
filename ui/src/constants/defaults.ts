@@ -50,6 +50,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   },
   keybindings: {},
   start_on_login: false,
-  minimize_to_tray: true,
+  minimize_to_tray: false,
   show_panel_on_start: true,
 };

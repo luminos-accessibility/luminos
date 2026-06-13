@@ -10,9 +10,10 @@
 //! [`X11WindowManager::new`].
 
 use x11rb::connection::Connection as _;
+use x11rb::protocol::shape::{ConnectionExt as _, SK, SO};
 use x11rb::protocol::xproto::{
-    AtomEnum, ClientMessageEvent, ConfigureWindowAux, ConnectionExt as _, EventMask, PropMode,
-    Window,
+    AtomEnum, ClientMessageEvent, ClipOrdering, ConfigureWindowAux, ConnectionExt as _, EventMask,
+    PropMode, Window,
 };
 use x11rb::rust_connection::RustConnection;
 use x11rb::wrapper::ConnectionExt as _;
@@ -134,6 +135,108 @@ impl X11WindowManager {
         self.conn.flush().map_err(|e| WindowError::Platform {
             message: format!("X11 flush failed: {e}"),
         })
+    }
+
+    /// Makes the overlay genuinely click-through (or restores normal input).
+    ///
+    /// tao's `set_ignore_cursor_events(true)` only applies an empty input shape
+    /// to the overlay's **toplevel** `GdkWindow`. The overlay is a Tauri
+    /// `WebviewWindow`, so the embedded `WebKitWebView`'s own **child** X11
+    /// window keeps receiving pointer events and eats clicks across the entire
+    /// full-screen overlay — including the control-panel's close button. The fix
+    /// is to apply an empty X11 input region (`SHAPE` `ShapeInput`) to the
+    /// overlay window **and recursively to every descendant window**, so the
+    /// whole subtree is transparent to the pointer and clicks fall through to
+    /// the windows beneath.
+    ///
+    /// With `passthrough = false` the input region of the subtree is reset to
+    /// the default (whole window), restoring normal click behaviour.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WindowError::Platform`] if the X server lacks the `SHAPE`
+    /// extension or a `SHAPE`/`QueryTree` request fails.
+    pub fn set_input_passthrough(&self, passthrough: bool) -> Result<(), WindowError> {
+        // Confirm SHAPE is available up front for a clear error rather than a
+        // cryptic request failure on an ancient/headless server without it.
+        self.conn
+            .shape_query_version()
+            .map_err(|e| WindowError::Platform {
+                message: format!("SHAPE query_version request failed: {e}"),
+            })?
+            .reply()
+            .map_err(|e| WindowError::Platform {
+                message: format!("SHAPE extension unavailable: {e}"),
+            })?;
+
+        let touched = self.apply_input_region_recursive(self.overlay_xid, passthrough)?;
+        self.flush()?;
+        log::info!(
+            "set_input_passthrough('{passthrough}') applied to overlay '{}' \
+             across '{touched}' window(s) (toplevel + descendants)",
+            self.overlay_xid
+        );
+        Ok(())
+    }
+
+    /// Applies (or clears) the empty `ShapeInput` region on `window`, then
+    /// recurses into its children. Returns the number of windows touched.
+    fn apply_input_region_recursive(
+        &self,
+        window: Window,
+        passthrough: bool,
+    ) -> Result<u32, WindowError> {
+        if passthrough {
+            // An empty rectangle list = empty input region = fully click-through.
+            self.conn
+                .shape_rectangles(
+                    SO::SET,
+                    SK::INPUT,
+                    ClipOrdering::UNSORTED,
+                    window,
+                    0,
+                    0,
+                    &[],
+                )
+                .map_err(|e| WindowError::Platform {
+                    message: format!("shape_rectangles(input, empty) on '{window}' failed: {e}"),
+                })?;
+        } else {
+            // A NONE source bitmap resets the input shape to the whole window.
+            self.conn
+                .shape_mask(SO::SET, SK::INPUT, window, 0, 0, x11rb::NONE)
+                .map_err(|e| WindowError::Platform {
+                    message: format!("shape_mask(input, reset) on '{window}' failed: {e}"),
+                })?;
+        }
+
+        let tree = self
+            .conn
+            .query_tree(window)
+            .map_err(|e| WindowError::Platform {
+                message: format!("query_tree('{window}') request failed: {e}"),
+            })?
+            .reply()
+            .map_err(|e| WindowError::Platform {
+                message: format!("query_tree('{window}') reply failed: {e}"),
+            })?;
+
+        let mut touched = 1;
+        for child in tree.children {
+            // A descendant (e.g. the WebKitWebView child) can be destroyed or
+            // reparented between this window's `query_tree` and the recursive
+            // shape op on the child (a TOCTOU race). A transient `BadWindow`
+            // there must NOT abort shaping the rest of the subtree — the
+            // toplevel op already succeeded (fatal, above), so the overlay is
+            // click-through even if one vanishing child is skipped.
+            match self.apply_input_region_recursive(child, passthrough) {
+                Ok(n) => touched += n,
+                Err(e) => {
+                    log::debug!("skip input-region on transient child window '{child}': '{e}'");
+                }
+            }
+        }
+        Ok(touched)
     }
 }
 
@@ -369,6 +472,7 @@ mod tests {
     #[allow(clippy::unwrap_used, clippy::expect_used)]
     mod integration {
         use super::*;
+        use x11rb::protocol::shape::SK;
         use x11rb::protocol::xproto::{CreateWindowAux, MapState, WindowClass};
         use x11rb::rust_connection::RustConnection;
 
@@ -602,6 +706,95 @@ mod tests {
                 .expect("create_overlay resolves bounds");
             // The bound XID is preserved (create_overlay creates nothing).
             assert_eq!(wm.overlay_window_id(), Some(u64::from(xid)));
+        }
+
+        /// Creates an `INPUT_OUTPUT` child window inside `parent`, mimicking the
+        /// embedded `WebKitWebView` child whose input region the overlay must
+        /// also empty. Inherits depth/visual from the parent (`COPY_FROM_PARENT`).
+        fn create_child_window(conn: &RustConnection, parent: u32) -> u32 {
+            let child = conn.generate_id().expect("generate child id");
+            conn.create_window(
+                x11rb::COPY_DEPTH_FROM_PARENT,
+                child,
+                parent,
+                0,
+                0,
+                100,
+                100,
+                0,
+                WindowClass::COPY_FROM_PARENT,
+                x11rb::COPY_FROM_PARENT,
+                &CreateWindowAux::new(),
+            )
+            .expect("create child window")
+            .check()
+            .expect("create_window(child) checked");
+            conn.flush().expect("flush after child create");
+            child
+        }
+
+        /// Reads a window's `ShapeInput` rectangles via the SHAPE extension.
+        fn input_shape_rectangles(window: u32) -> Vec<x11rb::protocol::xproto::Rectangle> {
+            let (conn, _) = x11rb::connect(None).expect("connect for shape read");
+            conn.shape_get_rectangles(window, SK::INPUT)
+                .unwrap()
+                .reply()
+                .unwrap()
+                .rectangles
+        }
+
+        // Regression for the overlay-eats-clicks bug: set_input_passthrough(true)
+        // must empty the X11 input region of the overlay toplevel AND its child
+        // window(s) (the embedded WebKitWebView child), so the whole subtree is
+        // click-through. The original bug shaped only the toplevel, leaving the
+        // child grabbing pointer events.
+        #[test]
+        fn x11_window_manager_input_passthrough_empties_subtree() {
+            let (conn, xid, _root) = create_test_window();
+            let child = create_child_window(&conn, xid);
+
+            let wm =
+                X11WindowManager::new(xid, generate_test_display_bounds()).expect("bind manager");
+            wm.set_input_passthrough(true)
+                .expect("set_input_passthrough(true)");
+            conn.sync().expect("sync");
+
+            // Both the toplevel and its child must have an EMPTY input region.
+            assert!(
+                input_shape_rectangles(xid).is_empty(),
+                "overlay toplevel input region must be empty (click-through)"
+            );
+            assert!(
+                input_shape_rectangles(child).is_empty(),
+                "overlay CHILD input region must be empty (the original bug left it click-receptive)"
+            );
+        }
+
+        // The inverse: set_input_passthrough(false) restores a non-empty input
+        // region on the subtree (normal click behaviour).
+        #[test]
+        fn x11_window_manager_input_passthrough_false_restores_input() {
+            let (conn, xid, _root) = create_test_window();
+            let child = create_child_window(&conn, xid);
+
+            let wm =
+                X11WindowManager::new(xid, generate_test_display_bounds()).expect("bind manager");
+            wm.set_input_passthrough(true).expect("empty input region");
+            conn.sync().expect("sync");
+            wm.set_input_passthrough(false)
+                .expect("restore input region");
+            conn.sync().expect("sync");
+
+            // After reset, the windows take pointer input again (non-empty region
+            // covering the whole window).
+            assert!(
+                !input_shape_rectangles(xid).is_empty(),
+                "overlay toplevel must accept input again after passthrough=false"
+            );
+            assert!(
+                !input_shape_rectangles(child).is_empty(),
+                "overlay child must accept input again after passthrough=false"
+            );
         }
     }
 }
