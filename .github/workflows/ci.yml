@@ -376,7 +376,7 @@ jobs:
       - name: Run Clippy (luminos-app)
         run: >
           cargo clippy
-          -p luminos-app --features "tauri ci_platform_tests" --all-targets
+          -p luminos-app --features "tauri custom-protocol ci_platform_tests" --all-targets
           -- -D warnings
           -W clippy::unwrap_used
           -W clippy::expect_used
@@ -397,11 +397,13 @@ jobs:
       # subprocess integration tests. Run serially (the GTK/webkit app is heavy)
       # and on a single thread so each test's dedicated Xvfb does not contend.
       - name: Run app shell tests
+        # Build with `custom-protocol` so the spawned binary serves the embedded
+        # frontendDist (production behaviour) rather than the dev server.
         run: >
           cargo nextest run
           --profile ci
           -p luminos-app
-          --features "tauri ci_platform_tests"
+          --features "tauri custom-protocol ci_platform_tests"
           --test-threads 1
 
   test-e2e:
@@ -482,7 +484,11 @@ jobs:
           pnpm --dir ui build
 
       - name: Build luminos-app (debug)
-        run: cargo build -p luminos-app --features tauri
+        # `custom-protocol` makes the binary serve the embedded frontendDist
+        # instead of the Vite dev server (build.devUrl). Without it the
+        # control-panel webview loads http://localhost:1420 (no server in CI) and
+        # the IPC round-trip the E2E suite asserts can never initialize.
+        run: cargo build -p luminos-app --features "tauri custom-protocol"
 
       - name: Install E2E dependencies
         run: |
