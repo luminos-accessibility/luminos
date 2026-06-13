@@ -88,24 +88,46 @@ export async function getEngineMode(): Promise<MagnificationMode> {
  * Switches the WebDriver session to the control-panel webview.
  *
  * The app opens two webviews (control-panel + overlay); WebKitWebDriver may
- * attach to either. This iterates the window handles and selects the one whose
+ * attach to either. This polls the window handles and selects the one whose
  * document renders the zoom slider (the control panel). It is a no-op when the
- * session is already on the control panel. Throws if no window has the slider
- * (a real failure — the control panel never rendered).
+ * session is already on the control panel. Throws (via `waitUntil`) if no
+ * window renders the slider within the timeout (a real failure — the control
+ * panel never hydrated).
  */
 export async function switchToControlPanel(): Promise<void> {
-  const handles = await browser.getWindowHandles();
-  for (const handle of handles) {
-    await browser.switchToWindow(handle);
-    const hasSlider = await browser.execute(() => {
-      const byRole = document.querySelector('[role="slider"], input[type="range"]');
-      return byRole !== null;
-    });
-    if (hasSlider) {
-      return;
-    }
-  }
-  throw new Error(
-    'no webview rendered the control-panel zoom slider (control panel never loaded)',
+  // The control panel gates its UI behind async settings hydration (a
+  // `get_current_settings` IPC round-trip): the zoom slider only enters the DOM
+  // after that resolves, which lags the native window-open by hundreds of ms
+  // under headless software GL. Poll every window handle (NFR-3:
+  // condition-based, never a fixed sleep) until one webview has rendered the
+  // slider, leaving the driver focused there. A single-shot probe races the
+  // hydration and intermittently attaches to the still-loading panel (showing
+  // "Loading settings…") or the empty overlay — which is what failed the first
+  // CI run of this job (DC-13).
+  await browser.waitUntil(
+    async () => {
+      const handles = await browser.getWindowHandles();
+      for (const handle of handles) {
+        try {
+          await browser.switchToWindow(handle);
+          const hasSlider = await browser.execute(
+            () => document.querySelector('[role="slider"], input[type="range"]') !== null,
+          );
+          if (hasSlider) {
+            return true; // leaves the driver focused on the control-panel window
+          }
+        } catch {
+          // A window handle can transiently vanish during the race; skip it
+          // this tick and re-scan on the next poll.
+        }
+      }
+      return false;
+    },
+    {
+      timeout: 30_000,
+      interval: 500,
+      timeoutMsg:
+        'no webview rendered the control-panel zoom slider within 30s (control panel never hydrated)',
+    },
   );
 }
