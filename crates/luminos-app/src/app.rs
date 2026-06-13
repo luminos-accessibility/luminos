@@ -426,32 +426,33 @@ fn run_event_loop(
         RunEvent::WindowEvent { label, event, .. } => {
             handle_window_event(&label, &event, overlay_gpu.as_mut(), &dirty);
         }
-        RunEvent::ExitRequested { .. } | RunEvent::Exit => {
-            // `ExitRequested` then `Exit` both fire; run teardown exactly once.
+        // `ExitRequested` then `Exit` both fire; the guard's `compare_exchange`
+        // runs teardown exactly once (a later fire fails the swap, so the arm
+        // is skipped and falls through to the `_` no-op).
+        RunEvent::ExitRequested { .. } | RunEvent::Exit
             if shutdown
                 .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
-                .is_ok()
+                .is_ok() =>
+        {
+            log::info!("shutdown=requested; joining background threads");
+            join_thread_slot(&cadence_handle);
+            join_thread_slot(&debug_handle);
+            // Retire the input pipeline. We DROP (detach) rather than join:
+            // the X11 XI2 monitor thread owns the channel Sender and only
+            // releases it on a connection error or on the next event after
+            // its Receiver closes — and the Receiver is owned by the
+            // processor thread, which only exits once the Sender drops. That
+            // circular ownership means a blocking `join()` can hang at
+            // shutdown, so we detach both daemon threads and let process
+            // exit reap them (story-003 Deviations / RISK note).
+            #[cfg(target_os = "linux")]
+            if let Ok(mut slot) = input_pipeline.lock()
+                && slot.take().is_some()
             {
-                log::info!("shutdown=requested; joining background threads");
-                join_thread_slot(&cadence_handle);
-                join_thread_slot(&debug_handle);
-                // Retire the input pipeline. We DROP (detach) rather than join:
-                // the X11 XI2 monitor thread owns the channel Sender and only
-                // releases it on a connection error or on the next event after
-                // its Receiver closes — and the Receiver is owned by the
-                // processor thread, which only exits once the Sender drops. That
-                // circular ownership means a blocking `join()` can hang at
-                // shutdown, so we detach both daemon threads and let process
-                // exit reap them (story-003 Deviations / RISK note).
-                #[cfg(target_os = "linux")]
-                if let Ok(mut slot) = input_pipeline.lock()
-                    && slot.take().is_some()
-                {
-                    log::info!("input_pipeline=detached");
-                }
-                overlay_gpu = None; // drop GPU resources before exit
-                log::info!("shutdown=clean");
+                log::info!("input_pipeline=detached");
             }
+            overlay_gpu = None; // drop GPU resources before exit
+            log::info!("shutdown=clean");
         }
         _ => {}
     });
@@ -512,12 +513,8 @@ fn capture_screen_bounds(app_handle: &tauri::AppHandle) -> luminos_types::Screen
     };
     let (width, height) = overlay
         .inner_size()
-        .map(|s| (s.width, s.height))
-        .unwrap_or(FALLBACK_SIZE);
-    let (x, y) = overlay
-        .outer_position()
-        .map(|p| (p.x, p.y))
-        .unwrap_or((0, 0));
+        .map_or(FALLBACK_SIZE, |s| (s.width, s.height));
+    let (x, y) = overlay.outer_position().map_or((0, 0), |p| (p.x, p.y));
     luminos_types::ScreenRect {
         x,
         y,
@@ -590,8 +587,7 @@ fn init_overlay_gpu(app_handle: &tauri::AppHandle) -> Result<OverlayGpu, AppErro
         .ok_or_else(|| AppError::OverlayMissing(OVERLAY_LABEL.to_string()))?;
     let (width, height) = overlay
         .inner_size()
-        .map(|s| (s.width, s.height))
-        .unwrap_or(FALLBACK_SIZE);
+        .map_or(FALLBACK_SIZE, |s| (s.width, s.height));
 
     // Bake the interpolation method + target fps from the seeded settings.
     // Phase 0 fixes interpolation at startup (Renderer has no runtime switch).
@@ -671,12 +667,8 @@ fn init_window_manager(app_handle: &tauri::AppHandle) {
 fn overlay_display_bounds(overlay: &tauri::WebviewWindow) -> luminos_platform::traits::ScreenRect {
     let (width, height) = overlay
         .inner_size()
-        .map(|s| (s.width, s.height))
-        .unwrap_or(FALLBACK_SIZE);
-    let (x, y) = overlay
-        .outer_position()
-        .map(|p| (p.x, p.y))
-        .unwrap_or((0, 0));
+        .map_or(FALLBACK_SIZE, |s| (s.width, s.height));
+    let (x, y) = overlay.outer_position().map_or((0, 0), |p| (p.x, p.y));
     luminos_platform::traits::ScreenRect {
         x,
         y,
