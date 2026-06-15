@@ -40,8 +40,7 @@ fn tool_available(name: &str) -> bool {
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .status()
-        .map(|s| s.success())
-        .unwrap_or(false)
+        .is_ok_and(|s| s.success())
 }
 
 /// A running `Xvfb` + `picom` display that tears itself down on drop.
