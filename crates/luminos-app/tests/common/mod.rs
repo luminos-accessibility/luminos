@@ -194,6 +194,18 @@ impl RunningApp {
             .env("WEBKIT_DISABLE_COMPOSITING_MODE", "1")
             .env("WEBKIT_DISABLE_DMABUF_RENDERER", "1")
             .env("LIBGL_ALWAYS_SOFTWARE", "1")
+            // Disable the GTK AT-SPI accessibility bridge. On a CI runner there
+            // is no session/a11y D-Bus, and GTK's accessibility init (the
+            // atk-bridge module load during the app's GTK setup) blocks ~9s
+            // (measured) trying to reach the absent a11y bus — long enough on a
+            // slow runner to blow the 20s `wait_for_log` boot-marker timeouts and
+            // fail the boot tests. The bridge is irrelevant to these
+            // window/IPC/shutdown tests, so turning it off removes the stall
+            // entirely (verified: the gap between the config-load log and the
+            // first setup-hook log drops from ~9s to ~0). Independent of
+            // `DBUS_SESSION_BUS_ADDRESS`, so it also covers the tray tests that
+            // deliberately unset that.
+            .env("NO_AT_BRIDGE", "1")
             .stdout(Stdio::from(log_file))
             .stderr(Stdio::from(err_clone));
         for (k, v) in extra_env {
