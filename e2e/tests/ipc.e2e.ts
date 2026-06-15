@@ -19,6 +19,7 @@
  */
 
 import {
+  driveZoomSlider,
   getCurrentSettings,
   getEngineMode,
   getEngineZoom,
@@ -47,16 +48,15 @@ describe('Luminos control panel IPC (D2/D3/D4)', () => {
   });
 
   it('D2 zoom slider round-trips through IPC to engine zoom', async () => {
-    const slider = await $('aria/Zoom level');
-
     // Sanity: the engine starts at a zoom different from our target so the
     // assertion is non-vacuous.
     const initialZoom = await getEngineZoom();
     expect(Math.abs(initialZoom - TARGET_ZOOM)).toBeGreaterThan(ZOOM_EPSILON);
 
     // Drive the slider to the target value (fires the React onChange ->
-    // setZoomLevel command).
-    await slider.setValue(String(TARGET_ZOOM));
+    // setZoomLevel command). See `driveZoomSlider` for why WebdriverIO
+    // `setValue` can't be used on a range input under WebKitWebDriver.
+    await driveZoomSlider(TARGET_ZOOM);
 
     // Assert the ENGINE state, not the DOM: poll get_current_settings until the
     // round-trip lands (UI -> set_zoom_level -> StateManager -> ArcSwap).

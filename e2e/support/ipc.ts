@@ -85,6 +85,39 @@ export async function getEngineMode(): Promise<MagnificationMode> {
 }
 
 /**
+ * Drives the zoom slider to an exact value, firing React's controlled-input
+ * `onChange` (and thus the `set_zoom_level` IPC command).
+ *
+ * WebdriverIO's `setValue` first issues a WebDriver *Element Clear*, which
+ * WebKitWebDriver rejects on `<input type="range">` with "invalid element
+ * state". (This is a WebKitWebDriver implementation deviation, not a spec
+ * mandate: the W3C WebDriver "is editable" definition includes the range input
+ * type, and HTML classifies every `input` as a resettable element — so a
+ * conformant Element Clear should accept it.) We sidestep `setValue`/clear
+ * entirely: set `.value` through the prototype's native setter (bypassing the
+ * React value-tracker override so the synthetic `onChange` actually fires) and
+ * dispatch a bubbling `input` event — exactly the DOM signal React's `onChange`
+ * listens for on a range input.
+ */
+export async function driveZoomSlider(value: number): Promise<void> {
+  await browser.execute((target: number) => {
+    const slider = document.querySelector('input[type="range"]') as HTMLInputElement | null;
+    if (slider === null) {
+      throw new Error('zoom slider not present in the DOM');
+    }
+    const setter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      'value',
+    )?.set;
+    if (setter === undefined) {
+      throw new Error('no native value setter on HTMLInputElement.prototype');
+    }
+    setter.call(slider, String(target));
+    slider.dispatchEvent(new Event('input', { bubbles: true }));
+  }, value);
+}
+
+/**
  * Switches the WebDriver session to the control-panel webview.
  *
  * The app opens two webviews (control-panel + overlay); WebKitWebDriver may
