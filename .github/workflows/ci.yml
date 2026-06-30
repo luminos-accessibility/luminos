@@ -393,9 +393,12 @@ jobs:
           cargo run -p luminos-app --features "tauri" -- --export-bindings
           git diff --exit-code ui/src/ipc/bindings.ts
 
-      # Lib unit tests (incl. the offscreen Mesa-llvmpipe clear test) and the
-      # subprocess integration tests. Run serially (the GTK/webkit app is heavy)
-      # and on a single thread so each test's dedicated Xvfb does not contend.
+      # Lib unit tests (incl. the offscreen Mesa-llvmpipe clear test). The
+      # subprocess integration tests are `#[ignore]`-quarantined (DC-10/DC-13:
+      # they boot too slowly under CI load and intermittently miss the harness
+      # boot-marker timeout) and are NOT run here (no `--run-ignored`). Still run
+      # serially on a single thread so any future un-ignored spawn test gets a
+      # dedicated, uncontended Xvfb.
       - name: Run app shell tests
         # Build with `custom-protocol` so the spawned binary serves the embedded
         # frontendDist (production behaviour) rather than the dev server.

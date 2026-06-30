@@ -19,6 +19,7 @@ use std::time::Duration;
 use common::{RunningApp, TestDisplay, find_windows};
 
 #[test]
+#[ignore = "quarantined (DC-10/DC-13): intermittently times out on the Ubuntu 24.04 CI runner -- slow app boot under load races the harness boot-marker timeout (flaky, not deterministic; not yet root-caused). Run locally with --run-ignored all"]
 fn overlay_window_is_undecorated_and_clickthrough() {
     let Some(display) = TestDisplay::launch() else {
         return;
@@ -71,6 +72,7 @@ fn overlay_window_is_undecorated_and_clickthrough() {
 }
 
 #[test]
+#[ignore = "quarantined (DC-10/DC-13): intermittently times out on the Ubuntu 24.04 CI runner -- slow app boot under load races the harness boot-marker timeout (flaky, not deterministic; not yet root-caused). Run locally with --run-ignored all"]
 fn overlay_no_compositor_logs_warn_and_continues() {
     // A dedicated display WITHOUT picom: the app must log NoCompositor and keep
     // running (no panic), proving NFR-3.

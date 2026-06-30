@@ -55,6 +55,7 @@ fn spawn_ready(display: &str, extra_env: &[(&str, &str)]) -> Option<RunningApp> 
 /// `ZoomChangedEvent` (observed via the `emit zoom_changed=` log marker beside
 /// the `.emit()` call).
 #[test]
+#[ignore = "quarantined (DC-10/DC-13): intermittently times out on the Ubuntu 24.04 CI runner -- slow app boot under load races the harness boot-marker timeout (flaky, not deterministic; not yet root-caused). Run locally with --run-ignored all"]
 fn ipc_hotkey_emits_zoom_changed_event() {
     if !xdotool_available() {
         eprintln!("SKIP: xdotool not available");

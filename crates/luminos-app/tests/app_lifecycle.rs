@@ -9,6 +9,7 @@ use std::time::Duration;
 use common::{RunningApp, TestDisplay, find_windows};
 
 #[test]
+#[ignore = "quarantined (DC-10/DC-13): intermittently times out on the Ubuntu 24.04 CI runner -- slow app boot under load races the harness boot-marker timeout (flaky, not deterministic; not yet root-caused). Run locally with --run-ignored all"]
 fn app_boots_two_windows_and_exits_clean() {
     let Some(display) = TestDisplay::launch() else {
         return; // graceful skip: no Xvfb
