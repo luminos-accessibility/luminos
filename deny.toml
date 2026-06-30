@@ -32,6 +32,12 @@ ignore = [
     # paste is unmaintained (RUSTSEC-2024-0436) — transitive dep via wgpu->metal.
     { id = "RUSTSEC-2024-0436", reason = "transitive dep via wgpu->metal, no upstream fix yet" },
 
+    # ttf-parser is unmaintained (RUSTSEC-2026-0192) — transitive dep via
+    # winit->sctk-adwaita->ab_glyph->owned_ttf_parser->ttf-parser. The advisory
+    # states no safe upgrade is available (crate abandoned upstream); cannot be
+    # resolved until ab_glyph/sctk-adwaita migrate to skrifa.
+    { id = "RUSTSEC-2026-0192", reason = "transitive via winit->sctk-adwaita->ab_glyph->ttf-parser, no upstream fix (abandoned)" },
+
     # Tauri transitive dep advisories — all unmaintained crates pulled in by
     # tauri -> tao -> gtk-rs (GTK3 bindings) and related ecosystem crates.
     # These cannot be resolved until Tauri migrates to GTK4 or alternative backends.
